@@ -91,7 +91,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             catch (TargetInvocationException e)
             {
                 Type innerExceptionType = e.InnerException.GetType();
-                if (String.Equals(innerExceptionType.FullName, "Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter.TestPlatformFormatException"))
+                if (innerExceptionType.FullName.EndsWith("TestPlatformFormatException", StringComparison.OrdinalIgnoreCase))
                 {
                     var property = innerExceptionType.GetProperty("FilterValue", BindingFlags.Instance | BindingFlags.Public);
                     if (property != null)
