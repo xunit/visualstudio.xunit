@@ -15,12 +15,6 @@
       <group targetFramework="net45">
         <reference file="xunit.runner.visualstudio.testadapter.dll" />
       </group>
-      <group targetFramework="win8">
-        <reference />
-      </group>
-      <group targetFramework="wpa81">
-        <reference />
-      </group>
     </references>
   </metadata>
   <files>
