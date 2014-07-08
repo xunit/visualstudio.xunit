@@ -4,10 +4,10 @@
     <Message Text="Swapping WPA xUnit Test Adapter Libs" />
 
     <ItemGroup>
-      <xUnitLibs Include="$(MSBuildThisFileDirectory)..\..\lib\Wpa81\WinRT\xunit.runner.visualstudio.testadapter.dll">
+      <xUnitLibs Include="$(MSBuildThisFileDirectory)xunit.runner.visualstudio.testadapter.dll">
         <TargetPath>xunit.runner.visualstudio.testadapter.dll</TargetPath>
       </xUnitLibs>
-      <xUnitLibs Include="$(MSBuildThisFileDirectory)..\..\lib\Wpa81\WinRT\xunit.runner.visualstudio.testadapter.pri">
+      <xUnitLibs Include="$(MSBuildThisFileDirectory)xunit.runner.visualstudio.testadapter.pri">
         <TargetPath>xunit.runner.visualstudio.testadapter.pri</TargetPath>
       </xUnitLibs>
 
