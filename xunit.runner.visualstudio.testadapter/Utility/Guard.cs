@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 internal static class Guard
 {
@@ -6,5 +7,13 @@ internal static class Guard
     {
         if (argValue == null)
             throw new ArgumentNullException(argName);
+    }
+    
+        /// <summary/>
+    [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "This method may not be called by all users of Guard.")]
+    public static void ArgumentValid(string argName, string message, bool test)
+    {
+        if (!test)
+            throw new ArgumentException(message, argName);
     }
 }
