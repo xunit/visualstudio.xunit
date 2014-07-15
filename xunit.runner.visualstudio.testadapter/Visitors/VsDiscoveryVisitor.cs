@@ -41,7 +41,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         public int TotalTests { get; private set; }
 
-        public static TestCase CreateVsTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase xunitTestCase, XunitVisualStudioSettings settings, bool forceUniqueNames)
+        public static TestCase CreateVsTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase xunitTestCase, XunitVisualStudioSettings settings, bool forceUniqueNames, HashSet<string> knownTraitNames = null)
         {
             var serializedTestCase = discoverer.Serialize(xunitTestCase);
             var fqTestMethodName = String.Format("{0}.{1}", xunitTestCase.TestMethod.TestClass.Class.Name, xunitTestCase.TestMethod.Method.Name);
@@ -53,8 +53,15 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             if (addTraitThunk != null)
                 foreach (var key in xunitTestCase.Traits.Keys)
+                {
+                    if (knownTraitNames != null)
+                    {
+                        knownTraitNames.Add(key);
+                    }
+
                     foreach (var value in xunitTestCase.Traits[key])
                         addTraitThunk(result, key, value);
+                }
 
             result.CodeFilePath = xunitTestCase.SourceInformation.FileName;
             result.LineNumber = xunitTestCase.SourceInformation.LineNumber.GetValueOrDefault();
