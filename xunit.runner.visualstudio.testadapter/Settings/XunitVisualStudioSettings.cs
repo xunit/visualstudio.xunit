@@ -24,6 +24,7 @@ namespace Xunit.Runner.VisualStudio.Settings
         public bool ParallelizeAssemblies { get; set; }
         public bool ParallelizeTestCollections { get; set; }
         public bool ShutdownAfterRun { get; set; }
+        public bool DisableShadowCopy { get; set; }
 
         public string GetDisplayName(string displayName, string shortMethodName, string fullyQualifiedMethodName)
         {
@@ -48,6 +49,8 @@ namespace Xunit.Runner.VisualStudio.Settings
                 ParallelizeTestCollections = runSettings.ParallelizeTestCollections.GetValueOrDefault();
             if (runSettings.ShutdownAfterRun.HasValue)
                 ShutdownAfterRun = runSettings.ShutdownAfterRun.GetValueOrDefault();
+            if (runSettings.DisableShadowCopy.HasValue)
+                DisableShadowCopy = runSettings.DisableShadowCopy.GetValueOrDefault();
         }
     }
 }
