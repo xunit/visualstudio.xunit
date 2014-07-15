@@ -80,7 +80,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                             }
                             else
                             {
-                                using (var framework = new XunitFrontController(assemblyFileName, configFileName: null, shadowCopy: true))
+                                using (var framework = new XunitFrontController(assemblyFileName, configFileName: null, shadowCopy: !settings.DisableShadowCopy))
                                 using (var visitor = visitorFactory(assemblyFileName, framework))
                                 {
                                     var targetFramework = framework.TargetFramework;
@@ -216,13 +216,14 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 lock (stopwatch)
                 {
                     frameworkHandle.SendMessage(TestMessageLevel.Informational, String.Format("[xUnit.net {0}] Execution started", stopwatch.Elapsed));
-                    frameworkHandle.SendMessage(TestMessageLevel.Informational, String.Format("[xUnit.net {0}] Settings: MaxParallelThreads = {1}, NameDisplay = {2}, ParallelizeAssemblies = {3}, ParallelizeTestCollections = {4}, ShutdownAfterRun = {5}",
+                    frameworkHandle.SendMessage(TestMessageLevel.Informational, String.Format("[xUnit.net {0}] Settings: MaxParallelThreads = {1}, NameDisplay = {2}, ParallelizeAssemblies = {3}, ParallelizeTestCollections = {4}, ShutdownAfterRun = {5}, DisableShadowCopy = {6}",
                                                                                               stopwatch.Elapsed,
                                                                                               settings.MaxParallelThreads,
                                                                                               settings.NameDisplay,
                                                                                               settings.ParallelizeAssemblies,
                                                                                               settings.ParallelizeTestCollections,
-                                                                                              settings.ShutdownAfterRun));
+                                                                                              settings.ShutdownAfterRun,
+                                                                                              settings.DisableShadowCopy));
                 }
 
             try
@@ -268,7 +269,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 lock (stopwatch)
                     frameworkHandle.SendMessage(TestMessageLevel.Informational, String.Format("[xUnit.net {0}] Execution starting: {1}", stopwatch.Elapsed, Path.GetFileName(assemblyFileName)));
 
-            var controller = new XunitFrontController(assemblyFileName, configFileName: null, shadowCopy: true);
+            var controller = new XunitFrontController(assemblyFileName, configFileName: null, shadowCopy: !settings.DisableShadowCopy);
 
             lock (toDispose)
                 toDispose.Add(controller);

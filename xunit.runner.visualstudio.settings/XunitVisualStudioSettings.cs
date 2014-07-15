@@ -28,6 +28,7 @@ namespace Xunit.Runner.VisualStudio.Settings
         bool parallelizeAssemblies;
         bool parallelizeTestCollections;
         bool shutdownAfterRun;
+        bool disableShadowCopy;
 
         public XunitVisualStudioSettings()
         {
@@ -126,6 +127,21 @@ namespace Xunit.Runner.VisualStudio.Settings
             }
         }
 
+        [Browsable(true)]
+        [Category("General")]
+        [DisplayName("Disable Shadow Copy")]
+        [Description("Disables shadow copy of assemblies into temporary directories (equivalent to /noshadow switch of command line runner).")]
+        public bool DisableShadowCopy
+        {
+            get { return disableShadowCopy; }
+            set
+            {
+                disableShadowCopy = value;
+                if (PropertyChanged != null)
+                    PropertyChanged(this, new PropertyChangedEventArgs("DisableShadowCopy"));
+            }
+        }
+
         public void Reset()
         {
             MaxParallelThreads = 0;
@@ -134,6 +150,7 @@ namespace Xunit.Runner.VisualStudio.Settings
             ParallelizeAssemblies = false;
             ParallelizeTestCollections = true;
             ShutdownAfterRun = false;
+            DisableShadowCopy = false;
         }
 
         public override void ResetSettings()

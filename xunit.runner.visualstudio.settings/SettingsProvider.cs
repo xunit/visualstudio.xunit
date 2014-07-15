@@ -11,6 +11,7 @@ namespace Xunit.Runner.VisualStudio.Settings
         private const string REGVALUE_ParallelizeAssemblies = "ParallelizeAssemblies";
         private const string REGVALUE_ParallelizeTestCollections = "ParallelizeTestCollections";
         private const string REGVALUE_ShutdownAfterRun = "ShutdownAfterRun";
+        private const string REGVALUE_DisableShadowCopy = "DisableShadowCopy";
 
         public static XunitVisualStudioSettings Load()
         {
@@ -27,6 +28,7 @@ namespace Xunit.Runner.VisualStudio.Settings
                 result.ParallelizeAssemblies = vsrunner.GetValue<int>(REGVALUE_ParallelizeAssemblies) != 0;
                 result.ParallelizeTestCollections = vsrunner.GetValue<int>(REGVALUE_ParallelizeTestCollections) != 0;
                 result.ShutdownAfterRun = vsrunner.GetValue<int>(REGVALUE_ShutdownAfterRun) != 0;
+                result.DisableShadowCopy = vsrunner.GetValue<int>(REGVALUE_DisableShadowCopy) != 0;
             }
 
             return result;
@@ -45,6 +47,7 @@ namespace Xunit.Runner.VisualStudio.Settings
                 vsrunner.SetValue(REGVALUE_ParallelizeAssemblies, settings.ParallelizeAssemblies ? 1 : 0);
                 vsrunner.SetValue(REGVALUE_ParallelizeTestCollections, settings.ParallelizeTestCollections ? 1 : 0);
                 vsrunner.SetValue(REGVALUE_ShutdownAfterRun, settings.ShutdownAfterRun ? 1 : 0);
+                vsrunner.SetValue(REGVALUE_DisableShadowCopy, settings.DisableShadowCopy ? 1 : 0);
             }
         }
 
