@@ -1,11 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Reflection;
+using System.Text;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using Xunit.Abstractions;
 using Xunit.Runner.VisualStudio.Settings;
+
+#if WINDOWS_PHONE_APP
+using Xunit.Serialization;
+using Windows.Security.Cryptography;
+using Windows.Security.Cryptography.Core;
+using System.Runtime.InteropServices.WindowsRuntime;
+#else
+using System.Security.Cryptography;
+#endif
 
 namespace Xunit.Runner.VisualStudio.TestAdapter
 {
@@ -50,6 +61,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             var result = new TestCase(uniqueName, uri, source) { DisplayName = Escape(displayName) };
             result.SetPropertyValue(VsTestRunner.SerializedTestCaseProperty, serializedTestCase);
+            result.Id = GuidFromString(uri + xunitTestCase.UniqueID);
 
             if (addTraitThunk != null)
                 foreach (var key in xunitTestCase.Traits.Keys)
@@ -82,12 +94,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             {
                 var testCaseType = typeof(TestCase);
                 var stringType = typeof(string);
-                var property = testCaseType.GetProperty("Traits");
+                var property = testCaseType.GetRuntimeProperty("Traits");
 
                 if (property == null)
                     return null;
 
-                var method = property.PropertyType.GetMethod("Add", new[] { typeof(string), typeof(string) });
+                var method = property.PropertyType.GetRuntimeMethod("Add", new[] { typeof(string), typeof(string) });
                 if (method == null)
                     return null;
 
@@ -140,5 +152,28 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         }
 
         public static string fqTestMethodName { get; set; }
+
+#if WINDOWS_PHONE_APP
+        readonly static HashAlgorithmProvider Hasher = HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Sha1);
+
+        static Guid GuidFromString(string data)
+        {
+            var buffer = CryptographicBuffer.CreateFromByteArray(Encoding.Unicode.GetBytes(data));
+            var hash = Hasher.HashData(buffer).ToArray();
+            var b = new byte[16];
+            Array.Copy((Array)hash, (Array)b, 16);
+            return new Guid(b);
+        }
+#else
+        readonly static HashAlgorithm Hasher = (HashAlgorithm)new SHA1CryptoServiceProvider();
+
+        static Guid GuidFromString(string data)
+        {
+            var hash = Hasher.ComputeHash(Encoding.Unicode.GetBytes(data));
+            var b = new byte[16];
+            Array.Copy((Array)hash, (Array)b, 16);
+            return new Guid(b);
+        }
+#endif
     }
 }
