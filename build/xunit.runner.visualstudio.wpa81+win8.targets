@@ -4,16 +4,16 @@
     <Message Text="Swapping xUnit.net Test Adapter Libraries" />
 
     <ItemGroup>
-      <xUnitLibs Include="$(MSBuildThisFileDirectory)xunit.runner.visualstudio.testadapter.dll">
+      <xUnitLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.visualstudio.testadapter.dll">
         <TargetPath>xunit.runner.visualstudio.testadapter.dll</TargetPath>
       </xUnitLibs>
-      <xUnitLibs Include="$(MSBuildThisFileDirectory)xunit.runner.visualstudio.testadapter.pri">
+      <xUnitLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.visualstudio.testadapter.pri" Condition="Exists('$(MSBuildThisFileDirectory)device\xunit.runner.visualstudio.testadapter.pri')">
         <TargetPath>xunit.runner.visualstudio.testadapter.pri</TargetPath>
       </xUnitLibs>
-      <xUnitLibs Include="$(MSBuildThisFileDirectory)xunit.runner.utility.dll">
+      <xUnitLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.utility.dll">
         <TargetPath>xunit.runner.utility.dll</TargetPath>
       </xUnitLibs>
-      <xUnitLibs Include="$(MSBuildThisFileDirectory)xunit.runner.utility.pri">
+      <xUnitLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.utility.pri" Condition="Exists('$(MSBuildThisFileDirectory)device\xunit.runner.utility.pri')">
         <TargetPath>xunit.runner.utility.pri</TargetPath>
       </xUnitLibs>
 
@@ -21,6 +21,7 @@
       <xUnitLibsToRemove Include="@(AppxPackagePayload)" Condition="'%(TargetPath)' == 'xunit.runner.visualstudio.testadapter.pdb'"/>
       <xUnitLibsToRemove Include="@(AppxPackagePayload)" Condition="'%(TargetPath)' == 'xunit.runner.utility.dll'"/>
       <xUnitLibsToRemove Include="@(AppxPackagePayload)" Condition="'%(TargetPath)' == 'xunit.runner.utility.pri'"/>
+      <xUnitLibsToRemove Include="@(AppxPackagePayload)" Condition="'%(TargetPath)' == 'xunit.runner.utility.pdb'"/>
 
       <AppxPackagePayload Remove="@(xUnitLibsToRemove)" />
       <AppxPackagePayload Include="@(xUnitLibs)" />

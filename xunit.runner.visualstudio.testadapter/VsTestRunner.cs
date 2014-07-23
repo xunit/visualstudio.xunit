@@ -69,8 +69,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                      Func<string, ITestFrameworkDiscoverer, TVisitor> visitorFactory,
                                      Action<string, ITestFrameworkDiscoverer, TVisitor> visitComplete = null,
                                      Stopwatch stopwatch = null)
-            where TVisitor : IVsDiscoveryVisitor
-        {
+            where TVisitor : IVsDiscoveryVisitor, IDisposable            
+         {
             if (stopwatch == null)
                 stopwatch = Stopwatch.StartNew();
 
