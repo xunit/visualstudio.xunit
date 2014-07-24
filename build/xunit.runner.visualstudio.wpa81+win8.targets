@@ -4,27 +4,27 @@
     <Message Text="Swapping xUnit.net Test Adapter Libraries" />
 
     <ItemGroup>
-      <xUnitLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.visualstudio.testadapter.dll">
+      <xUnitVsLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.visualstudio.testadapter.dll">
         <TargetPath>xunit.runner.visualstudio.testadapter.dll</TargetPath>
-      </xUnitLibs>
-      <xUnitLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.visualstudio.testadapter.pri" Condition="Exists('$(MSBuildThisFileDirectory)device\xunit.runner.visualstudio.testadapter.pri')">
+      </xUnitVsLibs>
+      <xUnitVsLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.visualstudio.testadapter.pri" Condition="Exists('$(MSBuildThisFileDirectory)device\xunit.runner.visualstudio.testadapter.pri')">
         <TargetPath>xunit.runner.visualstudio.testadapter.pri</TargetPath>
-      </xUnitLibs>
-      <xUnitLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.utility.dll">
+      </xUnitVsLibs>
+      <xUnitVsLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.utility.dll">
         <TargetPath>xunit.runner.utility.dll</TargetPath>
-      </xUnitLibs>
-      <xUnitLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.utility.pri" Condition="Exists('$(MSBuildThisFileDirectory)device\xunit.runner.utility.pri')">
+      </xUnitVsLibs>
+      <xUnitVsLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.utility.pri" Condition="Exists('$(MSBuildThisFileDirectory)device\xunit.runner.utility.pri')">
         <TargetPath>xunit.runner.utility.pri</TargetPath>
-      </xUnitLibs>
+      </xUnitVsLibs>
 
-      <xUnitLibsToRemove Include="@(AppxPackagePayload)" Condition="'%(TargetPath)' == 'xunit.runner.visualstudio.testadapter.dll'"/>
-      <xUnitLibsToRemove Include="@(AppxPackagePayload)" Condition="'%(TargetPath)' == 'xunit.runner.visualstudio.testadapter.pdb'"/>
-      <xUnitLibsToRemove Include="@(AppxPackagePayload)" Condition="'%(TargetPath)' == 'xunit.runner.utility.dll'"/>
-      <xUnitLibsToRemove Include="@(AppxPackagePayload)" Condition="'%(TargetPath)' == 'xunit.runner.utility.pri'"/>
-      <xUnitLibsToRemove Include="@(AppxPackagePayload)" Condition="'%(TargetPath)' == 'xunit.runner.utility.pdb'"/>
+      <xUnitVsLibsToRemove Include="@(AppxPackagePayload)" Condition="'%(TargetPath)' == 'xunit.runner.visualstudio.testadapter.dll'"/>
+      <xUnitVsLibsToRemove Include="@(AppxPackagePayload)" Condition="'%(TargetPath)' == 'xunit.runner.visualstudio.testadapter.pdb'"/>
+      <xUnitVsLibsToRemove Include="@(AppxPackagePayload)" Condition="'%(TargetPath)' == 'xunit.runner.utility.dll'"/>
+      <xUnitVsLibsToRemove Include="@(AppxPackagePayload)" Condition="'%(TargetPath)' == 'xunit.runner.utility.pri'"/>
+      <xUnitVsLibsToRemove Include="@(AppxPackagePayload)" Condition="'%(TargetPath)' == 'xunit.runner.utility.pdb'"/>
 
-      <AppxPackagePayload Remove="@(xUnitLibsToRemove)" />
-      <AppxPackagePayload Include="@(xUnitLibs)" />
+      <AppxPackagePayload Remove="@(xUnitVsLibsToRemove)" />
+      <AppxPackagePayload Include="@(xUnitVsLibs)" />
     </ItemGroup>
 
   </Target>
