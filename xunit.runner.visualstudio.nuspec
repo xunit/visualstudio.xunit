@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>xunit.runner.visualstudio</id>
-    <version>0.99.7</version>
+    <version>0.99.8</version>
     <title>xUnit.net [Visual Studio/TFS Build Runner]</title>
     <authors>James Newkirk, Brad Wilson</authors>
     <description>Includes support for running xUnit.net v1 and v2 tests from Visual Studio 2012+ and TFS Build 2012+.</description>
@@ -16,9 +16,34 @@
     </references>
   </metadata>
   <files>
-    <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.abstractions.dll" target="lib\" />
-    <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.runner.utility.dll" target="lib\" />
-    <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.runner.visualstudio.testadapter.dll" target="lib\" />
-    <file src="xunit.runner.visualstudio.testadapter\**\*.cs" target="src" />
+    <!-- Desktop -->
+    <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.abstractions.dll"                    target="lib\net45\xunit.abstractions.dll" />
+    <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.runner.utility.dll"                  target="lib\net45\xunit.runner.utility.dll" />
+    <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.runner.visualstudio.testadapter.dll" target="lib\net45\xunit.runner.visualstudio.testadapter.dll" />
+
+    <!-- Win8 -->
+    <file src="build\_._"                                                                                        target="lib\win8\_._" />
+    <file src="build\xunit.runner.visualstudio.wpa81+win8.props"                                                 target="build\win8\xunit.runner.visualstudio.props" />
+    <file src="build\xunit.runner.visualstudio.wpa81+win8.targets"                                               target="build\win8\xunit.runner.visualstudio.targets" />
+    <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.runner.utility.dll"                       target="build\win8\xunit.runner.utility.dll" />
+    <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.runner.visualstudio.testadapter.dll"      target="build\win8\xunit.runner.visualstudio.testadapter.dll" />
+    
+    <file src="xunit.runner.visualstudio.testadapter.win8\bin\Release\xunit.runner.utility.dll"                  target="build\win8\device\xunit.runner.utility.dll" />
+    <file src="xunit.runner.visualstudio.testadapter.win8\bin\Release\xunit.runner.visualstudio.testadapter.dll" target="build\win8\device\xunit.runner.visualstudio.testadapter.dll" />
+
+    <!-- WPA81 -->
+    <file src="build\_._"                                                                                         target="lib\wpa81\_._" />
+    <file src="build\xunit.runner.visualstudio.wpa81+win8.targets"                                                target="build\wpa81\xunit.runner.visualstudio.targets" />
+    <file src="build\xunit.runner.visualstudio.wpa81+win8.props"                                                  target="build\wpa81\xunit.runner.visualstudio.props" />
+    <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.runner.utility.dll"                        target="build\wpa81\xunit.runner.utility.dll" />
+    <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.runner.visualstudio.testadapter.dll"       target="build\wpa81\xunit.runner.visualstudio.testadapter.dll" />
+
+    <file src="xunit.runner.visualstudio.testadapter.wpa81\bin\Release\xunit.runner.utility.dll"                  target="build\wpa81\device\xunit.runner.utility.dll" />
+    <file src="xunit.runner.visualstudio.testadapter.wpa81\bin\Release\xunit.runner.utility.pri"                  target="build\wpa81\device\xunit.runner.utility.pri" />
+    <file src="xunit.runner.visualstudio.testadapter.wpa81\bin\Release\xunit.runner.visualstudio.testadapter.dll" target="build\wpa81\device\xunit.runner.visualstudio.testadapter.dll" />
+    <file src="xunit.runner.visualstudio.testadapter.wpa81\bin\Release\xunit.runner.visualstudio.testadapter.pri" target="build\wpa81\device\xunit.runner.visualstudio.testadapter.pri" />
+
+    <!-- Source -->
+    <file src="xunit.runner.visualstudio.testadapter*\**\*.cs" target="src" />
   </files>
 </package>

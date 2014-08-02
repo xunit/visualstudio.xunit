@@ -7,4 +7,10 @@ internal static class Guard
         if (argValue == null)
             throw new ArgumentNullException(argName);
     }
+
+    public static void ArgumentValid(string argName, string message, bool test)
+    {
+        if (!test)
+            throw new ArgumentException(message, argName);
+    }
 }
