@@ -45,7 +45,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\xunit.abstractions.2.0.0-beta-build2718\lib\net35\xunit.abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="xunit.runner.utility, Version=2.0.0.3000, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+    <Reference Include="xunit.runner.utility, Version=2.0.0.2718, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\xunit.runner.utility.visualstudio.win8.2.0.0-beta-build2718\lib\xunit.runner.utility.dll</HintPath>
     </Reference>
