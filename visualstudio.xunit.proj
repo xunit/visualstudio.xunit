@@ -56,36 +56,13 @@
     <Exec Command="&quot;$(NuGetExePath)&quot; restore &quot;$(SolutionDir)\visualstudio.xunit.sln&quot; -NonInteractive -Source @(PackageSource) -Verbosity quiet" />
   </Target>
 
-  <Target Name="Build" DependsOnTargets="PackageRestore;_BuildProject;_BuildVsix" />
+  <Target Name="Build" DependsOnTargets="PackageRestore;_BuildProject" />
 
   <Target Name="_BuildProject">
     <MSBuild
         Projects="visualstudio.xunit.sln"
         Targets="Build"
         Properties="Configuration=$(Configuration);TrackFileAccess=$(TrackFileAccess)"/>
-  </Target>
-
-  <Target Name="_BuildVsix">
-    <PropertyGroup>
-      <InputSettings>$(SolutionDir)\xunit.runner.visualstudio.settings\bin\$(Configuration)\</InputSettings>
-      <InputTestAdapter>$(SolutionDir)\xunit.runner.visualstudio.testadapter\bin\$(Configuration)\</InputTestAdapter>
-      <OutputPath>$(SolutionDir)\xunit.runner.visualstudio.settings\bin\$(Configuration)\</OutputPath>
-    </PropertyGroup>
-    <ItemGroup>
-      <ZipItems Include="$(InputTestAdapter)*.dll;
-                         $(InputSettings)*.dll;
-                         $(InputSettings)*.vsixmanifest;
-                         $(InputSettings)[Content_Types].xml;
-                         $(InputSettings)*.txt;
-                         $(InputSettings)*.ico;
-                         $(InputSettings)*.pkgdef" />
-    </ItemGroup>
-    <Delete Files="$(OutputPath)xunit.runner.visualstudio.vsix" />
-    <Delete Files="$(OutputPath)xunit.runner.visualstudio.vsix.zip" />
-
-    <Zip ZipFileName="$(OutputPath)xunit.runner.visualstudio.vsix.zip" Files="@(ZipItems)" StripPath="true" />
-    <Copy SourceFiles="$(OutputPath)xunit.runner.visualstudio.vsix.zip" DestinationFiles="$(OutputPath)xunit.runner.visualstudio.vsix" />
-    <Delete Files="$(OutputPath)xunit.runner.visualstudio.vsix.zip" />
   </Target>
 
   <Target Name="SetVersionNumber">

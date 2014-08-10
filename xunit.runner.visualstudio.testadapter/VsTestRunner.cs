@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable 4014
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
@@ -219,18 +220,13 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             if (ContainsAppX(sources))
             {
 #if WINDOWS_PHONE_APP
-                var files = Directory.GetFiles(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "*.dll");
+                var sourcePath = Windows.ApplicationModel.Package.Current.InstalledLocation.Path;
 #else
-                var files = Directory.EnumerateFiles(Environment.CurrentDirectory, "*.dll", SearchOption.TopDirectoryOnly);
+                var sourcePath = Environment.CurrentDirectory;
 #endif
-
-                var toAdd = from file in files
-                            let system = platformAssemblies.Contains(Path.GetFileName(file)
-                                                                         .ToUpperInvariant())
-                            where !system
-                            select file;
-
-                sources = toAdd.ToList();
+                sources = Directory.GetFiles(sourcePath, "*.dll")
+                                   .Where(file => !platformAssemblies.Contains(Path.GetFileName(file)))
+                                   .ToList();
             }
 
             var stopwatch = Stopwatch.StartNew();
@@ -358,8 +354,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                                  Stopwatch stopwatch)
         {
             var @event = new ManualResetEvent(initialState: false);
-
-            Task.Run(() =>
+            Action handler = () =>
             {
                 try
                 {
@@ -369,7 +364,13 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 {
                     @event.Set();
                 }
-            });
+            };
+
+#if WINDOWS_PHONE_APP
+            Windows.System.Threading.ThreadPool.RunAsync(_ => handler());
+#else
+            ThreadPool.QueueUserWorkItem(_ => handler());
+#endif
 
             return @event;
         }

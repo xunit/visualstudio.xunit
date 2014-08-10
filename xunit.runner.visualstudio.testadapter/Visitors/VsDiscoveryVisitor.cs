@@ -94,12 +94,20 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             {
                 var testCaseType = typeof(TestCase);
                 var stringType = typeof(string);
+#if WINDOWS_PHONE_APP
                 var property = testCaseType.GetRuntimeProperty("Traits");
+#else
+                var property = testCaseType.GetProperty("Traits");
+#endif
 
                 if (property == null)
                     return null;
 
+#if WINDOWS_PHONE_APP
                 var method = property.PropertyType.GetRuntimeMethod("Add", new[] { typeof(string), typeof(string) });
+#else
+                var method = property.PropertyType.GetMethod("Add", new[] { typeof(string), typeof(string) });
+#endif
                 if (method == null)
                     return null;
 
