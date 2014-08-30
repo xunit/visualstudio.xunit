@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>xunit.runner.visualstudio</id>
-    <version>0.99.8</version>
+    <version>0.99.8-build0</version>
     <title>xUnit.net [Visual Studio]</title>
     <authors>James Newkirk, Brad Wilson</authors>
     <description>Includes support for running xUnit.net v1 and v2 tests from Visual Studio 2012+.</description>
@@ -38,8 +38,5 @@
     <file src="xunit.runner.visualstudio.testadapter.wpa81\bin\Release\xunit.runner.visualstudio.testadapter.dll" target="build\wpa81\device\xunit.runner.visualstudio.testadapter.dll" />
     <file src="xunit.runner.visualstudio.testadapter.wpa81\bin\Release\xunit.runner.visualstudio.testadapter.pri" target="build\wpa81\device\xunit.runner.visualstudio.testadapter.pri" />
     <file src="xunit.runner.visualstudio.testadapter.wpa81\bin\Release\xunit.runner.visualstudio.testadapter.pdb" target="build\wpa81\device\xunit.runner.visualstudio.testadapter.pdb" />
-
-    <!-- Source -->
-    <file src="xunit.runner.visualstudio.testadapter*\**\*.cs" target="src" />
   </files>
 </package>
