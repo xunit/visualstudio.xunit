@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Xunit.Runner.VisualStudio.TestAdapter</RootNamespace>
-    <AssemblyName>xunit.runner.visualstudio.testadapter</AssemblyName>
+    <AssemblyName>xunit.runner.visualstudio.win8</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

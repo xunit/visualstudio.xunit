@@ -4,16 +4,16 @@
     <Message Text="Swapping xUnit.net Test Adapter Libraries" />
 
     <ItemGroup>
-      <xUnitVsLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.visualstudio.testadapter.dll">
+      <xUnitVsLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.visualstudio.wpa81.dll">
         <TargetPath>xunit.runner.visualstudio.testadapter.dll</TargetPath>
       </xUnitVsLibs>
-      <xUnitVsLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.visualstudio.testadapter.pri" Condition="Exists('$(MSBuildThisFileDirectory)device\xunit.runner.visualstudio.testadapter.pri')">
+      <xUnitVsLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.visualstudio.wpa81.pri">
         <TargetPath>xunit.runner.visualstudio.testadapter.pri</TargetPath>
       </xUnitVsLibs>
       <xUnitVsLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.utility.dll">
         <TargetPath>xunit.runner.utility.dll</TargetPath>
       </xUnitVsLibs>
-      <xUnitVsLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.utility.pri" Condition="Exists('$(MSBuildThisFileDirectory)device\xunit.runner.utility.pri')">
+      <xUnitVsLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.utility.pri">
         <TargetPath>xunit.runner.utility.pri</TargetPath>
       </xUnitVsLibs>
 

@@ -7,15 +7,18 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.runner.visualstudio.s
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.runner.visualstudio.testadapter", "xunit.runner.visualstudio.testadapter\xunit.runner.visualstudio.testadapter.csproj", "{EBAB9937-2A6A-41EA-848B-3F7EDE2396CB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.runner.visualstudio.testadapter.win8", "xunit.runner.visualstudio.testadapter.win8\xunit.runner.visualstudio.testadapter.win8.csproj", "{1ABFC6A3-114A-4771-9DBB-1F04A7EC335D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.runner.visualstudio.win8", "xunit.runner.visualstudio.win8\xunit.runner.visualstudio.win8.csproj", "{1ABFC6A3-114A-4771-9DBB-1F04A7EC335D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.runner.visualstudio.testadapter.wpa81", "xunit.runner.visualstudio.testadapter.wpa81\xunit.runner.visualstudio.testadapter.wpa81.csproj", "{1F759DC9-82C9-45B1-A9DA-E3A7B7386CED}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.runner.visualstudio.wpa81", "xunit.runner.visualstudio.wpa81\xunit.runner.visualstudio.wpa81.csproj", "{1F759DC9-82C9-45B1-A9DA-E3A7B7386CED}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4E13DEEC-B4B3-4D16-8D20-21FE543916B0}"
 	ProjectSection(SolutionItems) = preProject
 		xunit.runner.visualstudio.nuspec = xunit.runner.visualstudio.nuspec
-		build\xunit.runner.visualstudio.wpa81+win8.props = build\xunit.runner.visualstudio.wpa81+win8.props
-		build\xunit.runner.visualstudio.wpa81+win8.targets = build\xunit.runner.visualstudio.wpa81+win8.targets
+		build\xunit.runner.visualstudio.props = build\xunit.runner.visualstudio.props
+		xunit.runner.visualstudio.win8.nuspec = xunit.runner.visualstudio.win8.nuspec
+		build\xunit.runner.visualstudio.win8.targets = build\xunit.runner.visualstudio.win8.targets
+		xunit.runner.visualstudio.wpa81.nuspec = xunit.runner.visualstudio.wpa81.nuspec
+		build\xunit.runner.visualstudio.wpa81.targets = build\xunit.runner.visualstudio.wpa81.targets
 	EndProjectSection
 EndProject
 Global
