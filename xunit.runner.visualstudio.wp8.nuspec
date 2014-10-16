@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package>
   <metadata>
-    <id>xunit.runner.visualstudio.wpa81</id>
+    <id>xunit.runner.visualstudio.wp8</id>
     <version>0.99.9</version>
-    <title>xUnit.net [Visual Studio Windows Phone 8.1+ support]</title>
+    <title>xUnit.net [Visual Studio Windows Phone 8 Silverlight support]</title>
     <authors>James Newkirk, Brad Wilson</authors>
     <description>Includes support for running xUnit.net v2 tests from Visual Studio 2012+ for Windows Phone 8.1+ applications.</description>
     <language>en-US</language>
