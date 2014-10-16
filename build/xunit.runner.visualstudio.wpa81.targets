@@ -5,10 +5,10 @@
 
     <ItemGroup>
       <xUnitVsLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.visualstudio.wpa81.dll">
-        <TargetPath>xunit.runner.visualstudio.testadapter.dll</TargetPath>
+        <TargetPath>xunit.runner.visualstudio.wpa81.dll</TargetPath>
       </xUnitVsLibs>
       <xUnitVsLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.visualstudio.wpa81.pri">
-        <TargetPath>xunit.runner.visualstudio.testadapter.pri</TargetPath>
+        <TargetPath>xunit.runner.visualstudio.wpa81.pri</TargetPath>
       </xUnitVsLibs>
       <xUnitVsLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.utility.dll">
         <TargetPath>xunit.runner.utility.dll</TargetPath>
