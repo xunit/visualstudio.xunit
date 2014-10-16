@@ -5,7 +5,7 @@
 
     <ItemGroup>
       <xUnitVsLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.visualstudio.wp8.dll">
-        <TargetPath>xunit.runner.visualstudio.testadapter.dll</TargetPath>
+        <TargetPath>xunit.runner.visualstudio.wp8.dll</TargetPath>
       </xUnitVsLibs>
       <xUnitVsLibs Include="$(MSBuildThisFileDirectory)device\xunit.runner.utility.dll">
         <TargetPath>xunit.runner.utility.dll</TargetPath>
