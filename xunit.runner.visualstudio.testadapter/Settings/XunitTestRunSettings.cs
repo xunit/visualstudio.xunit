@@ -20,7 +20,7 @@ namespace Xunit.Runner.VisualStudio.Settings
         public bool? ParallelizeTestCollections { get; set; }
         public bool? ShutdownAfterRun { get; set; }
 
-#if !WINDOWS_PHONE_APP
+#if !WINDOWS_PHONE_APP && !WINDOWS_PHONE
         public override XmlElement ToXml()
         {
             var stringWriter = new StringWriter();
