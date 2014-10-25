@@ -173,7 +173,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             return new Guid(b);
         }
 #else
-        readonly static HashAlgorithm Hasher = (HashAlgorithm)new SHA1CryptoServiceProvider();
+        readonly static HashAlgorithm Hasher = new SHA1Managed();
 
         static Guid GuidFromString(string data)
         {

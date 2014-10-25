@@ -21,7 +21,7 @@ namespace Xunit.Runner.VisualStudio.Settings
         {
             var result = new XunitVisualStudioSettings();
 
-#if !WIN8_STORE && !WINDOWS_PHONE_APP
+#if !WIN8_STORE && !WINDOWS_PHONE_APP && !WINDOWS_PHONE
             using (var software = Registry.CurrentUser.OpenSubKey("Software", writable: true))
             using (var outercurve = software.CreateOrOpen("Outercurve Foundation"))
             using (var xunit = outercurve.CreateOrOpen("xUnit.net"))
@@ -41,7 +41,7 @@ namespace Xunit.Runner.VisualStudio.Settings
 
         public static void Save(XunitVisualStudioSettings settings)
         {
-#if !WIN8_STORE && !WINDOWS_PHONE_APP
+#if !WIN8_STORE && !WINDOWS_PHONE_APP && !WINDOWS_PHONE
             using (var software = Registry.CurrentUser.OpenSubKey("Software", writable: true))
             using (var outercurve = software.CreateOrOpen("Outercurve Foundation"))
             using (var xunit = outercurve.CreateOrOpen("xUnit.net"))
@@ -57,7 +57,7 @@ namespace Xunit.Runner.VisualStudio.Settings
 #endif
         }
 
-#if !WIN8_STORE && !WINDOWS_PHONE_APP
+#if !WIN8_STORE && !WINDOWS_PHONE_APP && !WINDOWS_PHONE
         static RegistryKey CreateOrOpen(this RegistryKey parent, string keyName)
         {
             return parent.OpenSubKey(keyName, writable: true) ?? parent.CreateSubKey(keyName);
