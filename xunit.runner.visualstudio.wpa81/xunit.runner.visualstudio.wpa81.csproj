@@ -98,9 +98,6 @@
     <Compile Include="..\common\WinRTFile.cs">
       <Link>Common\WinRTFile.cs</Link>
     </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.settings\SettingsProvider.cs">
-      <Link>Settings\SettingsProvider.cs</Link>
-    </Compile>
     <Compile Include="..\xunit.runner.visualstudio.testadapter\Constants.cs">
       <Link>Constants.cs</Link>
     </Compile>
@@ -142,11 +139,11 @@
   <ItemGroup>
     <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\xunit.abstractions.2.0.0-beta5-build2769\lib\portable-net45+win+wpa81+wp80+monotouch+monoandroid\xunit.abstractions.dll</HintPath>
+      <HintPath>..\packages\xunit.abstractions.2.0.0-beta5-build2784\lib\portable-net45+aspnetcore50+win+wpa81+wp80+monotouch+monoandroid\xunit.abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="xunit.runner.utility, Version=2.0.0.2769, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+    <Reference Include="xunit.runner.utility, Version=2.0.0.2784, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\xunit.runner.utility.2.0.0-beta5-build2769\lib\portable-wpa81+win81\xunit.runner.utility.dll</HintPath>
+      <HintPath>..\packages\xunit.runner.utility.2.0.0-beta5-build2784\lib\portable-wpa81+win81\xunit.runner.utility.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

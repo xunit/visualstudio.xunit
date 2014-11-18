@@ -59,7 +59,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             DiscoverTests(
                 sources,
                 logger,
-                SettingsProvider.Load(),
+                new XunitVisualStudioSettings(),
                 (source, discoverer) => new VsDiscoveryVisitor(source, discoverer, logger, discoveryContext, discoverySink, () => cancelled)
             );
         }
@@ -249,7 +249,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             Guard.ArgumentNotNull("runContext", runContext);
             Guard.ArgumentNotNull("frameworkHandle", frameworkHandle);
 
-            var settings = SettingsProvider.Load();
+            var settings = new XunitVisualStudioSettings();
             var shuttingDown = !runContext.KeepAlive || settings.ShutdownAfterRun;
 
             if (runContext.KeepAlive && settings.ShutdownAfterRun)

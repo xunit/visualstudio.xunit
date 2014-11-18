@@ -43,7 +43,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             this.discoverySink = discoverySink;
             this.cancelThunk = cancelThunk;
 
-            settings = SettingsProvider.Load();
+            settings = new XunitVisualStudioSettings();
 
             var settingsProvider = discoveryContext.RunSettings.GetSettings(XunitTestRunSettings.SettingsName) as XunitTestRunSettingsProvider;
             if (settingsProvider != null && settingsProvider.Settings != null)

@@ -89,7 +89,6 @@
   <Target Name='ZipArtifacts'>
     <ItemGroup>
       <Binaries Include="*.nupkg" />
-      <Binaries Include="xunit.runner.visualstudio.settings/bin/Release/*.vsix" />
     </ItemGroup>
 
     <Delete Files="binaries.zip" />

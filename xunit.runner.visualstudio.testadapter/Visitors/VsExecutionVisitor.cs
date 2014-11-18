@@ -23,7 +23,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             this.testCases = testCases;
             this.cancelledThunk = cancelledThunk;
 
-            settings = SettingsProvider.Load();
+            settings = new XunitVisualStudioSettings();
 
             var settingsProvider = discoveryContext.RunSettings.GetSettings(XunitTestRunSettings.SettingsName) as XunitTestRunSettingsProvider;
             if (settingsProvider != null && settingsProvider.Settings != null)
@@ -96,7 +96,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         protected override bool Visit(ITestCleanupFailure cleanupFailure)
         {
-            return WriteError(String.Format("Test Cleanup Failure ({0})", cleanupFailure.TestDisplayName), cleanupFailure, cleanupFailure.TestCases);
+            return WriteError(String.Format("Test Cleanup Failure ({0})", cleanupFailure.Test.DisplayName), cleanupFailure, cleanupFailure.TestCases);
         }
 
         protected override bool Visit(ITestMethodCleanupFailure cleanupFailure)
@@ -121,7 +121,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         private VsTestResult MakeVsTestResult(TestOutcome outcome, ITestResultMessage testResult)
         {
-            return MakeVsTestResult(outcome, testResult.TestCase, testResult.TestDisplayName, (double)testResult.ExecutionTime, testResult.Output);
+            return MakeVsTestResult(outcome, testResult.TestCase, testResult.Test.DisplayName, (double)testResult.ExecutionTime, testResult.Output);
         }
 
         private VsTestResult MakeVsTestResult(TestOutcome outcome, ITestCase testCase, string displayName, double executionTime = 0.0, string output = null)
