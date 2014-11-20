@@ -21,8 +21,8 @@
 
     <!-- Execution -->
     <file src="build\_._"                             target="lib\net20\_._" />
-    <file src="build\_._"                             target="lib\portable-net40+aspnetcore50+win+wpa81+wp80+monotouch+monoandroid\_._" />
+    <file src="build\_._"                             target="lib\portable-net40+aspnetcore50+sl50+win+wpa81+wp80+monotouch+monoandroid\_._" />
     <file src="build\xunit.runner.visualstudio.props" target="build\net20\xunit.runner.visualstudio.props" />
-    <file src="build\xunit.runner.visualstudio.props" target="build\portable-net40+aspnetcore50+win+wpa81+wp80+monotouch+monoandroid\xunit.runner.visualstudio.props" />
+    <file src="build\xunit.runner.visualstudio.props" target="build\portable-net40+aspnetcore50+sl50+win+wpa81+wp80+monotouch+monoandroid\xunit.runner.visualstudio.props" />
   </files>
 </package>
