@@ -44,10 +44,10 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="xunit.abstractions">
-      <HintPath>..\packages\xunit.abstractions.2.0.0-beta5-build2785\lib\net35\xunit.abstractions.dll</HintPath>
+      <HintPath>..\packages\xunit.abstractions.2.0.0-beta5-build2787\lib\net35\xunit.abstractions.dll</HintPath>
     </Reference>
     <Reference Include="xunit.runner.utility">
-      <HintPath>..\packages\xunit.runner.utility.2.0.0-beta5-build2785\lib\net35\xunit.runner.utility.dll</HintPath>
+      <HintPath>..\packages\xunit.runner.utility.2.0.0-beta5-build2787\lib\net35\xunit.runner.utility.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -56,9 +56,8 @@
     <Compile Include="..\common\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Settings\XunitTestRunSettingsProvider.cs" />
-    <Compile Include="Settings\XunitVisualStudioSettings.cs" />
     <Compile Include="Utility\AssemblyExtensions.cs" />
+    <Compile Include="Utility\AssemblyRunInfo.cs" />
     <Compile Include="Utility\ExceptionExtensions.cs" />
     <Compile Include="Utility\Guard.cs" />
     <Compile Include="Visitors\TestDiscoveryVisitor.cs" />
@@ -67,7 +66,6 @@
     <Compile Include="Visitors\VsExecutionDiscoveryVisitor.cs" />
     <Compile Include="Visitors\VsExecutionVisitor.cs" />
     <Compile Include="VsTestRunner.cs" />
-    <Compile Include="Settings\XunitTestRunSettings.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

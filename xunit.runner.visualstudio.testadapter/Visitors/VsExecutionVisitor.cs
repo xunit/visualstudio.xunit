@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using Xunit.Abstractions;
-using Xunit.Runner.VisualStudio.Settings;
 using VsTestResult = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestResult;
 using VsTestResultMessage = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestResultMessage;
 
@@ -15,19 +14,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         readonly Func<bool> cancelledThunk;
         readonly ITestExecutionRecorder recorder;
         readonly Dictionary<ITestCase, TestCase> testCases;
-        readonly XunitVisualStudioSettings settings;
 
         public VsExecutionVisitor(IDiscoveryContext discoveryContext, ITestExecutionRecorder recorder, Dictionary<ITestCase, TestCase> testCases, Func<bool> cancelledThunk)
         {
             this.recorder = recorder;
             this.testCases = testCases;
             this.cancelledThunk = cancelledThunk;
-
-            settings = new XunitVisualStudioSettings();
-
-            var settingsProvider = discoveryContext.RunSettings.GetSettings(XunitTestRunSettings.SettingsName) as XunitTestRunSettingsProvider;
-            if (settingsProvider != null && settingsProvider.Settings != null)
-                settings.Merge(settingsProvider.Settings);
         }
 
         protected override bool Visit(IErrorMessage error)
@@ -128,14 +120,13 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         {
             var vsTestCase = testCases[testCase];
             var fqTestMethodName = String.Format("{0}.{1}", testCase.TestMethod.TestClass.Class.Name, testCase.TestMethod.Method.Name);
-            var vsDisplayName = settings.GetDisplayName(displayName, testCase.TestMethod.Method.Name, fqTestMethodName);
 
             var result = new VsTestResult(vsTestCase)
             {
 #if !WINDOWS_PHONE_APP && !WINDOWS_PHONE
                 ComputerName = Environment.MachineName,
 #endif
-                DisplayName = vsDisplayName,
+                DisplayName = displayName,
                 Duration = TimeSpan.FromSeconds(executionTime),
                 Outcome = outcome,
             };

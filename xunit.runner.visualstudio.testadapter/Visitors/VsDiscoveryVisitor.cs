@@ -7,7 +7,6 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using Xunit.Abstractions;
-using Xunit.Runner.VisualStudio.Settings;
 
 #if WINDOWS_PHONE_APP
 using Xunit.Serialization;
@@ -30,7 +29,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         readonly ITestCaseDiscoverySink discoverySink;
         readonly List<ITestCase> lastTestClassTestCases = new List<ITestCase>();
         readonly IMessageLogger logger;
-        readonly XunitVisualStudioSettings settings;
         readonly string source;
 
         string lastTestClass;
@@ -42,24 +40,17 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             this.logger = logger;
             this.discoverySink = discoverySink;
             this.cancelThunk = cancelThunk;
-
-            settings = new XunitVisualStudioSettings();
-
-            var settingsProvider = discoveryContext.RunSettings.GetSettings(XunitTestRunSettings.SettingsName) as XunitTestRunSettingsProvider;
-            if (settingsProvider != null && settingsProvider.Settings != null)
-                settings.Merge(settingsProvider.Settings);
         }
 
         public int TotalTests { get; private set; }
 
-        public static TestCase CreateVsTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase xunitTestCase, XunitVisualStudioSettings settings, bool forceUniqueNames)
+        public static TestCase CreateVsTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase xunitTestCase, bool forceUniqueNames)
         {
             var serializedTestCase = discoverer.Serialize(xunitTestCase);
             var fqTestMethodName = String.Format("{0}.{1}", xunitTestCase.TestMethod.TestClass.Class.Name, xunitTestCase.TestMethod.Method.Name);
-            var displayName = settings.GetDisplayName(xunitTestCase.DisplayName, xunitTestCase.TestMethod.Method.Name, fqTestMethodName);
             var uniqueName = forceUniqueNames ? String.Format("{0} ({1})", fqTestMethodName, xunitTestCase.UniqueID) : fqTestMethodName;
 
-            var result = new TestCase(uniqueName, uri, source) { DisplayName = Escape(displayName) };
+            var result = new TestCase(uniqueName, uri, source) { DisplayName = Escape(xunitTestCase.DisplayName) };
             result.SetPropertyValue(VsTestRunner.SerializedTestCaseProperty, serializedTestCase);
             result.Id = GuidFromString(uri + xunitTestCase.UniqueID);
 
@@ -154,7 +145,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var forceUniqueNames = lastTestClassTestCases.Count > 1;
 
             foreach (var testCase in lastTestClassTestCases)
-                discoverySink.SendTestCase(CreateVsTestCase(source, discoverer, testCase, settings, forceUniqueNames));
+                discoverySink.SendTestCase(CreateVsTestCase(source, discoverer, testCase, forceUniqueNames));
 
             lastTestClassTestCases.Clear();
         }
