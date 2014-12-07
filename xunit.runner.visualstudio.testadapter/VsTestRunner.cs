@@ -202,7 +202,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             var xunitPath = Path.Combine(Path.GetDirectoryName(assemblyFileName), "xunit.dll");
             var xunitExecutionPath = Path.Combine(Path.GetDirectoryName(assemblyFileName), "xunit.execution.dll");
-            return File.Exists(xunitPath) || File.Exists(xunitExecutionPath);
+            if (!File.Exists(xunitPath) && !File.Exists(xunitExecutionPath))
+                return false;
+
+            return Assembly.ReflectionOnlyLoadFrom(assemblyFileName).GetReferencedAssemblies().Any(ra => ra.Name.Contains("xunit"));
         }
 
         public void RunTests(IEnumerable<string> sources, IRunContext runContext, IFrameworkHandle frameworkHandle)
