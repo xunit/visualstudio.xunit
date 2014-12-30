@@ -42,10 +42,10 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="xunit.abstractions">
-      <HintPath>..\packages\xunit.abstractions.2.0.0-beta5-build2787\lib\net35\xunit.abstractions.dll</HintPath>
+      <HintPath>..\packages\xunit.abstractions.2.0.0-beta5-build2808\lib\net35\xunit.abstractions.dll</HintPath>
     </Reference>
     <Reference Include="xunit.runner.utility">
-      <HintPath>..\packages\xunit.runner.utility.visualstudio.win8.2.0.0-beta5-build2787\lib\xunit.runner.utility.dll</HintPath>
+      <HintPath>..\packages\xunit.runner.utility.visualstudio.win8.2.0.0-beta5-build2808\lib\xunit.runner.utility.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

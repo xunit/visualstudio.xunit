@@ -132,10 +132,10 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="xunit.abstractions">
-      <HintPath>..\packages\xunit.abstractions.2.0.0-beta5-build2787\lib\portable-net45+aspnetcore50+win+wpa81+wp80+monotouch+monoandroid\xunit.abstractions.dll</HintPath>
+      <HintPath>..\packages\xunit.abstractions.2.0.0-beta5-build2808\lib\portable-net45+aspnetcore50+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.abstractions.dll</HintPath>
     </Reference>
     <Reference Include="xunit.runner.utility">
-      <HintPath>..\packages\xunit.runner.utility.2.0.0-beta5-build2787\lib\portable-wpa81+win81\xunit.runner.utility.dll</HintPath>
+      <HintPath>..\packages\xunit.runner.utility.2.0.0-beta5-build2808\lib\portable-wpa81+win81\xunit.runner.utility.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

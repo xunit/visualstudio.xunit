@@ -108,11 +108,11 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                     }
                                     else
                                     {
-                                        var discoveryOptions = new XunitDiscoveryOptions(configuration);
+                                        var discoveryOptions = TestFrameworkOptions.ForDiscovery(configuration);
 
                                         if (configuration.DiagnosticMessages)
                                             logger.SendMessage(TestMessageLevel.Informational,
-                                                               String.Format("[xUnit.net {0}] Discovery starting: {1} (name display = {2})", stopwatch.Elapsed, fileName, discoveryOptions.MethodDisplay));
+                                                               String.Format("[xUnit.net {0}] Discovery starting: {1} (name display = {2})", stopwatch.Elapsed, fileName, discoveryOptions.GetMethodDisplay()));
 
                                         framework.Find(includeSourceInformation: true, messageSink: visitor, discoveryOptions: discoveryOptions);
                                         var totalTests = visitor.Finish();
@@ -309,7 +309,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             using (var executionVisitor = new VsExecutionVisitor(discoveryContext, frameworkHandle, xunitTestCases, () => cancelled))
             {
-                var executionOptions = new XunitExecutionOptions(runInfo.Configuration);
+                var executionOptions = TestFrameworkOptions.ForExecution(runInfo.Configuration);
 
                 controller.RunTests(xunitTestCases.Keys.ToList(), executionVisitor, executionOptions);
                 executionVisitor.Finished.WaitOne();
