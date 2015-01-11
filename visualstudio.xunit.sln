@@ -13,11 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		xunit.runner.visualstudio.nuspec = xunit.runner.visualstudio.nuspec
 		build\xunit.runner.visualstudio.props = build\xunit.runner.visualstudio.props
-		xunit.runner.visualstudio.win8.nuspec = xunit.runner.visualstudio.win8.nuspec
 		build\xunit.runner.visualstudio.win8.targets = build\xunit.runner.visualstudio.win8.targets
-		xunit.runner.visualstudio.wp8.nuspec = xunit.runner.visualstudio.wp8.nuspec
-		build\xunit.runner.visualstudio.wp8.targets = build\xunit.runner.visualstudio.wp8.targets
-		xunit.runner.visualstudio.wpa81.nuspec = xunit.runner.visualstudio.wpa81.nuspec
 		build\xunit.runner.visualstudio.wpa81.targets = build\xunit.runner.visualstudio.wpa81.targets
 	EndProjectSection
 EndProject

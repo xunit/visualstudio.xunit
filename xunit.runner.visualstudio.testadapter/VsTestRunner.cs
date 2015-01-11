@@ -34,8 +34,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             "microsoft.visualstudio.testplatform.utilities.dll", 
             "vstest.executionengine.appcontainer.exe", 
             "vstest.executionengine.appcontainer.x86.exe",
-            "xunit.execution.dll",
-            "xunit.runner.utility.dll",
+            "xunit.execution.desktop.dll",
+            "xunit.execution.win8.dll",
+            "xunit.execution.universal.dll",
+            "xunit.runner.utility.desktop.dll",
+            "xunit.runner.utility.win8.dll",
+            "xunit.runner.utility.universal.dll",
             "xunit.runner.visualstudio.testadapter.dll",
             "xunit.core.dll",
             "xunit.assert.dll"
@@ -202,7 +206,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 return false;
 
             var xunitPath = Path.Combine(Path.GetDirectoryName(assemblyFileName), "xunit.dll");
-            var xunitExecutionPath = Path.Combine(Path.GetDirectoryName(assemblyFileName), "xunit.execution.dll");
+            var xunitExecutionPath = Path.Combine(Path.GetDirectoryName(assemblyFileName), ExecutionHelper.AssemblyName);
             return File.Exists(xunitPath) || File.Exists(xunitExecutionPath);
         }
 

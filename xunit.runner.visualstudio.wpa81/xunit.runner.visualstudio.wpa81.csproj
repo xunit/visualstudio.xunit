@@ -107,6 +107,9 @@
     <Compile Include="..\xunit.runner.visualstudio.testadapter\utility\ExceptionExtensions.cs">
       <Link>Utility\ExceptionExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\xunit.runner.visualstudio.testadapter\Utility\ExecutionHelper.cs">
+      <Link>Utility\ExecutionHelper.cs</Link>
+    </Compile>
     <Compile Include="..\xunit.runner.visualstudio.testadapter\utility\Guard.cs">
       <Link>Utility\Guard.cs</Link>
     </Compile>
@@ -131,11 +134,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="xunit.abstractions">
-      <HintPath>..\packages\xunit.abstractions.2.0.0-beta5-build2808\lib\portable-net45+aspnetcore50+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.abstractions.dll</HintPath>
+    <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\xunit.abstractions.2.0.0-beta5-build2813\lib\portable-net45+aspnetcore50+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="xunit.runner.utility">
-      <HintPath>..\packages\xunit.runner.utility.2.0.0-beta5-build2808\lib\portable-wpa81+win81\xunit.runner.utility.dll</HintPath>
+    <Reference Include="xunit.runner.utility.universal, Version=2.0.0.2813, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\xunit.runner.utility.2.0.0-beta5-build2813\lib\portable-wpa81+win81\xunit.runner.utility.universal.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
