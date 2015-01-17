@@ -44,25 +44,33 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         public int TotalTests { get; private set; }
 
-        public static TestCase CreateVsTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase xunitTestCase, bool forceUniqueNames)
+        public static TestCase CreateVsTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase xunitTestCase, bool forceUniqueNames, IMessageLogger logger)
         {
-            var serializedTestCase = discoverer.Serialize(xunitTestCase);
-            var fqTestMethodName = String.Format("{0}.{1}", xunitTestCase.TestMethod.TestClass.Class.Name, xunitTestCase.TestMethod.Method.Name);
-            var uniqueName = forceUniqueNames ? String.Format("{0} ({1})", fqTestMethodName, xunitTestCase.UniqueID) : fqTestMethodName;
+            try
+            {
+                var serializedTestCase = discoverer.Serialize(xunitTestCase);
+                var fqTestMethodName = String.Format("{0}.{1}", xunitTestCase.TestMethod.TestClass.Class.Name, xunitTestCase.TestMethod.Method.Name);
+                var uniqueName = forceUniqueNames ? String.Format("{0} ({1})", fqTestMethodName, xunitTestCase.UniqueID) : fqTestMethodName;
 
-            var result = new TestCase(uniqueName, uri, source) { DisplayName = Escape(xunitTestCase.DisplayName) };
-            result.SetPropertyValue(VsTestRunner.SerializedTestCaseProperty, serializedTestCase);
-            result.Id = GuidFromString(uri + xunitTestCase.UniqueID);
+                var result = new TestCase(uniqueName, uri, source) { DisplayName = Escape(xunitTestCase.DisplayName) };
+                result.SetPropertyValue(VsTestRunner.SerializedTestCaseProperty, serializedTestCase);
+                result.Id = GuidFromString(uri + xunitTestCase.UniqueID);
 
-            if (addTraitThunk != null)
-                foreach (var key in xunitTestCase.Traits.Keys)
-                    foreach (var value in xunitTestCase.Traits[key])
-                        addTraitThunk(result, key, value);
+                if (addTraitThunk != null)
+                    foreach (var key in xunitTestCase.Traits.Keys)
+                        foreach (var value in xunitTestCase.Traits[key])
+                            addTraitThunk(result, key, value);
 
-            result.CodeFilePath = xunitTestCase.SourceInformation.FileName;
-            result.LineNumber = xunitTestCase.SourceInformation.LineNumber.GetValueOrDefault();
+                result.CodeFilePath = xunitTestCase.SourceInformation.FileName;
+                result.LineNumber = xunitTestCase.SourceInformation.LineNumber.GetValueOrDefault();
 
-            return result;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                logger.SendMessage(TestMessageLevel.Error, String.Format("Error creating Visual Studio test case for {0}: {1}", xunitTestCase.DisplayName, ex));
+                return null;
+            }
         }
 
         static string Escape(string value)
@@ -145,7 +153,11 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var forceUniqueNames = lastTestClassTestCases.Count > 1;
 
             foreach (var testCase in lastTestClassTestCases)
-                discoverySink.SendTestCase(CreateVsTestCase(source, discoverer, testCase, forceUniqueNames));
+            {
+                var vsTestCase = CreateVsTestCase(source, discoverer, testCase, forceUniqueNames, logger);
+                if (vsTestCase != null)
+                    discoverySink.SendTestCase(vsTestCase);
+            }
 
             lastTestClassTestCases.Clear();
         }

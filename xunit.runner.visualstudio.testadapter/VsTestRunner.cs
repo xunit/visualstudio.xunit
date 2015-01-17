@@ -190,7 +190,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                             Configuration = ConfigReader.Load(source),
                             TestCases = visitor.TestCases
                                    .GroupBy(tc => String.Format("{0}.{1}", tc.TestMethod.TestClass.Class.Name, tc.TestMethod.Method.Name))
-                                   .SelectMany(group => group.Select(testCase => VsDiscoveryVisitor.CreateVsTestCase(source, discoverer, testCase, forceUniqueNames: group.Count() > 1)))
+                                   .SelectMany(group => group.Select(testCase => VsDiscoveryVisitor.CreateVsTestCase(source, discoverer, testCase, forceUniqueNames: group.Count() > 1, logger: logger))
+                                                             .Where(vsTestCase => vsTestCase != null))
                                    .ToList()
                         }),
                 stopwatch
