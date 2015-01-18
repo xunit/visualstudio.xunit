@@ -69,17 +69,22 @@
 
   <Target Name="SetVersionNumber">
     <RegexReplace
-        Pattern='&lt;version&gt;(\d+\.\d+\.\d+(-[A-Za-z0-9-]+)?)&lt;'
-        Replacement='&lt;version&gt;$1-build$(BuildNumber)&lt;'
-        Files='@(NuspecFiles)'/>
+        Pattern='AssemblyVersion\("99\.99\.99\.0"\)'
+        Replacement='AssemblyVersion("$(BuildAssemblyVersion)")'
+        Files='common\GlobalAssemblyInfo.cs'
+        Condition=" '$(BuildAssemblyVersion)' != '' "/>
     <RegexReplace
-        Pattern='version=&quot;\[(\d+\.\d+\.\d+(-[A-Za-z0-9-]+)?)\]&quot;'
-        Replacement='version=&quot;[$1-build$(BuildNumber)]&quot;'
-        Files='@(NuspecFiles)'/>
+        Pattern='99\.99\.99'
+        Replacement='$(BuildSemanticVersion)'
+        Files='@(NuspecFiles)'
+        Condition=" '$(BuildSemanticVersion)' != '' "/>
   </Target>
 
   <Target Name='GitHubLink'>
-    <Exec Command='packages\githublink\tools\GitHubLink.exe $(MSBuildThisFileDirectory) -u https://github.com/xunit/xunit -commit $(CommitHash)' IgnoreExitCode='true' />
+    <Exec
+        Command='packages\githublink\tools\GitHubLink.exe $(MSBuildThisFileDirectory) -u https://github.com/xunit/visualstudio.xunit -commit $(CommitHash)'
+        IgnoreExitCode='true'
+        Condition=" '$(CommitHash)' != '' "/>
   </Target>
 
   <Target Name='Packages' DependsOnTargets="_DownloadNuGet">
