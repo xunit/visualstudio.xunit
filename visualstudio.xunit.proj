@@ -23,15 +23,6 @@
     <PackageSource Include="http://www.myget.org/F/xunit/" />
   </ItemGroup>
 
-  <!-- Cascading attempts to find a build number -->
-
-  <PropertyGroup Condition="'$(BuildNumber)' == ''">
-    <BuildNumber>$(BUILD_NUMBER)</BuildNumber>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(BuildNumber)' == ''">
-    <BuildNumber>0</BuildNumber>
-  </PropertyGroup>
-
   <!-- Build server targets -->
 
   <Target Name="CI" DependsOnTargets="Clean;PackageRestore;SetVersionNumber;Build;GitHubLink;Packages;ZipArtifacts" />
