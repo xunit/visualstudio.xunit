@@ -94,7 +94,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                             if (!IsXunitTestAssembly(assemblyFileName))
                             {
-                                if (configuration.DiagnosticMessages)
+                                if (configuration.DiagnosticMessagesOrDefault)
                                     logger.SendMessage(TestMessageLevel.Informational,
                                                        String.Format("[xUnit.net {0}] Skipping: {1} (no reference to xUnit.net)", stopwatch.Elapsed, fileName));
                             }
@@ -107,14 +107,14 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                     if (targetFramework.StartsWith("MonoTouch", StringComparison.OrdinalIgnoreCase) ||
                                         targetFramework.StartsWith("MonoAndroid", StringComparison.OrdinalIgnoreCase))
                                     {
-                                        if (configuration.DiagnosticMessages)
+                                        if (configuration.DiagnosticMessagesOrDefault)
                                             logger.SendMessage(TestMessageLevel.Informational, String.Format("[xUnit.net {0}] Skipping: {1} (unsupported target framework '{2}')", stopwatch.Elapsed, fileName, targetFramework));
                                     }
                                     else
                                     {
                                         var discoveryOptions = TestFrameworkOptions.ForDiscovery(configuration);
 
-                                        if (configuration.DiagnosticMessages)
+                                        if (configuration.DiagnosticMessagesOrDefault)
                                             logger.SendMessage(TestMessageLevel.Informational,
                                                                String.Format("[xUnit.net {0}] Discovery starting: {1} (name display = {2})", stopwatch.Elapsed, fileName, discoveryOptions.GetMethodDisplay()));
 
@@ -124,7 +124,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                         if (visitComplete != null)
                                             visitComplete(assemblyFileName, framework, visitor);
 
-                                        if (configuration.DiagnosticMessages)
+                                        if (configuration.DiagnosticMessagesOrDefault)
                                             logger.SendMessage(TestMessageLevel.Informational,
                                                                String.Format("[xUnit.net {0}] Discovery finished: {1} ({2} tests)", stopwatch.Elapsed, fileName, totalTests));
                                     }
@@ -259,7 +259,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 cancelled = false;
 
                 var assemblies = testCaseAccessor();
-                var parallelizeAssemblies = assemblies.All(runInfo => runInfo.Configuration.ParallelizeAssembly);
+                var parallelizeAssemblies = assemblies.All(runInfo => runInfo.Configuration.ParallelizeAssemblyOrDefault);
 
                 using (AssemblyHelper.SubscribeResolve())
                     if (parallelizeAssemblies)
@@ -288,7 +288,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             var assemblyFileName = runInfo.AssemblyFileName;
 
-            if (runInfo.Configuration.DiagnosticMessages)
+            if (runInfo.Configuration.DiagnosticMessagesOrDefault)
                 lock (stopwatch)
                     frameworkHandle.SendMessage(TestMessageLevel.Informational, String.Format("[xUnit.net {0}] Execution starting: {1} (method display = {2}, parallel test collections = {3}, max threads = {4})",
                                                                                               stopwatch.Elapsed,
@@ -320,7 +320,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 executionVisitor.Finished.WaitOne();
             }
 
-            if (runInfo.Configuration.DiagnosticMessages)
+            if (runInfo.Configuration.DiagnosticMessagesOrDefault)
                 lock (stopwatch)
                     frameworkHandle.SendMessage(TestMessageLevel.Informational, String.Format("[xUnit.net {0}] Execution finished: {1}", stopwatch.Elapsed, Path.GetFileName(assemblyFileName)));
         }
