@@ -293,9 +293,9 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                     frameworkHandle.SendMessage(TestMessageLevel.Informational, String.Format("[xUnit.net {0}] Execution starting: {1} (method display = {2}, parallel test collections = {3}, max threads = {4})",
                                                                                               stopwatch.Elapsed,
                                                                                               Path.GetFileName(assemblyFileName),
-                                                                                              runInfo.Configuration.MethodDisplay,
-                                                                                              runInfo.Configuration.ParallelizeTestCollections,
-                                                                                              runInfo.Configuration.MaxParallelThreads));
+                                                                                              runInfo.Configuration.MethodDisplayOrDefault,
+                                                                                              runInfo.Configuration.ParallelizeTestCollectionsOrDefault,
+                                                                                              runInfo.Configuration.MaxParallelThreadsOrDefault));
 
 #if WIN8_STORE
             // For store apps, the files are copied to the AppX dir, we need to load it from there

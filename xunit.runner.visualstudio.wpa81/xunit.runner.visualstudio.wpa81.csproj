@@ -136,11 +136,11 @@
   <ItemGroup>
     <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\xunit.abstractions.2.0.0-rc1-build2838\lib\portable-net45+aspnetcore50+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.abstractions.dll</HintPath>
+      <HintPath>..\packages\xunit.abstractions.2.0.0-rc1-build2842\lib\portable-net45+aspnetcore50+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="xunit.runner.utility.universal, Version=2.0.0.2838, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+    <Reference Include="xunit.runner.utility.universal, Version=2.0.0.2842, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\xunit.runner.utility.2.0.0-rc1-build2838\lib\portable-wpa81+win81\xunit.runner.utility.universal.dll</HintPath>
+      <HintPath>..\packages\xunit.runner.utility.2.0.0-rc1-build2842\lib\portable-wpa81+win81\xunit.runner.utility.universal.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
