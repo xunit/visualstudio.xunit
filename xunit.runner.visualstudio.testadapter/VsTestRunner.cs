@@ -1,6 +1,4 @@
-﻿#pragma warning disable 4014
-
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -24,7 +22,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
     {
         public static TestProperty SerializedTestCaseProperty = GetTestProperty();
 
-        private static HashSet<string> platformAssemblies = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        static readonly HashSet<string> platformAssemblies = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "microsoft.visualstudio.testplatform.unittestframework.dll", 
             "microsoft.visualstudio.testplatform.core.dll", 
@@ -62,14 +60,14 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             DiscoverTests(
                 sources,
                 logger,
-                (source, discoverer) => new VsDiscoveryVisitor(source, discoverer, logger, discoveryContext, discoverySink, () => cancelled)
+                (source, discoverer, discoveryOptions) => new VsDiscoveryVisitor(source, discoverer, logger, discoverySink, discoveryOptions, () => cancelled)
             );
         }
 
         void DiscoverTests<TVisitor>(IEnumerable<string> sources,
                                      IMessageLogger logger,
-                                     Func<string, ITestFrameworkDiscoverer, TVisitor> visitorFactory,
-                                     Action<string, ITestFrameworkDiscoverer, TVisitor> visitComplete = null,
+                                     Func<string, ITestFrameworkDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor> visitorFactory,
+                                     Action<string, ITestFrameworkDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor> visitComplete = null,
                                      Stopwatch stopwatch = null)
             where TVisitor : IVsDiscoveryVisitor, IDisposable
         {
@@ -101,7 +99,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                             else
                             {
                                 using (var framework = new XunitFrontController(assemblyFileName, configFileName: null, shadowCopy: true))
-                                using (var visitor = visitorFactory(assemblyFileName, framework))
                                 {
                                     var targetFramework = framework.TargetFramework;
                                     if (targetFramework.StartsWith("MonoTouch", StringComparison.OrdinalIgnoreCase) ||
@@ -118,15 +115,18 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                             logger.SendMessage(TestMessageLevel.Informational,
                                                                String.Format("[xUnit.net {0}] Discovery starting: {1} (name display = {2})", stopwatch.Elapsed, fileName, discoveryOptions.GetMethodDisplay()));
 
-                                        framework.Find(includeSourceInformation: true, messageSink: visitor, discoveryOptions: discoveryOptions);
-                                        var totalTests = visitor.Finish();
+                                        using (var visitor = visitorFactory(assemblyFileName, framework, discoveryOptions))
+                                        {
+                                            framework.Find(includeSourceInformation: true, messageSink: visitor, discoveryOptions: discoveryOptions);
+                                            var totalTests = visitor.Finish();
 
-                                        if (visitComplete != null)
-                                            visitComplete(assemblyFileName, framework, visitor);
+                                            if (visitComplete != null)
+                                                visitComplete(assemblyFileName, framework, discoveryOptions, visitor);
 
-                                        if (configuration.DiagnosticMessagesOrDefault)
-                                            logger.SendMessage(TestMessageLevel.Informational,
-                                                               String.Format("[xUnit.net {0}] Discovery finished: {1} ({2} tests)", stopwatch.Elapsed, fileName, totalTests));
+                                            if (configuration.DiagnosticMessagesOrDefault)
+                                                logger.SendMessage(TestMessageLevel.Informational,
+                                                                   String.Format("[xUnit.net {0}] Discovery finished: {1} ({2} tests)", stopwatch.Elapsed, fileName, totalTests));
+                                        }
                                     }
                                 }
                             }
@@ -181,8 +181,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             DiscoverTests(
                 sources,
                 logger,
-                (source, discoverer) => new VsExecutionDiscoveryVisitor(),
-                (source, discoverer, visitor) =>
+                (source, discoverer, discoveryOptions) => new VsExecutionDiscoveryVisitor(),
+                (source, discoverer, discoveryOptions, visitor) =>
                     result.Add(
                         new AssemblyRunInfo
                         {
@@ -190,7 +190,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                             Configuration = ConfigReader.Load(source),
                             TestCases = visitor.TestCases
                                    .GroupBy(tc => String.Format("{0}.{1}", tc.TestMethod.TestClass.Class.Name, tc.TestMethod.Method.Name))
-                                   .SelectMany(group => group.Select(testCase => VsDiscoveryVisitor.CreateVsTestCase(source, discoverer, testCase, forceUniqueNames: group.Count() > 1, logger: logger))
+                                   .SelectMany(group => group.Select(testCase => VsDiscoveryVisitor.CreateVsTestCase(source,
+                                                                                                                     discoverer,
+                                                                                                                     testCase,
+                                                                                                                     forceUniqueNames: group.Count() > 1,
+                                                                                                                     logger: logger,
+                                                                                                                     logDiscovery: discoveryOptions.GetDiagnosticMessagesOrDefault()))
                                                              .Where(vsTestCase => vsTestCase != null))
                                    .ToList()
                         }),
@@ -311,11 +316,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 toDispose.Add(controller);
 
             var xunitTestCases = runInfo.TestCases.ToDictionary(tc => controller.Deserialize(tc.GetPropertyValue<string>(SerializedTestCaseProperty, null)));
+            var executionOptions = TestFrameworkOptions.ForExecution(runInfo.Configuration);
 
-            using (var executionVisitor = new VsExecutionVisitor(discoveryContext, frameworkHandle, xunitTestCases, () => cancelled))
+            using (var executionVisitor = new VsExecutionVisitor(frameworkHandle, xunitTestCases, executionOptions, () => cancelled))
             {
-                var executionOptions = TestFrameworkOptions.ForExecution(runInfo.Configuration);
-
                 controller.RunTests(xunitTestCases.Keys.ToList(), executionVisitor, executionOptions);
                 executionVisitor.Finished.WaitOne();
             }
@@ -345,7 +349,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             };
 
 #if WINDOWS_PHONE_APP
-            Windows.System.Threading.ThreadPool.RunAsync(_ => handler());
+            var fireAndForget = Windows.System.Threading.ThreadPool.RunAsync(_ => handler());
 #else
             ThreadPool.QueueUserWorkItem(_ => handler());
 #endif

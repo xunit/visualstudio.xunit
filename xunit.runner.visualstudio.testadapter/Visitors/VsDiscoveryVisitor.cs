@@ -26,6 +26,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         readonly Func<bool> cancelThunk;
         readonly ITestFrameworkDiscoverer discoverer;
+        readonly ITestFrameworkDiscoveryOptions discoveryOptions;
         readonly ITestCaseDiscoverySink discoverySink;
         readonly List<ITestCase> lastTestClassTestCases = new List<ITestCase>();
         readonly IMessageLogger logger;
@@ -33,18 +34,24 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         string lastTestClass;
 
-        public VsDiscoveryVisitor(string source, ITestFrameworkDiscoverer discoverer, IMessageLogger logger, IDiscoveryContext discoveryContext, ITestCaseDiscoverySink discoverySink, Func<bool> cancelThunk)
+        public VsDiscoveryVisitor(string source,
+                                  ITestFrameworkDiscoverer discoverer,
+                                  IMessageLogger logger,
+                                  ITestCaseDiscoverySink discoverySink,
+                                  ITestFrameworkDiscoveryOptions discoveryOptions,
+                                  Func<bool> cancelThunk)
         {
             this.source = source;
             this.discoverer = discoverer;
             this.logger = logger;
             this.discoverySink = discoverySink;
+            this.discoveryOptions = discoveryOptions;
             this.cancelThunk = cancelThunk;
         }
 
         public int TotalTests { get; private set; }
 
-        public static TestCase CreateVsTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase xunitTestCase, bool forceUniqueNames, IMessageLogger logger)
+        public static TestCase CreateVsTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase xunitTestCase, bool forceUniqueNames, IMessageLogger logger, bool logDiscovery)
         {
             try
             {
@@ -63,6 +70,9 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                 result.CodeFilePath = xunitTestCase.SourceInformation.FileName;
                 result.LineNumber = xunitTestCase.SourceInformation.LineNumber.GetValueOrDefault();
+
+                if (logDiscovery)
+                    logger.SendMessage(TestMessageLevel.Informational, String.Format("Discovered: {0} (unique ID {1})", fqTestMethodName, xunitTestCase.UniqueID));
 
                 return result;
             }
@@ -154,7 +164,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             foreach (var testCase in lastTestClassTestCases)
             {
-                var vsTestCase = CreateVsTestCase(source, discoverer, testCase, forceUniqueNames, logger);
+                var vsTestCase = CreateVsTestCase(source, discoverer, testCase, forceUniqueNames, logger, discoveryOptions.GetDiagnosticMessagesOrDefault());
                 if (vsTestCase != null)
                     discoverySink.SendTestCase(vsTestCase);
             }

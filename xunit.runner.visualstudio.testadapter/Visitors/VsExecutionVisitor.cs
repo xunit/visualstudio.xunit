@@ -12,13 +12,18 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
     public class VsExecutionVisitor : TestMessageVisitor<ITestAssemblyFinished>
     {
         readonly Func<bool> cancelledThunk;
+        readonly ITestFrameworkExecutionOptions executionOptions;
         readonly ITestExecutionRecorder recorder;
         readonly Dictionary<ITestCase, TestCase> testCases;
 
-        public VsExecutionVisitor(IDiscoveryContext discoveryContext, ITestExecutionRecorder recorder, Dictionary<ITestCase, TestCase> testCases, Func<bool> cancelledThunk)
+        public VsExecutionVisitor(ITestExecutionRecorder recorder,
+                                  Dictionary<ITestCase, TestCase> testCases, 
+                                  ITestFrameworkExecutionOptions executionOptions, 
+                                  Func<bool> cancelledThunk)
         {
             this.recorder = recorder;
             this.testCases = testCases;
+            this.executionOptions = executionOptions;
             this.cancelledThunk = cancelledThunk;
         }
 
@@ -137,6 +142,9 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             if (!String.IsNullOrEmpty(output))
                 result.Messages.Add(new VsTestResultMessage(VsTestResultMessage.StandardOutCategory, output));
+
+            if (executionOptions.GetDiagnosticMessagesOrDefault())
+                recorder.SendMessage(TestMessageLevel.Informational, String.Format("Executed: {0} (unique ID {1})", fqTestMethodName, testCase.UniqueID));
 
             return result;
         }
