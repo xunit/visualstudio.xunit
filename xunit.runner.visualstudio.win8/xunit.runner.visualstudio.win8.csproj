@@ -41,11 +41,13 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="xunit.abstractions">
-      <HintPath>..\packages\xunit.abstractions.2.0.0-rc2-build2850\lib\net35\xunit.abstractions.dll</HintPath>
+    <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\xunit.abstractions.2.0.0-rc2-build2851\lib\net35\xunit.abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="xunit.runner.utility.win8">
-      <HintPath>..\packages\xunit.runner.utility.visualstudio.win8.2.0.0-rc2-build2850\lib\xunit.runner.utility.win8.dll</HintPath>
+    <Reference Include="xunit.runner.utility.win8, Version=2.0.0.2851, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\xunit.runner.utility.visualstudio.win8.2.0.0-rc2-build2851\lib\xunit.runner.utility.win8.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
