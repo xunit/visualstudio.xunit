@@ -83,7 +83,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                     foreach (var assemblyFileName in sources)
                     {
                         var configuration = ConfigReader.Load(assemblyFileName);
-                        var fileName = Path.GetFileName(assemblyFileName);
+                        var fileName = Path.GetFileNameWithoutExtension(assemblyFileName);
 
                         try
                         {
@@ -98,7 +98,9 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                             }
                             else
                             {
-                                using (var framework = new XunitFrontController(assemblyFileName, configFileName: null, shadowCopy: true))
+                                var diagnosticMessageVisitor = new DiagnosticMessageVisitor(logger, fileName, configuration.DiagnosticMessagesOrDefault);
+
+                                using (var framework = new XunitFrontController(assemblyFileName, configFileName: null, shadowCopy: true, diagnosticMessageSink: diagnosticMessageVisitor))
                                 {
                                     var targetFramework = framework.TargetFramework;
                                     if (targetFramework.StartsWith("MonoTouch", StringComparison.OrdinalIgnoreCase) ||
