@@ -71,9 +71,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 result.CodeFilePath = xunitTestCase.SourceInformation.FileName;
                 result.LineNumber = xunitTestCase.SourceInformation.LineNumber.GetValueOrDefault();
 
-                if (logDiscovery)
-                    logger.SendMessage(TestMessageLevel.Informational, String.Format("Discovered: {0} (unique ID {1})", fqTestMethodName, xunitTestCase.UniqueID));
-
                 return result;
             }
             catch (Exception ex)

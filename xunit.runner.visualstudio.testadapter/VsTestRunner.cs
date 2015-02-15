@@ -115,7 +115,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                                         if (configuration.DiagnosticMessagesOrDefault)
                                             logger.SendMessage(TestMessageLevel.Informational,
-                                                               String.Format("[xUnit.net {0}] Discovery starting: {1} (name display = {2})", stopwatch.Elapsed, fileName, discoveryOptions.GetMethodDisplay()));
+                                                               String.Format("[xUnit.net {0}] Discovery starting: {1} (name display = {2})", stopwatch.Elapsed, fileName, discoveryOptions.GetMethodDisplayOrDefault()));
 
                                         using (var visitor = visitorFactory(assemblyFileName, framework, discoveryOptions))
                                         {
@@ -294,12 +294,13 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 return;
 
             var assemblyFileName = runInfo.AssemblyFileName;
+            var assemblyDisplayName = Path.GetFileNameWithoutExtension(assemblyFileName);
 
             if (runInfo.Configuration.DiagnosticMessagesOrDefault)
                 lock (stopwatch)
                     frameworkHandle.SendMessage(TestMessageLevel.Informational, String.Format("[xUnit.net {0}] Execution starting: {1} (method display = {2}, parallel test collections = {3}, max threads = {4})",
                                                                                               stopwatch.Elapsed,
-                                                                                              Path.GetFileName(assemblyFileName),
+                                                                                              assemblyDisplayName,
                                                                                               runInfo.Configuration.MethodDisplayOrDefault,
                                                                                               runInfo.Configuration.ParallelizeTestCollectionsOrDefault,
                                                                                               runInfo.Configuration.MaxParallelThreadsOrDefault));
@@ -312,7 +313,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             assemblyFileName = Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, Path.GetFileName(assemblyFileName));
 #endif
 
-            var controller = new XunitFrontController(assemblyFileName, configFileName: null, shadowCopy: true);
+            var diagnosticMessageVisitor = new DiagnosticMessageVisitor(frameworkHandle, assemblyDisplayName, runInfo.Configuration.DiagnosticMessagesOrDefault);
+            var controller = new XunitFrontController(assemblyFileName, configFileName: null, shadowCopy: true, diagnosticMessageSink: diagnosticMessageVisitor);
 
             lock (toDispose)
                 toDispose.Add(controller);
@@ -328,7 +330,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             if (runInfo.Configuration.DiagnosticMessagesOrDefault)
                 lock (stopwatch)
-                    frameworkHandle.SendMessage(TestMessageLevel.Informational, String.Format("[xUnit.net {0}] Execution finished: {1}", stopwatch.Elapsed, Path.GetFileName(assemblyFileName)));
+                    frameworkHandle.SendMessage(TestMessageLevel.Informational, String.Format("[xUnit.net {0}] Execution finished: {1}", stopwatch.Elapsed, assemblyDisplayName));
         }
 
         ManualResetEvent RunTestsInAssemblyAsync(IDiscoveryContext discoveryContext,

@@ -17,8 +17,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         readonly Dictionary<ITestCase, TestCase> testCases;
 
         public VsExecutionVisitor(ITestExecutionRecorder recorder,
-                                  Dictionary<ITestCase, TestCase> testCases, 
-                                  ITestFrameworkExecutionOptions executionOptions, 
+                                  Dictionary<ITestCase, TestCase> testCases,
+                                  ITestFrameworkExecutionOptions executionOptions,
                                   Func<bool> cancelledThunk)
         {
             this.recorder = recorder;
@@ -142,9 +142,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             if (!String.IsNullOrEmpty(output))
                 result.Messages.Add(new VsTestResultMessage(VsTestResultMessage.StandardOutCategory, output));
-
-            if (executionOptions.GetDiagnosticMessagesOrDefault())
-                recorder.SendMessage(TestMessageLevel.Informational, String.Format("Executed: {0} (unique ID {1})", fqTestMethodName, testCase.UniqueID));
 
             return result;
         }
