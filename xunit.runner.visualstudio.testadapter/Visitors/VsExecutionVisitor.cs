@@ -14,10 +14,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         readonly Func<bool> cancelledThunk;
         readonly ITestFrameworkExecutionOptions executionOptions;
         readonly ITestExecutionRecorder recorder;
-        readonly Dictionary<ITestCase, TestCase> testCases;
+        readonly Dictionary<string, TestCase> testCases;
 
         public VsExecutionVisitor(ITestExecutionRecorder recorder,
-                                  Dictionary<ITestCase, TestCase> testCases,
+                                  Dictionary<string, TestCase> testCases,
                                   ITestFrameworkExecutionOptions executionOptions,
                                   Func<bool> cancelledThunk)
         {
@@ -66,7 +66,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         protected override bool Visit(ITestStarting testStarting)
         {
-            recorder.RecordStart(testCases[testStarting.TestCase]);
+            recorder.RecordStart(testCases[testStarting.TestCase.UniqueID]);
 
             return !cancelledThunk();
         }
@@ -123,8 +123,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         private VsTestResult MakeVsTestResult(TestOutcome outcome, ITestCase testCase, string displayName, double executionTime = 0.0, string output = null)
         {
-            var vsTestCase = testCases[testCase];
-            var fqTestMethodName = String.Format("{0}.{1}", testCase.TestMethod.TestClass.Class.Name, testCase.TestMethod.Method.Name);
+            var vsTestCase = testCases[testCase.UniqueID];
 
             var result = new VsTestResult(vsTestCase)
             {

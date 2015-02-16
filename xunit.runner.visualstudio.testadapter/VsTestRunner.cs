@@ -271,12 +271,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 using (AssemblyHelper.SubscribeResolve())
                     if (parallelizeAssemblies)
                         assemblies
-                            .Select(runInfo => RunTestsInAssemblyAsync(runContext, frameworkHandle, toDispose, runInfo, stopwatch))
+                            .Select(runInfo => RunTestsInAssemblyAsync(frameworkHandle, toDispose, runInfo, stopwatch))
                             .ToList()
                             .ForEach(@event => @event.WaitOne());
                     else
                         assemblies
-                            .ForEach(runInfo => RunTestsInAssembly(runContext, frameworkHandle, toDispose, runInfo, stopwatch));
+                            .ForEach(runInfo => RunTestsInAssembly(frameworkHandle, toDispose, runInfo, stopwatch));
             }
             finally
             {
@@ -284,8 +284,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             }
         }
 
-        void RunTestsInAssembly(IDiscoveryContext discoveryContext,
-                                IFrameworkHandle frameworkHandle,
+        void RunTestsInAssembly(IFrameworkHandle frameworkHandle,
                                 List<IDisposable> toDispose,
                                 AssemblyRunInfo runInfo,
                                 Stopwatch stopwatch)
@@ -319,12 +318,19 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             lock (toDispose)
                 toDispose.Add(controller);
 
-            var xunitTestCases = runInfo.TestCases.ToDictionary(tc => controller.Deserialize(tc.GetPropertyValue<string>(SerializedTestCaseProperty, null)));
+            var testCaseMappings = runInfo.TestCases
+                                          .Select(tc => new
+                                          {
+                                              VsTestCase = tc,
+                                              XunitTestCase = controller.Deserialize(tc.GetPropertyValue<string>(SerializedTestCaseProperty, null))
+                                          })
+                                          .ToList();
+            var testCaseLookup = testCaseMappings.ToDictionary(tc => tc.XunitTestCase.UniqueID, tc => tc.VsTestCase);
             var executionOptions = TestFrameworkOptions.ForExecution(runInfo.Configuration);
 
-            using (var executionVisitor = new VsExecutionVisitor(frameworkHandle, xunitTestCases, executionOptions, () => cancelled))
+            using (var executionVisitor = new VsExecutionVisitor(frameworkHandle, testCaseLookup, executionOptions, () => cancelled))
             {
-                controller.RunTests(xunitTestCases.Keys.ToList(), executionVisitor, executionOptions);
+                controller.RunTests(testCaseMappings.Select(tc => tc.XunitTestCase).ToList(), executionVisitor, executionOptions);
                 executionVisitor.Finished.WaitOne();
             }
 
@@ -333,8 +339,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                     frameworkHandle.SendMessage(TestMessageLevel.Informational, String.Format("[xUnit.net {0}] Execution finished: {1}", stopwatch.Elapsed, assemblyDisplayName));
         }
 
-        ManualResetEvent RunTestsInAssemblyAsync(IDiscoveryContext discoveryContext,
-                                                 IFrameworkHandle frameworkHandle,
+        ManualResetEvent RunTestsInAssemblyAsync(IFrameworkHandle frameworkHandle,
                                                  List<IDisposable> toDispose,
                                                  AssemblyRunInfo runInfo,
                                                  Stopwatch stopwatch)
@@ -344,7 +349,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             {
                 try
                 {
-                    RunTestsInAssembly(discoveryContext, frameworkHandle, toDispose, runInfo, stopwatch);
+                    RunTestsInAssembly(frameworkHandle, toDispose, runInfo, stopwatch);
                 }
                 finally
                 {
