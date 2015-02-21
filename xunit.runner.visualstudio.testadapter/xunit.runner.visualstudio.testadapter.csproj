@@ -45,11 +45,11 @@
     <Reference Include="System.Xml" />
     <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\xunit.abstractions.2.0.0-rc2-build2857\lib\net35\xunit.abstractions.dll</HintPath>
+      <HintPath>..\packages\xunit.abstractions.2.0.0-rc3-build2878\lib\net35\xunit.abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="xunit.runner.utility.desktop, Version=2.0.0.2857, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+    <Reference Include="xunit.runner.utility.desktop, Version=2.0.0.2878, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\xunit.runner.utility.2.0.0-rc2-build2857\lib\net35\xunit.runner.utility.desktop.dll</HintPath>
+      <HintPath>..\packages\xunit.runner.utility.2.0.0-rc3-build2878\lib\net35\xunit.runner.utility.desktop.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
