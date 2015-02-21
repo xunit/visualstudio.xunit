@@ -318,19 +318,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             lock (toDispose)
                 toDispose.Add(controller);
 
-            var testCaseMappings = runInfo.TestCases
-                                          .Select(tc => new
-                                          {
-                                              VsTestCase = tc,
-                                              XunitTestCase = controller.Deserialize(tc.GetPropertyValue<string>(SerializedTestCaseProperty, null))
-                                          })
-                                          .ToList();
-            var testCaseLookup = testCaseMappings.ToDictionary(tc => tc.XunitTestCase.UniqueID, tc => tc.VsTestCase);
+            var xunitTestCases = runInfo.TestCases.ToDictionary(tc => controller.Deserialize(tc.GetPropertyValue<string>(SerializedTestCaseProperty, null)));
             var executionOptions = TestFrameworkOptions.ForExecution(runInfo.Configuration);
 
-            using (var executionVisitor = new VsExecutionVisitor(frameworkHandle, testCaseLookup, executionOptions, () => cancelled))
+            using (var executionVisitor = new VsExecutionVisitor(frameworkHandle, xunitTestCases, executionOptions, () => cancelled))
             {
-                controller.RunTests(testCaseMappings.Select(tc => tc.XunitTestCase).ToList(), executionVisitor, executionOptions);
+                controller.RunTests(xunitTestCases.Keys.ToList(), executionVisitor, executionOptions);
                 executionVisitor.Finished.WaitOne();
             }
 

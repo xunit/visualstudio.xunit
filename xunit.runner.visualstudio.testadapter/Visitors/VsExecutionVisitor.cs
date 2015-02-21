@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
@@ -14,10 +15,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         readonly Func<bool> cancelledThunk;
         readonly ITestFrameworkExecutionOptions executionOptions;
         readonly ITestExecutionRecorder recorder;
-        readonly Dictionary<string, TestCase> testCases;
+        readonly Dictionary<ITestCase, TestCase> testCases;
 
         public VsExecutionVisitor(ITestExecutionRecorder recorder,
-                                  Dictionary<string, TestCase> testCases,
+                                  Dictionary<ITestCase, TestCase> testCases,
                                   ITestFrameworkExecutionOptions executionOptions,
                                   Func<bool> cancelledThunk)
         {
@@ -25,6 +26,20 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             this.testCases = testCases;
             this.executionOptions = executionOptions;
             this.cancelledThunk = cancelledThunk;
+        }
+
+        TestCase FindTestCase(ITestCase testCase)
+        {
+            TestCase result;
+            if (testCases.TryGetValue(testCase, out result))
+                return result;
+
+            result = testCases.Where(tc => tc.Key.UniqueID == testCase.UniqueID).Select(kvp => kvp.Value).FirstOrDefault();
+            if (result != null)
+                return result;
+
+            recorder.SendMessage(TestMessageLevel.Error, String.Format("Result reported for unknown test case: {0}", testCase.DisplayName));
+            return null;
         }
 
         protected override bool Visit(IErrorMessage error)
@@ -37,11 +52,14 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         protected override bool Visit(ITestFailed testFailed)
         {
             var result = MakeVsTestResult(TestOutcome.Failed, testFailed);
-            result.ErrorMessage = ExceptionUtility.CombineMessages(testFailed);
-            result.ErrorStackTrace = ExceptionUtility.CombineStackTraces(testFailed);
+            if (result != null)
+            {
+                result.ErrorMessage = ExceptionUtility.CombineMessages(testFailed);
+                result.ErrorStackTrace = ExceptionUtility.CombineStackTraces(testFailed);
 
-            recorder.RecordEnd(result.TestCase, result.Outcome);
-            recorder.RecordResult(result);
+                recorder.RecordEnd(result.TestCase, result.Outcome);
+                recorder.RecordResult(result);
+            }
 
             return !cancelledThunk();
         }
@@ -49,8 +67,11 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         protected override bool Visit(ITestPassed testPassed)
         {
             var result = MakeVsTestResult(TestOutcome.Passed, testPassed);
-            recorder.RecordEnd(result.TestCase, result.Outcome);
-            recorder.RecordResult(result);
+            if (result != null)
+            {
+                recorder.RecordEnd(result.TestCase, result.Outcome);
+                recorder.RecordResult(result);
+            }
 
             return !cancelledThunk();
         }
@@ -58,15 +79,20 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         protected override bool Visit(ITestSkipped testSkipped)
         {
             var result = MakeVsTestResult(TestOutcome.Skipped, testSkipped);
-            recorder.RecordEnd(result.TestCase, result.Outcome);
-            recorder.RecordResult(result);
+            if (result != null)
+            {
+                recorder.RecordEnd(result.TestCase, result.Outcome);
+                recorder.RecordResult(result);
+            }
 
             return !cancelledThunk();
         }
 
         protected override bool Visit(ITestStarting testStarting)
         {
-            recorder.RecordStart(testCases[testStarting.TestCase.UniqueID]);
+            var vsTestCase = FindTestCase(testStarting.TestCase);
+            if (vsTestCase != null)
+                recorder.RecordStart(vsTestCase);
 
             return !cancelledThunk();
         }
@@ -106,11 +132,14 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             foreach (var testCase in testCases)
             {
                 var result = MakeVsTestResult(TestOutcome.Failed, testCase, testCase.DisplayName);
-                result.ErrorMessage = String.Format("[{0}]: {1}", failureName, ExceptionUtility.CombineMessages(failureInfo));
-                result.ErrorStackTrace = ExceptionUtility.CombineStackTraces(failureInfo);
+                if (result != null)
+                {
+                    result.ErrorMessage = String.Format("[{0}]: {1}", failureName, ExceptionUtility.CombineMessages(failureInfo));
+                    result.ErrorStackTrace = ExceptionUtility.CombineStackTraces(failureInfo);
 
-                recorder.RecordEnd(result.TestCase, result.Outcome);
-                recorder.RecordResult(result);
+                    recorder.RecordEnd(result.TestCase, result.Outcome);
+                    recorder.RecordResult(result);
+                }
             }
 
             return !cancelledThunk();
@@ -123,7 +152,9 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         private VsTestResult MakeVsTestResult(TestOutcome outcome, ITestCase testCase, string displayName, double executionTime = 0.0, string output = null)
         {
-            var vsTestCase = testCases[testCase.UniqueID];
+            var vsTestCase = FindTestCase(testCase);
+            if (vsTestCase == null)
+                return null;
 
             var result = new VsTestResult(vsTestCase)
             {
