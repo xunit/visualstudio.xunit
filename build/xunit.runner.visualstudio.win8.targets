@@ -3,7 +3,7 @@
   <Target Name="AddXunitTestAdapterLibs" AfterTargets="_ComputeAppxPackagePayload" BeforeTargets="_GenerateAppxManifest">
     <ItemGroup>
       <xUnitVsLibs Include="$(MSBuildThisFileDirectory)xunit.runner.visualstudio.win8.dll">
-        <TargetPath>xunit.runner.visualstudio.testadapter.dll</TargetPath>
+        <TargetPath>xunit.runner.visualstudio.win8.dll</TargetPath>
       </xUnitVsLibs>
       <xUnitVsLibs Include="$(MSBuildThisFileDirectory)xunit.runner.utility.win8.dll">
         <TargetPath>xunit.runner.utility.win8.dll</TargetPath>
