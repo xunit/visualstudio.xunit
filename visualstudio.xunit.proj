@@ -65,7 +65,7 @@
         Files='common\GlobalAssemblyInfo.cs'
         Condition=" '$(BuildAssemblyVersion)' != '' "/>
     <RegexReplace
-        Pattern='99\.99\.99'
+        Pattern='99\.99\.99-dev'
         Replacement='$(BuildSemanticVersion)'
         Files='@(NuspecFiles)'
         Condition=" '$(BuildSemanticVersion)' != '' "/>
