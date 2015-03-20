@@ -104,7 +104,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                 {
                                     var targetFramework = framework.TargetFramework;
                                     if (targetFramework.StartsWith("MonoTouch", StringComparison.OrdinalIgnoreCase) ||
-                                        targetFramework.StartsWith("MonoAndroid", StringComparison.OrdinalIgnoreCase))
+                                        targetFramework.StartsWith("MonoAndroid", StringComparison.OrdinalIgnoreCase) ||
+                                        targetFramework.StartsWith("Xamarin.iOS", StringComparison.OrdinalIgnoreCase))
                                     {
                                         if (configuration.DiagnosticMessagesOrDefault)
                                             logger.SendMessage(TestMessageLevel.Informational, String.Format("[xUnit.net {0}] Skipping: {1} (unsupported target framework '{2}')", stopwatch.Elapsed, fileName, targetFramework));
