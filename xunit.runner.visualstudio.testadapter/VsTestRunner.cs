@@ -150,7 +150,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                                    String.Format("[xUnit.net {0}] Skipping: {1} (could not find dependent assembly '{2}')", stopwatch.Elapsed, fileName, Path.GetFileNameWithoutExtension(fileLoad.FileName)));
 #endif
                             else
-                                logger.SendMessage(TestMessageLevel.Error,
+                                logger.SendMessage(TestMessageLevel.Warning,
                                                    String.Format("[xUnit.net {0}] Exception discovering tests from {1}: {2}", stopwatch.Elapsed, fileName, ex));
                         }
                     }
@@ -158,7 +158,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             }
             catch (Exception e)
             {
-                logger.SendMessage(TestMessageLevel.Error,
+                logger.SendMessage(TestMessageLevel.Warning,
                                    String.Format("[xUnit.net {0}] Exception discovering tests: {1}", stopwatch.Elapsed, e.Unwrap()));
             }
 
