@@ -46,7 +46,7 @@
       <HintPath>..\packages\xunit.abstractions.2.0.0\lib\net35\xunit.abstractions.dll</HintPath>
     </Reference>
     <Reference Include="xunit.runner.utility.win8">
-      <HintPath>..\packages\xunit.runner.utility.visualstudio.win8.2.1.0-beta1-build2945\lib\xunit.runner.utility.win8.dll</HintPath>
+      <HintPath>..\packages\xunit.runner.utility.visualstudio.win8.2.1.0-beta2-build2981\lib\xunit.runner.utility.win8.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

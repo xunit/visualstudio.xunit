@@ -141,8 +141,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\xunit.abstractions.2.0.0\lib\portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="xunit.runner.utility.universal">
-      <HintPath>..\packages\xunit.runner.utility.2.1.0-beta1-build2945\lib\portable-wpa81+win81\xunit.runner.utility.universal.dll</HintPath>
+    <Reference Include="xunit.runner.utility.universal, Version=2.1.0.2981, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <HintPath>..\packages\xunit.runner.utility.2.1.0-beta2-build2981\lib\portable-wpa81+win81\xunit.runner.utility.universal.dll</HintPath>
+      <Private>True</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
