@@ -98,7 +98,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                             }
                             else
                             {
-                                var diagnosticMessageVisitor = new DiagnosticMessageVisitor(logger, fileName, configuration.DiagnosticMessagesOrDefault);
+                                var diagnosticMessageVisitor = new DiagnosticMessageVisitor(logger, fileName, configuration.DiagnosticMessagesOrDefault, stopwatch);
 
                                 using (var framework = new XunitFrontController(assemblyFileName, configFileName: null, shadowCopy: true, diagnosticMessageSink: diagnosticMessageVisitor))
                                 {
@@ -313,7 +313,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             assemblyFileName = Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, Path.GetFileName(assemblyFileName));
 #endif
 
-            var diagnosticMessageVisitor = new DiagnosticMessageVisitor(frameworkHandle, assemblyDisplayName, runInfo.Configuration.DiagnosticMessagesOrDefault);
+            var diagnosticMessageVisitor = new DiagnosticMessageVisitor(frameworkHandle, assemblyDisplayName, runInfo.Configuration.DiagnosticMessagesOrDefault, stopwatch);
             var controller = new XunitFrontController(assemblyFileName, configFileName: null, shadowCopy: true, diagnosticMessageSink: diagnosticMessageVisitor);
 
             lock (toDispose)
