@@ -28,6 +28,7 @@
     <file src="build\xunit.runner.visualstudio.props"                                           target="build\win81\xunit.runner.visualstudio.props" />
     <file src="build\xunit.runner.visualstudio.win81.targets"                                   target="build\win81\xunit.runner.visualstudio.targets" />
     <file src="xunit.runner.visualstudio.win81\bin\Release\xunit.runner.visualstudio.win81.dll" target="build\win81\" />
+    <file src="xunit.runner.visualstudio.win81\bin\Release\xunit.runner.visualstudio.win81.pri" target="build\win81\" />
 
     <file src="build\xunit.runner.visualstudio.props"                                           target="build\wpa81\xunit.runner.visualstudio.props" />
     <file src="build\xunit.runner.visualstudio.wpa81.targets"                                   target="build\wpa81\xunit.runner.visualstudio.targets" />
