@@ -138,13 +138,13 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                         {
                             var ex = e.Unwrap();
                             var fileNotFound = ex as FileNotFoundException;
-#if !WINDOWS_PHONE_APP && !WINDOWS_PHONE
+#if !WINDOWS_PHONE_APP && !WINDOWS_PHONE && !WINDOWS_APP
                             var fileLoad = ex as FileLoadException;
 #endif
                             if (fileNotFound != null)
                                 logger.SendMessage(TestMessageLevel.Informational,
                                                    String.Format("[xUnit.net {0}] Skipping: {1} (could not find dependent assembly '{2}')", stopwatch.Elapsed, fileName, Path.GetFileNameWithoutExtension(fileNotFound.FileName)));
-#if !WINDOWS_PHONE_APP && !WINDOWS_PHONE
+#if !WINDOWS_PHONE_APP && !WINDOWS_PHONE && !WINDOWS_APP
                             else if (fileLoad != null)
                                 logger.SendMessage(TestMessageLevel.Informational,
                                                    String.Format("[xUnit.net {0}] Skipping: {1} (could not find dependent assembly '{2}')", stopwatch.Elapsed, fileName, Path.GetFileNameWithoutExtension(fileLoad.FileName)));
@@ -226,7 +226,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             // In this case, we need to go thru the files manually
             if (ContainsAppX(sources))
             {
-#if WINDOWS_PHONE_APP
+#if WINDOWS_PHONE_APP || WINDOWS_APP
                 var sourcePath = Windows.ApplicationModel.Package.Current.InstalledLocation.Path;
 #else
                 var sourcePath = Environment.CurrentDirectory;
@@ -351,7 +351,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 }
             };
 
-#if WINDOWS_PHONE_APP
+#if WINDOWS_PHONE_APP || WINDOWS_APP
             var fireAndForget = Windows.System.Threading.ThreadPool.RunAsync(_ => handler());
 #else
             ThreadPool.QueueUserWorkItem(_ => handler());

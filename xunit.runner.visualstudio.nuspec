@@ -17,21 +17,20 @@
     <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.abstractions.dll"                    target="build\_common\" />
     <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.runner.utility.desktop.dll"          target="build\_common\" />
     <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.runner.visualstudio.testadapter.dll" target="build\_common\" />
+    <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.utility.universal.dll"              target="build\_universal\" />
+    <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.utility.universal.pri"              target="build\_universal\" />
 
     <!-- Execution -->
     <file src="build\xunit.runner.visualstudio.props" target="build\net20\xunit.runner.visualstudio.props" />
 
     <file src="build\xunit.runner.visualstudio.props" target="build\portable-net45+aspnetcore50+win+wpa81+wp80+monotouch+monoandroid\xunit.runner.visualstudio.props" />
 
-    <file src="build\xunit.runner.visualstudio.props"                                         target="build\win8\xunit.runner.visualstudio.props" />
-    <file src="build\xunit.runner.visualstudio.win8.targets"                                  target="build\win8\xunit.runner.visualstudio.targets" />
-    <file src="xunit.runner.visualstudio.win8\bin\Release\xunit.runner.utility.win8.dll"      target="build\win8\" />
-    <file src="xunit.runner.visualstudio.win8\bin\Release\xunit.runner.visualstudio.win8.dll" target="build\win8\" />
+    <file src="build\xunit.runner.visualstudio.props"                                           target="build\win81\xunit.runner.visualstudio.props" />
+    <file src="build\xunit.runner.visualstudio.win81.targets"                                   target="build\win81\xunit.runner.visualstudio.targets" />
+    <file src="xunit.runner.visualstudio.win81\bin\Release\xunit.runner.visualstudio.win81.dll" target="build\win81\" />
 
     <file src="build\xunit.runner.visualstudio.props"                                           target="build\wpa81\xunit.runner.visualstudio.props" />
     <file src="build\xunit.runner.visualstudio.wpa81.targets"                                   target="build\wpa81\xunit.runner.visualstudio.targets" />
-    <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.utility.universal.dll"  target="build\wpa81\" />
-    <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.utility.universal.pri"  target="build\wpa81\" />
     <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.visualstudio.wpa81.dll" target="build\wpa81\" />
     <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.visualstudio.wpa81.pri" target="build\wpa81\" />
   </files>

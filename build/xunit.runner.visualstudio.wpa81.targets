@@ -8,10 +8,10 @@
       <xUnitVsLibs Include="$(MSBuildThisFileDirectory)xunit.runner.visualstudio.wpa81.pri">
         <TargetPath>xunit.runner.visualstudio.wpa81.pri</TargetPath>
       </xUnitVsLibs>
-      <xUnitVsLibs Include="$(MSBuildThisFileDirectory)xunit.runner.utility.universal.dll">
+      <xUnitVsLibs Include="$(MSBuildThisFileDirectory)..\_universal\xunit.runner.utility.universal.dll">
         <TargetPath>xunit.runner.utility.universal.dll</TargetPath>
       </xUnitVsLibs>
-      <xUnitVsLibs Include="$(MSBuildThisFileDirectory)xunit.runner.utility.universal.pri">
+      <xUnitVsLibs Include="$(MSBuildThisFileDirectory)..\_universal\xunit.runner.utility.universal.pri">
         <TargetPath>xunit.runner.utility.universal.pri</TargetPath>
       </xUnitVsLibs>
       <xUnitVsLibsToRemove Include="@(AppxPackagePayload)" Condition="'%(TargetPath)' == 'xunit.runner.visualstudio.testadapter.dll'"/>

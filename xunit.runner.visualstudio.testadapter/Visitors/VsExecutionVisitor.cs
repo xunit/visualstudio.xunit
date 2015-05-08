@@ -158,7 +158,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             var result = new VsTestResult(vsTestCase)
             {
-#if !WINDOWS_PHONE_APP && !WINDOWS_PHONE
+#if !WINDOWS_PHONE_APP && !WINDOWS_PHONE && !WINDOWS_APP
                 ComputerName = Environment.MachineName,
 #endif
                 DisplayName = displayName,

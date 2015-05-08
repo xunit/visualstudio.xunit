@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using Xunit.Abstractions;
 
-#if WINDOWS_PHONE_APP
+#if WINDOWS_PHONE_APP || WINDOWS_APP
 using Xunit.Serialization;
 using Windows.Security.Cryptography;
 using Windows.Security.Cryptography.Core;
@@ -100,7 +100,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             {
                 var testCaseType = typeof(TestCase);
                 var stringType = typeof(string);
-#if WINDOWS_PHONE_APP
+#if WINDOWS_PHONE_APP || WINDOWS_APP
                 var property = testCaseType.GetRuntimeProperty("Traits");
 #else
                 var property = testCaseType.GetProperty("Traits");
@@ -109,7 +109,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 if (property == null)
                     return null;
 
-#if WINDOWS_PHONE_APP
+#if WINDOWS_PHONE_APP || WINDOWS_APP
                 var method = property.PropertyType.GetRuntimeMethod("Add", new[] { typeof(string), typeof(string) });
 #else
                 var method = property.PropertyType.GetMethod("Add", new[] { typeof(string), typeof(string) });
@@ -168,7 +168,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         public static string fqTestMethodName { get; set; }
 
-#if WINDOWS_PHONE_APP
+#if WINDOWS_PHONE_APP || WINDOWS_APP
         readonly static HashAlgorithmProvider Hasher = HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Sha1);
 
         static Guid GuidFromString(string data)
