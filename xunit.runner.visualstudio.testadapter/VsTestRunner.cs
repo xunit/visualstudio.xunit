@@ -36,7 +36,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             "xunit.execution.win8.dll",
             "xunit.execution.universal.dll",
             "xunit.runner.utility.desktop.dll",
-            "xunit.runner.utility.win8.dll",
             "xunit.runner.utility.universal.dll",
             "xunit.runner.visualstudio.testadapter.dll",
             "xunit.core.dll",
@@ -172,11 +171,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         List<AssemblyRunInfo> GetTests(IEnumerable<string> sources, IMessageLogger logger, Stopwatch stopwatch)
         {
-#if WIN8_STORE
+
             // For store apps, the files are copied to the AppX dir, we need to load it from there
-            sources = sources.Select(s => Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), Path.GetFileName(s)));
-#elif WINDOWS_PHONE_APP
-            sources = sources.Select(s => Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, Path.GetFileName(s))); ;
+#if WINDOWS_PHONE_APP || WINDOWS_APP
+            sources = sources.Select(s => Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, Path.GetFileName(s))); 
 #endif
 
             var result = new List<AssemblyRunInfo>();
@@ -305,11 +303,9 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                                                                               runInfo.Configuration.ParallelizeTestCollectionsOrDefault,
                                                                                               runInfo.Configuration.MaxParallelThreadsOrDefault));
 
-#if WIN8_STORE
-            // For store apps, the files are copied to the AppX dir, we need to load it from there
-            assemblyFileName = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), Path.GetFileName(assemblyFileName));
-#elif WINDOWS_PHONE_APP
-            // For WPA Apps, use the package location
+
+#if WINDOWS_PHONE_APP || WINDOWS_APP
+            // For AppX Apps, use the package location
             assemblyFileName = Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, Path.GetFileName(assemblyFileName));
 #endif
 
