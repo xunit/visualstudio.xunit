@@ -39,8 +39,8 @@
       <Private>False</Private>
       <HintPath>..\packages\Microsoft.VisualStudio.TestPlatform.ObjectModel.0.0.4\lib\net35\Microsoft.VisualStudio.TestPlatform.ObjectModel.dll</HintPath>
     </Reference>
-    <Reference Include="xunit.runner.utility.universal, Version=2.1.0.3008, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <HintPath>..\packages\xunit.runner.utility.2.1.0-beta3-build3008\lib\portable-wpa81+win81\xunit.runner.utility.universal.dll</HintPath>
+    <Reference Include="xunit.runner.utility.universal, Version=2.1.0.3029, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <HintPath>..\packages\xunit.runner.utility.2.1.0-beta3-build3029\lib\portable-wpa81+win81\xunit.runner.utility.universal.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
