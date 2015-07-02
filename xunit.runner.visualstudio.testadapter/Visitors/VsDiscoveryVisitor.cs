@@ -19,6 +19,9 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 {
     public class VsDiscoveryVisitor : TestMessageVisitor<IDiscoveryCompleteMessage>, IVsDiscoveryVisitor
     {
+        const string Ellipsis = "...";
+        const int MaximumDisplayNameLength = 447;
+
         static readonly Action<TestCase, string, string> addTraitThunk = GetAddTraitThunk();
         static readonly Uri uri = new Uri(Constants.ExecutorUri);
 
@@ -83,7 +86,15 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             if (value == null)
                 return string.Empty;
 
-            return value.Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t");
+            return Truncate(value.Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t"));
+        }
+
+        static string Truncate(string value)
+        {
+            if (value.Length <= MaximumDisplayNameLength)
+                return value;
+
+            return value.Substring(0, MaximumDisplayNameLength - Ellipsis.Length) + Ellipsis;
         }
 
         public int Finish()
