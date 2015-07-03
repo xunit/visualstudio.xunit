@@ -24,13 +24,13 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         static readonly HashSet<string> platformAssemblies = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "microsoft.visualstudio.testplatform.unittestframework.dll", 
-            "microsoft.visualstudio.testplatform.core.dll", 
-            "microsoft.visualstudio.testplatform.testexecutor.core.dll", 
-            "microsoft.visualstudio.testplatform.extensions.msappcontaineradapter.dll", 
-            "microsoft.visualstudio.testplatform.objectmodel.dll", 
-            "microsoft.visualstudio.testplatform.utilities.dll", 
-            "vstest.executionengine.appcontainer.exe", 
+            "microsoft.visualstudio.testplatform.unittestframework.dll",
+            "microsoft.visualstudio.testplatform.core.dll",
+            "microsoft.visualstudio.testplatform.testexecutor.core.dll",
+            "microsoft.visualstudio.testplatform.extensions.msappcontaineradapter.dll",
+            "microsoft.visualstudio.testplatform.objectmodel.dll",
+            "microsoft.visualstudio.testplatform.utilities.dll",
+            "vstest.executionengine.appcontainer.exe",
             "vstest.executionengine.appcontainer.x86.exe",
             "xunit.execution.desktop.dll",
             "xunit.execution.win8.dll",
@@ -40,7 +40,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             "xunit.runner.utility.universal.dll",
             "xunit.runner.visualstudio.testadapter.dll",
             "xunit.core.dll",
-            "xunit.assert.dll"
+            "xunit.assert.dll",
+            "xunit.dll"
         };
 
         bool cancelled;
@@ -57,23 +58,70 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             Guard.ArgumentNotNull("discoverySink", discoverySink);
             Guard.ArgumentValid("sources", "AppX not supported for discovery", !ContainsAppX(sources));
 
+            var stopwatch = Stopwatch.StartNew();
+            var loggerHelper = new LoggerHelper(logger, stopwatch);
+
             DiscoverTests(
                 sources,
-                logger,
-                (source, discoverer, discoveryOptions) => new VsDiscoveryVisitor(source, discoverer, logger, discoverySink, discoveryOptions, () => cancelled)
+                loggerHelper,
+                stopwatch,
+                (source, discoverer, discoveryOptions) => new VsDiscoveryVisitor(source, discoverer, loggerHelper, discoverySink, discoveryOptions, () => cancelled)
             );
         }
 
+        public void RunTests(IEnumerable<string> sources, IRunContext runContext, IFrameworkHandle frameworkHandle)
+        {
+            Guard.ArgumentNotNull("sources", sources);
+
+            var stopwatch = Stopwatch.StartNew();
+            var logger = new LoggerHelper(frameworkHandle, stopwatch);
+
+            // In this case, we need to go thru the files manually
+            if (ContainsAppX(sources))
+            {
+#if WINDOWS_PHONE_APP || WINDOWS_APP
+                var sourcePath = Windows.ApplicationModel.Package.Current.InstalledLocation.Path;
+#else
+                var sourcePath = Environment.CurrentDirectory;
+#endif
+                sources = Directory.GetFiles(sourcePath, "*.dll")
+                                   .Where(file => !platformAssemblies.Contains(Path.GetFileName(file)))
+                                   .ToList();
+            }
+
+            RunTests(runContext, frameworkHandle, logger, stopwatch, () => GetTests(sources, logger, stopwatch));
+        }
+
+        public void RunTests(IEnumerable<TestCase> tests, IRunContext runContext, IFrameworkHandle frameworkHandle)
+        {
+            Guard.ArgumentNotNull("tests", tests);
+            Guard.ArgumentValid("tests", "AppX not supported in this overload", !ContainsAppX(tests.Select(t => t.Source)));
+
+            var stopwatch = Stopwatch.StartNew();
+            var logger = new LoggerHelper(frameworkHandle, stopwatch);
+
+            RunTests(
+                runContext, frameworkHandle, logger, stopwatch,
+                () => tests.GroupBy(testCase => testCase.Source)
+                           .Select(group => new AssemblyRunInfo { AssemblyFileName = group.Key, Configuration = ConfigReader.Load(group.Key), TestCases = group })
+                           .ToList()
+            );
+        }
+
+        // Helpers
+
+        static bool ContainsAppX(IEnumerable<string> sources)
+        {
+            return sources.Any(s => string.Compare(Path.GetExtension(s), ".appx", StringComparison.OrdinalIgnoreCase) == 0);
+        }
+
         void DiscoverTests<TVisitor>(IEnumerable<string> sources,
-                                     IMessageLogger logger,
+                                     LoggerHelper logger,
+                                     Stopwatch stopwatch,
                                      Func<string, ITestFrameworkDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor> visitorFactory,
-                                     Action<string, ITestFrameworkDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor> visitComplete = null,
-                                     Stopwatch stopwatch = null)
+                                     Action<string, ITestFrameworkDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor> visitComplete = null)
             where TVisitor : IVsDiscoveryVisitor, IDisposable
         {
-            if (stopwatch == null)
-                stopwatch = Stopwatch.StartNew();
-
             try
             {
                 RemotingUtility.CleanUpRegisteredChannels();
@@ -93,12 +141,11 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                             if (!IsXunitTestAssembly(assemblyFileName))
                             {
                                 if (configuration.DiagnosticMessagesOrDefault)
-                                    logger.SendMessage(TestMessageLevel.Informational,
-                                                       String.Format("[xUnit.net {0}] Skipping: {1} (no reference to xUnit.net)", stopwatch.Elapsed, fileName));
+                                    logger.Log("Skipping: {0} (no reference to xUnit.net)", fileName);
                             }
                             else
                             {
-                                var diagnosticMessageVisitor = new DiagnosticMessageVisitor(logger, fileName, configuration.DiagnosticMessagesOrDefault, stopwatch);
+                                var diagnosticMessageVisitor = new DiagnosticMessageVisitor(logger.InnerLogger, fileName, configuration.DiagnosticMessagesOrDefault, stopwatch);
 
                                 using (var framework = new XunitFrontController(assemblyFileName, configFileName: null, shadowCopy: true, diagnosticMessageSink: diagnosticMessageVisitor))
                                 {
@@ -108,15 +155,14 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                         targetFramework.StartsWith("Xamarin.iOS", StringComparison.OrdinalIgnoreCase))
                                     {
                                         if (configuration.DiagnosticMessagesOrDefault)
-                                            logger.SendMessage(TestMessageLevel.Informational, String.Format("[xUnit.net {0}] Skipping: {1} (unsupported target framework '{2}')", stopwatch.Elapsed, fileName, targetFramework));
+                                            logger.Log("Skipping: {0} (unsupported target framework '{1}')", fileName, targetFramework);
                                     }
                                     else
                                     {
                                         var discoveryOptions = TestFrameworkOptions.ForDiscovery(configuration);
 
                                         if (configuration.DiagnosticMessagesOrDefault)
-                                            logger.SendMessage(TestMessageLevel.Informational,
-                                                               String.Format("[xUnit.net {0}] Discovery starting: {1} (name display = {2})", stopwatch.Elapsed, fileName, discoveryOptions.GetMethodDisplayOrDefault()));
+                                            logger.Log("Discovering: {0} (method display = {1})", fileName, discoveryOptions.GetMethodDisplayOrDefault());
 
                                         using (var visitor = visitorFactory(assemblyFileName, framework, discoveryOptions))
                                         {
@@ -127,8 +173,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                                 visitComplete(assemblyFileName, framework, discoveryOptions, visitor);
 
                                             if (configuration.DiagnosticMessagesOrDefault)
-                                                logger.SendMessage(TestMessageLevel.Informational,
-                                                                   String.Format("[xUnit.net {0}] Discovery finished: {1} ({2} tests)", stopwatch.Elapsed, fileName, totalTests));
+                                                logger.Log("Discovered: {0} ({1} tests)", fileName, totalTests);
                                         }
                                     }
                                 }
@@ -142,24 +187,20 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                             var fileLoad = ex as FileLoadException;
 #endif
                             if (fileNotFound != null)
-                                logger.SendMessage(TestMessageLevel.Informational,
-                                                   String.Format("[xUnit.net {0}] Skipping: {1} (could not find dependent assembly '{2}')", stopwatch.Elapsed, fileName, Path.GetFileNameWithoutExtension(fileNotFound.FileName)));
+                                logger.LogWarning("Skipping: {0} (could not find dependent assembly '{1}')", fileName, Path.GetFileNameWithoutExtension(fileNotFound.FileName));
 #if !WINDOWS_PHONE_APP && !WINDOWS_PHONE
                             else if (fileLoad != null)
-                                logger.SendMessage(TestMessageLevel.Informational,
-                                                   String.Format("[xUnit.net {0}] Skipping: {1} (could not find dependent assembly '{2}')", stopwatch.Elapsed, fileName, Path.GetFileNameWithoutExtension(fileLoad.FileName)));
+                                logger.LogWarning("Skipping: {0} (could not find dependent assembly '{1}')", fileName, Path.GetFileNameWithoutExtension(fileLoad.FileName));
 #endif
                             else
-                                logger.SendMessage(TestMessageLevel.Warning,
-                                                   String.Format("[xUnit.net {0}] Exception discovering tests from {1}: {2}", stopwatch.Elapsed, fileName, ex));
+                                logger.LogWarning("Exception discovering tests from {0}: {1}", fileName, ex);
                         }
                     }
                 }
             }
             catch (Exception e)
             {
-                logger.SendMessage(TestMessageLevel.Warning,
-                                   String.Format("[xUnit.net {0}] Exception discovering tests: {1}", stopwatch.Elapsed, e.Unwrap()));
+                logger.LogWarning("Exception discovering tests: {0}", e.Unwrap());
             }
 
             stopwatch.Stop();
@@ -170,13 +211,13 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             return TestProperty.Register("XunitTestCase", "xUnit.net Test Case", typeof(string), typeof(VsTestRunner));
         }
 
-        List<AssemblyRunInfo> GetTests(IEnumerable<string> sources, IMessageLogger logger, Stopwatch stopwatch)
+        List<AssemblyRunInfo> GetTests(IEnumerable<string> sources, LoggerHelper logger, Stopwatch stopwatch)
         {
 #if WIN8_STORE
             // For store apps, the files are copied to the AppX dir, we need to load it from there
             sources = sources.Select(s => Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), Path.GetFileName(s)));
 #elif WINDOWS_PHONE_APP
-            sources = sources.Select(s => Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, Path.GetFileName(s))); ;
+            sources = sources.Select(s => Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, Path.GetFileName(s)));
 #endif
 
             var result = new List<AssemblyRunInfo>();
@@ -184,6 +225,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             DiscoverTests(
                 sources,
                 logger,
+                stopwatch,
                 (source, discoverer, discoveryOptions) => new VsExecutionDiscoveryVisitor(),
                 (source, discoverer, discoveryOptions, visitor) =>
                     result.Add(
@@ -192,17 +234,15 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                             AssemblyFileName = source,
                             Configuration = ConfigReader.Load(source),
                             TestCases = visitor.TestCases
-                                   .GroupBy(tc => String.Format("{0}.{1}", tc.TestMethod.TestClass.Class.Name, tc.TestMethod.Method.Name))
+                                   .GroupBy(tc => string.Format("{0}.{1}", tc.TestMethod.TestClass.Class.Name, tc.TestMethod.Method.Name))
                                    .SelectMany(group => group.Select(testCase => VsDiscoveryVisitor.CreateVsTestCase(source,
                                                                                                                      discoverer,
                                                                                                                      testCase,
                                                                                                                      forceUniqueNames: group.Count() > 1,
-                                                                                                                     logger: logger,
-                                                                                                                     logDiscovery: discoveryOptions.GetDiagnosticMessagesOrDefault()))
+                                                                                                                     logger: logger))
                                                              .Where(vsTestCase => vsTestCase != null))
                                    .ToList()
-                        }),
-                stopwatch
+                        })
             );
 
             return result;
@@ -219,44 +259,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             return File.Exists(xunitPath) || File.Exists(xunitExecutionPath);
         }
 
-        public void RunTests(IEnumerable<string> sources, IRunContext runContext, IFrameworkHandle frameworkHandle)
-        {
-            Guard.ArgumentNotNull("sources", sources);
-
-            // In this case, we need to go thru the files manually
-            if (ContainsAppX(sources))
-            {
-#if WINDOWS_PHONE_APP
-                var sourcePath = Windows.ApplicationModel.Package.Current.InstalledLocation.Path;
-#else
-                var sourcePath = Environment.CurrentDirectory;
-#endif
-                sources = Directory.GetFiles(sourcePath, "*.dll")
-                                   .Where(file => !platformAssemblies.Contains(Path.GetFileName(file)))
-                                   .ToList();
-            }
-
-            var stopwatch = Stopwatch.StartNew();
-            RunTests(runContext, frameworkHandle, stopwatch, () => GetTests(sources, frameworkHandle, stopwatch));
-            stopwatch.Stop();
-        }
-
-        public void RunTests(IEnumerable<TestCase> tests, IRunContext runContext, IFrameworkHandle frameworkHandle)
-        {
-            Guard.ArgumentNotNull("tests", tests);
-            Guard.ArgumentValid("tests", "AppX not supported in this overload", !ContainsAppX(tests.Select(t => t.Source)));
-
-            var stopwatch = Stopwatch.StartNew();
-            RunTests(runContext, frameworkHandle, stopwatch, () => tests.GroupBy(testCase => testCase.Source)
-                                                                        .Select(group => new AssemblyRunInfo { AssemblyFileName = group.Key, Configuration = ConfigReader.Load(group.Key), TestCases = group })
-                                                                        .ToList());
-            stopwatch.Stop();
-        }
-
-        void RunTests(IRunContext runContext, IFrameworkHandle frameworkHandle, Stopwatch stopwatch, Func<List<AssemblyRunInfo>> testCaseAccessor)
+        void RunTests(IRunContext runContext, IFrameworkHandle frameworkHandle, LoggerHelper logger, Stopwatch stopwatch, Func<List<AssemblyRunInfo>> testCaseAccessor)
         {
             Guard.ArgumentNotNull("runContext", runContext);
             Guard.ArgumentNotNull("frameworkHandle", frameworkHandle);
+
+            Debugger.Break();
 
             var toDispose = new List<IDisposable>();
 
@@ -272,12 +280,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 using (AssemblyHelper.SubscribeResolve())
                     if (parallelizeAssemblies)
                         assemblies
-                            .Select(runInfo => RunTestsInAssemblyAsync(frameworkHandle, toDispose, runInfo, stopwatch))
+                            .Select(runInfo => RunTestsInAssemblyAsync(frameworkHandle, logger, toDispose, runInfo, stopwatch))
                             .ToList()
                             .ForEach(@event => @event.WaitOne());
                     else
                         assemblies
-                            .ForEach(runInfo => RunTestsInAssembly(frameworkHandle, toDispose, runInfo, stopwatch));
+                            .ForEach(runInfo => RunTestsInAssembly(frameworkHandle, logger, toDispose, runInfo, stopwatch));
             }
             finally
             {
@@ -286,6 +294,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         }
 
         void RunTestsInAssembly(IFrameworkHandle frameworkHandle,
+                                LoggerHelper logger,
                                 List<IDisposable> toDispose,
                                 AssemblyRunInfo runInfo,
                                 Stopwatch stopwatch)
@@ -298,12 +307,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             if (runInfo.Configuration.DiagnosticMessagesOrDefault)
                 lock (stopwatch)
-                    frameworkHandle.SendMessage(TestMessageLevel.Informational, String.Format("[xUnit.net {0}] Execution starting: {1} (method display = {2}, parallel test collections = {3}, max threads = {4})",
-                                                                                              stopwatch.Elapsed,
-                                                                                              assemblyDisplayName,
-                                                                                              runInfo.Configuration.MethodDisplayOrDefault,
-                                                                                              runInfo.Configuration.ParallelizeTestCollectionsOrDefault,
-                                                                                              runInfo.Configuration.MaxParallelThreadsOrDefault));
+                    logger.Log("Starting: {0} (parallel test collections = {1}, max threads = {2})",
+                               assemblyDisplayName,
+                               runInfo.Configuration.ParallelizeTestCollectionsOrDefault ? "on" : "off",
+                               runInfo.Configuration.MaxParallelThreadsOrDefault);
 
 #if WIN8_STORE
             // For store apps, the files are copied to the AppX dir, we need to load it from there
@@ -322,18 +329,18 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var xunitTestCases = runInfo.TestCases.ToDictionary(tc => controller.Deserialize(tc.GetPropertyValue<string>(SerializedTestCaseProperty, null)));
             var executionOptions = TestFrameworkOptions.ForExecution(runInfo.Configuration);
 
-            using (var executionVisitor = new VsExecutionVisitor(frameworkHandle, xunitTestCases, executionOptions, () => cancelled))
+            using (var executionVisitor = new VsExecutionVisitor(frameworkHandle, logger, xunitTestCases, executionOptions, () => cancelled))
             {
                 controller.RunTests(xunitTestCases.Keys.ToList(), executionVisitor, executionOptions);
                 executionVisitor.Finished.WaitOne();
             }
 
             if (runInfo.Configuration.DiagnosticMessagesOrDefault)
-                lock (stopwatch)
-                    frameworkHandle.SendMessage(TestMessageLevel.Informational, String.Format("[xUnit.net {0}] Execution finished: {1}", stopwatch.Elapsed, assemblyDisplayName));
+                logger.Log("Finished: {0}", assemblyDisplayName);
         }
 
         ManualResetEvent RunTestsInAssemblyAsync(IFrameworkHandle frameworkHandle,
+                                                 LoggerHelper logger,
                                                  List<IDisposable> toDispose,
                                                  AssemblyRunInfo runInfo,
                                                  Stopwatch stopwatch)
@@ -343,7 +350,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             {
                 try
                 {
-                    RunTestsInAssembly(frameworkHandle, toDispose, runInfo, stopwatch);
+                    RunTestsInAssembly(frameworkHandle, logger, toDispose, runInfo, stopwatch);
                 }
                 finally
                 {
@@ -360,11 +367,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             return @event;
         }
 
-
-        private static bool ContainsAppX(IEnumerable<string> sources)
-        {
-            return sources.Any(s => string.Compare(Path.GetExtension(s), ".appx", StringComparison.OrdinalIgnoreCase) == 0);
-        }
 
         class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
         {

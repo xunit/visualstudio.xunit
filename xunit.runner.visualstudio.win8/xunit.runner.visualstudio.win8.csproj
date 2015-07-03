@@ -72,6 +72,9 @@
     <Compile Include="..\xunit.runner.visualstudio.testadapter\Utility\Guard.cs">
       <Link>Utility\Guard.cs</Link>
     </Compile>
+    <Compile Include="..\xunit.runner.visualstudio.testadapter\Utility\LoggerHelper.cs">
+      <Link>Utility\LoggerHelper.cs</Link>
+    </Compile>
     <Compile Include="..\xunit.runner.visualstudio.testadapter\Visitors\DiagnosticMessageVisitor.cs">
       <Link>Visitors\DiagnosticMessageVisitor.cs</Link>
     </Compile>

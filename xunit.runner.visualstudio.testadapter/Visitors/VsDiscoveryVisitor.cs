@@ -1,18 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Text;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using Xunit.Abstractions;
 
 #if WINDOWS_PHONE_APP
-using Xunit.Serialization;
+using System.Reflection;
+using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Security.Cryptography;
 using Windows.Security.Cryptography.Core;
-using System.Runtime.InteropServices.WindowsRuntime;
 #else
 using System.Security.Cryptography;
 #endif
@@ -29,14 +27,14 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         readonly ITestFrameworkDiscoveryOptions discoveryOptions;
         readonly ITestCaseDiscoverySink discoverySink;
         readonly List<ITestCase> lastTestClassTestCases = new List<ITestCase>();
-        readonly IMessageLogger logger;
+        readonly LoggerHelper logger;
         readonly string source;
 
         string lastTestClass;
 
         public VsDiscoveryVisitor(string source,
                                   ITestFrameworkDiscoverer discoverer,
-                                  IMessageLogger logger,
+                                  LoggerHelper logger,
                                   ITestCaseDiscoverySink discoverySink,
                                   ITestFrameworkDiscoveryOptions discoveryOptions,
                                   Func<bool> cancelThunk)
@@ -51,13 +49,13 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         public int TotalTests { get; private set; }
 
-        public static TestCase CreateVsTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase xunitTestCase, bool forceUniqueNames, IMessageLogger logger, bool logDiscovery)
+        public static TestCase CreateVsTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase xunitTestCase, bool forceUniqueNames, LoggerHelper logger)
         {
             try
             {
                 var serializedTestCase = discoverer.Serialize(xunitTestCase);
-                var fqTestMethodName = String.Format("{0}.{1}", xunitTestCase.TestMethod.TestClass.Class.Name, xunitTestCase.TestMethod.Method.Name);
-                var uniqueName = forceUniqueNames ? String.Format("{0} ({1})", fqTestMethodName, xunitTestCase.UniqueID) : fqTestMethodName;
+                var fqTestMethodName = string.Format("{0}.{1}", xunitTestCase.TestMethod.TestClass.Class.Name, xunitTestCase.TestMethod.Method.Name);
+                var uniqueName = forceUniqueNames ? string.Format("{0} ({1})", fqTestMethodName, xunitTestCase.UniqueID) : fqTestMethodName;
 
                 var result = new TestCase(uniqueName, uri, source) { DisplayName = Escape(xunitTestCase.DisplayName) };
                 result.SetPropertyValue(VsTestRunner.SerializedTestCaseProperty, serializedTestCase);
@@ -75,7 +73,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             }
             catch (Exception ex)
             {
-                logger.SendMessage(TestMessageLevel.Error, String.Format("Error creating Visual Studio test case for {0}: {1}", xunitTestCase.DisplayName, ex));
+                logger.LogError(xunitTestCase, "Error creating Visual Studio test case for {0}: {1}", xunitTestCase.DisplayName, ex);
                 return null;
             }
         }
@@ -83,7 +81,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         static string Escape(string value)
         {
             if (value == null)
-                return String.Empty;
+                return string.Empty;
 
             return value.Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t");
         }
@@ -134,7 +132,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         protected override bool Visit(ITestCaseDiscoveryMessage discovery)
         {
             var testCase = discovery.TestCase;
-            var testClass = String.Format("{0}.{1}", testCase.TestMethod.TestClass.Class.Name, testCase.TestMethod.Method.Name);
+            var testClass = string.Format("{0}.{1}", testCase.TestMethod.TestClass.Class.Name, testCase.TestMethod.Method.Name);
             if (lastTestClass != testClass)
                 SendExistingTestCases();
 
@@ -158,9 +156,16 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             foreach (var testCase in lastTestClassTestCases)
             {
-                var vsTestCase = CreateVsTestCase(source, discoverer, testCase, forceUniqueNames, logger, discoveryOptions.GetDiagnosticMessagesOrDefault());
+                var vsTestCase = CreateVsTestCase(source, discoverer, testCase, forceUniqueNames, logger);
                 if (vsTestCase != null)
+                {
+                    if (discoveryOptions.GetDiagnosticMessagesOrDefault())
+                        logger.Log(testCase, "Discovered test case '{0}' (ID = '{1}', VS FQN = '{2}')", testCase.DisplayName, testCase.UniqueID, vsTestCase.FullyQualifiedName);
+
                     discoverySink.SendTestCase(vsTestCase);
+                }
+                else
+                    logger.LogWarning(testCase, "Could not create VS test case for '{0}' (ID = '{1}', VS FQN = '{2}')", testCase.DisplayName, testCase.UniqueID, vsTestCase.FullyQualifiedName);
             }
 
             lastTestClassTestCases.Clear();

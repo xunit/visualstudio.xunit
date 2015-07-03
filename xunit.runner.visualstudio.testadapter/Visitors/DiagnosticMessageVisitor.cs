@@ -23,7 +23,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         protected override bool Visit(IDiagnosticMessage diagnosticMessage)
         {
             if (showDiagnostics)
-                logger.SendMessage(TestMessageLevel.Warning, String.Format("[xUnit.net {0}] {1}: {2}", stopwatch.Elapsed, assemblyDisplayName, diagnosticMessage.Message));
+                logger.SendMessage(TestMessageLevel.Warning, string.Format("[xUnit.net {0}] {1}: {2}", stopwatch.Elapsed, assemblyDisplayName, diagnosticMessage.Message));
 
             return base.Visit(diagnosticMessage);
         }

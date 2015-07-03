@@ -6,7 +6,7 @@ namespace System.IO
     {
         public static bool Exists(string path)
         {
-            if (String.IsNullOrWhiteSpace(path))
+            if (string.IsNullOrWhiteSpace(path))
                 return false;
 
             var folder = Package.Current.InstalledLocation;
