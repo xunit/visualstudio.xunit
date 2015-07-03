@@ -59,6 +59,7 @@
     <Compile Include="Utility\ExceptionExtensions.cs" />
     <Compile Include="Utility\ExecutionHelper.cs" />
     <Compile Include="Utility\Guard.cs" />
+    <Compile Include="Utility\LoggerHelper.cs" />
     <Compile Include="Visitors\DiagnosticMessageVisitor.cs" />
     <Compile Include="Visitors\TestDiscoveryVisitor.cs" />
     <Compile Include="Visitors\IVsDiscoveryVisitor.cs" />
