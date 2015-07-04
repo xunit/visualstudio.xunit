@@ -261,8 +261,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             Guard.ArgumentNotNull("runContext", runContext);
             Guard.ArgumentNotNull("frameworkHandle", frameworkHandle);
 
-            Debugger.Break();
-
             var toDispose = new List<IDisposable>();
 
             try
