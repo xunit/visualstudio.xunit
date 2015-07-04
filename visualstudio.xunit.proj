@@ -91,7 +91,7 @@
     <Zip Files="@(Binaries)" ZipFileName="binaries.zip" StripPath="true" />
   </Target>
 
-  <Target Name="PushMyGet" Condition=" '$(GitBranch)' == 'master' Or '$(GitBranch)' == 'refs/heads/master' ">
+  <Target Name="PushMyGet" Condition=" '$(ForcePushMyGet)' == 'true' Or '$(GitBranch)' == 'master' Or '$(GitBranch)' == 'refs/heads/master' ">
     <ItemGroup>
       <NupkgFiles Include="*.nupkg" />
     </ItemGroup>
