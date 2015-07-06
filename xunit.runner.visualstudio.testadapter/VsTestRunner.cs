@@ -113,6 +113,19 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             return sources.Any(s => string.Compare(Path.GetExtension(s), ".appx", StringComparison.OrdinalIgnoreCase) == 0);
         }
 
+        static ITestCase Deserialize(LoggerHelper logger, ITestFrameworkExecutor executor, TestCase testCase)
+        {
+            try
+            {
+                return executor.Deserialize(testCase.GetPropertyValue<string>(SerializedTestCaseProperty, null));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("Unable to de-serialize test case {0}: {1}", testCase.DisplayName, ex);
+                return null;
+            }
+        }
+
         void DiscoverTests<TVisitor>(IEnumerable<string> sources,
                                      LoggerHelper logger,
                                      Stopwatch stopwatch,
@@ -282,6 +295,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                         assemblies
                             .ForEach(runInfo => RunTestsInAssembly(frameworkHandle, logger, toDispose, runInfo, stopwatch));
             }
+            catch (Exception ex)
+            {
+                logger.LogError("Catastrophic failure: {0}", ex);
+            }
             finally
             {
                 toDispose.ForEach(disposable => disposable.Dispose());
@@ -300,12 +317,14 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var assemblyFileName = runInfo.AssemblyFileName;
             var assemblyDisplayName = Path.GetFileNameWithoutExtension(assemblyFileName);
 
-            if (runInfo.Configuration.DiagnosticMessagesOrDefault)
-                lock (stopwatch)
-                    logger.Log("Starting: {0} (parallel test collections = {1}, max threads = {2})",
-                               assemblyDisplayName,
-                               runInfo.Configuration.ParallelizeTestCollectionsOrDefault ? "on" : "off",
-                               runInfo.Configuration.MaxParallelThreadsOrDefault);
+            try
+            {
+                if (runInfo.Configuration.DiagnosticMessagesOrDefault)
+                    lock (stopwatch)
+                        logger.Log("Starting: {0} (parallel test collections = {1}, max threads = {2})",
+                                   assemblyDisplayName,
+                                   runInfo.Configuration.ParallelizeTestCollectionsOrDefault ? "on" : "off",
+                                   runInfo.Configuration.MaxParallelThreadsOrDefault);
 
 
 #if WINDOWS_PHONE_APP || WINDOWS_APP
@@ -313,23 +332,30 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             assemblyFileName = Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, Path.GetFileName(assemblyFileName));
 #endif
 
-            var diagnosticMessageVisitor = new DiagnosticMessageVisitor(frameworkHandle, assemblyDisplayName, runInfo.Configuration.DiagnosticMessagesOrDefault, stopwatch);
-            var controller = new XunitFrontController(assemblyFileName, configFileName: null, shadowCopy: true, diagnosticMessageSink: diagnosticMessageVisitor);
+                var diagnosticMessageVisitor = new DiagnosticMessageVisitor(frameworkHandle, assemblyDisplayName, runInfo.Configuration.DiagnosticMessagesOrDefault, stopwatch);
+                var controller = new XunitFrontController(assemblyFileName, configFileName: null, shadowCopy: true, diagnosticMessageSink: diagnosticMessageVisitor);
 
-            lock (toDispose)
-                toDispose.Add(controller);
+                lock (toDispose)
+                    toDispose.Add(controller);
 
-            var xunitTestCases = runInfo.TestCases.ToDictionary(tc => controller.Deserialize(tc.GetPropertyValue<string>(SerializedTestCaseProperty, null)));
-            var executionOptions = TestFrameworkOptions.ForExecution(runInfo.Configuration);
+                var xunitTestCases = runInfo.TestCases.Select(tc => new { vs = tc, xunit = Deserialize(logger, controller, tc) })
+                                                      .Where(tc => tc.xunit != null)
+                                                      .ToDictionary(tc => tc.xunit, tc => tc.vs);
+                var executionOptions = TestFrameworkOptions.ForExecution(runInfo.Configuration);
 
-            using (var executionVisitor = new VsExecutionVisitor(frameworkHandle, logger, xunitTestCases, executionOptions, () => cancelled))
-            {
-                controller.RunTests(xunitTestCases.Keys.ToList(), executionVisitor, executionOptions);
-                executionVisitor.Finished.WaitOne();
+                using (var executionVisitor = new VsExecutionVisitor(frameworkHandle, logger, xunitTestCases, executionOptions, () => cancelled))
+                {
+                    controller.RunTests(xunitTestCases.Keys.ToList(), executionVisitor, executionOptions);
+                    executionVisitor.Finished.WaitOne();
+                }
+
+                if (runInfo.Configuration.DiagnosticMessagesOrDefault)
+                    logger.Log("Finished: {0}", assemblyDisplayName);
             }
-
-            if (runInfo.Configuration.DiagnosticMessagesOrDefault)
-                logger.Log("Finished: {0}", assemblyDisplayName);
+            catch (Exception ex)
+            {
+                logger.LogError("{0}: Catastrophic failure: {1}", assemblyDisplayName, ex);
+            }
         }
 
         ManualResetEvent RunTestsInAssemblyAsync(IFrameworkHandle frameworkHandle,
