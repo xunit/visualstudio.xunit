@@ -1,0 +1,19 @@
+﻿{
+  "dependencies": {
+    "Microsoft.NETCore.UniversalWindowsPlatform": "1.0.0-beta-23106",
+    "Microsoft.VisualStudio.TestPlatform.ObjectModel": "0.0.5",
+    "xunit.abstractions": "2.0.0",
+    "xunit.runner.utility": "2.1.0-beta4-build3042"
+  },
+  "frameworks": {
+    "netcore50": {}
+  },
+  "runtimes": {
+    "win10-arm": {},
+    "win10-arm-aot": {},
+    "win10-x86": {},
+    "win10-x86-aot": {},
+    "win10-x64": {},
+    "win10-x64-aot": {}
+  }
+}
