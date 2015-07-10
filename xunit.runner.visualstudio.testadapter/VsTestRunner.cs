@@ -87,7 +87,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                    .ToList();
             }
 
-            RunTests(runContext, frameworkHandle, logger, stopwatch, () => GetTests(sources, logger, stopwatch));
+            RunTests(runContext, frameworkHandle, logger, stopwatch, () => GetTests(sources, logger, stopwatch, runContext));
         }
 
         public void RunTests(IEnumerable<TestCase> tests, IRunContext runContext, IFrameworkHandle frameworkHandle)
@@ -222,7 +222,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             return TestProperty.Register("XunitTestCase", "xUnit.net Test Case", typeof(string), typeof(VsTestRunner));
         }
 
-        List<AssemblyRunInfo> GetTests(IEnumerable<string> sources, LoggerHelper logger, Stopwatch stopwatch)
+        List<AssemblyRunInfo> GetTests(IEnumerable<string> sources, LoggerHelper logger, Stopwatch stopwatch, IRunContext runContext)
         {
 
             // For store apps, the files are copied to the AppX dir, we need to load it from there
@@ -231,6 +231,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 #endif
 
             var result = new List<AssemblyRunInfo>();
+            var knownTraitNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             DiscoverTests(
                 sources,
@@ -238,21 +239,31 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 stopwatch,
                 (source, discoverer, discoveryOptions) => new VsExecutionDiscoveryVisitor(),
                 (source, discoverer, discoveryOptions, visitor) =>
-                    result.Add(
-                        new AssemblyRunInfo
-                        {
-                            AssemblyFileName = source,
-                            Configuration = ConfigReader.Load(source),
-                            TestCases = visitor.TestCases
+                {
+                    var testCases = visitor.TestCases
                                    .GroupBy(tc => string.Format("{0}.{1}", tc.TestMethod.TestClass.Class.Name, tc.TestMethod.Method.Name))
                                    .SelectMany(group => group.Select(testCase => VsDiscoveryVisitor.CreateVsTestCase(source,
                                                                                                                      discoverer,
                                                                                                                      testCase,
                                                                                                                      forceUniqueNames: group.Count() > 1,
-                                                                                                                     logger: logger))
+                                                                                                                     logger: logger,
+                                                                                                                     knownTraitNames: knownTraitNames))
                                                              .Where(vsTestCase => vsTestCase != null))
-                                   .ToList()
-                        })
+                                    .ToList(); // pre-enumerate these as it populates the known trait names collection
+
+                    // Apply any filtering
+                    var filterHelper = new TestCaseFilterHelper(knownTraitNames);
+                    testCases = filterHelper.GetFilteredTestList(testCases.ToList(), runContext, logger, stopwatch, source).ToList();
+
+                    var runInfo = new AssemblyRunInfo
+                    {
+                        AssemblyFileName = source,
+                        Configuration = ConfigReader.Load(source),
+                        TestCases = testCases
+                    };
+                    result.Add(runInfo);
+                }
+                    
             );
 
             return result;
@@ -387,7 +398,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         }
 
 
-        class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
+        internal class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
         {
             readonly IEnumerable<TElement> elements;
 

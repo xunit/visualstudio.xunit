@@ -24,6 +24,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test.harness", "test.harnes
 		{EBAB9937-2A6A-41EA-848B-3F7EDE2396CB} = {EBAB9937-2A6A-41EA-848B-3F7EDE2396CB}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test.xunit.runner.visualstudio.testadapter", "test.xunit.runner.visualstudio.testadapter\test.xunit.runner.visualstudio.testadapter.csproj", "{276BA4CF-B023-4159-85E8-B5A9A4D4493A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +48,10 @@ Global
 		{B9CC6A98-9BE1-46C7-BC8E-1D1F67335FB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B9CC6A98-9BE1-46C7-BC8E-1D1F67335FB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B9CC6A98-9BE1-46C7-BC8E-1D1F67335FB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{276BA4CF-B023-4159-85E8-B5A9A4D4493A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{276BA4CF-B023-4159-85E8-B5A9A4D4493A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{276BA4CF-B023-4159-85E8-B5A9A4D4493A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{276BA4CF-B023-4159-85E8-B5A9A4D4493A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -60,6 +60,9 @@
     <Compile Include="..\xunit.runner.visualstudio.testadapter\Constants.cs">
       <Link>Constants.cs</Link>
     </Compile>
+    <Compile Include="..\xunit.runner.visualstudio.testadapter\TestCaseFilterHelper.cs">
+      <Link>TestCaseFilterHelper.cs</Link>
+    </Compile>
     <Compile Include="..\xunit.runner.visualstudio.testadapter\Utility\AssemblyRunInfo.cs">
       <Link>Utility\AssemblyRunInfo.cs</Link>
     </Compile>

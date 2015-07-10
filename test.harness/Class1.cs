@@ -16,7 +16,7 @@ namespace test.harness
         }
 
         [Fact]
-        [Trait("Category", "Slow")]
+        [Trait("TestCategory", "Slow")]
         public void TestWithTrait()
         {
             Assert.True(true);
