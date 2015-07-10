@@ -20,6 +20,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Harness", "Harness", "{8D4A5678-7F2E-4CA6-AB4C-E004D3045FBF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test.harness", "test.harness\test.harness.csproj", "{B9CC6A98-9BE1-46C7-BC8E-1D1F67335FB7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{EBAB9937-2A6A-41EA-848B-3F7EDE2396CB} = {EBAB9937-2A6A-41EA-848B-3F7EDE2396CB}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
