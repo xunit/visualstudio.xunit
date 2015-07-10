@@ -17,7 +17,6 @@
     <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.abstractions.dll"                    target="build\_common\" />
     <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.runner.utility.desktop.dll"          target="build\_common\" />
     <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.runner.visualstudio.testadapter.dll" target="build\_common\" />
-    <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.runner.visualstudio.testadapter.pdb" target="build\_common\" />
     <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.utility.universal.dll"              target="build\_universal\" />
     <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.utility.universal.pri"              target="build\_universal\" />
 
@@ -39,7 +38,6 @@
     <file src="build\xunit.runner.visualstudio.uwp.props"                                       target="build\netcore5\xunit.runner.visualstudio.props" />
     <file src="build\xunit.runner.visualstudio.uwp.targets"                                     target="build\netcore5\xunit.runner.visualstudio.targets" />
     <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.visualstudio.uwp.dll"     target="build\netcore5\" />
-    <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.visualstudio.uwp.pdb"     target="build\netcore5\" />
     <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.visualstudio.uwp.pri"     target="build\netcore5\" />
   </files>
 </package>
