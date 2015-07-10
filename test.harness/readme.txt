@@ -5,6 +5,6 @@ Set your working directory to your output dir:
 c:\dev\xunit.vsrunner\test.harness\bin\Debug\
 
 Set the command line args to
-test.harness.dll /testadapterpath:C:\dev\xunit.vsrunner\test.harness\bin\Debug\
+test.harness.dll /testadapterpath:C:\dev\xunit.vsrunner\xunit.runner.visualstudio.testadapter\bin\Debug
 
 You'll need to enable native debugging and enable the child process debugger.
