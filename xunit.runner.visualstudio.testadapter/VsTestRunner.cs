@@ -49,7 +49,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             cancelled = true;
         }
 
-        public void DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, IMessageLogger logger, ITestCaseDiscoverySink discoverySink)
+        void ITestDiscoverer.DiscoverTests(IEnumerable<string> sources, IDiscoveryContext discoveryContext, IMessageLogger logger, ITestCaseDiscoverySink discoverySink)
         {
             Guard.ArgumentNotNull("sources", sources);
             Guard.ArgumentNotNull("logger", logger);
@@ -62,12 +62,11 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             DiscoverTests(
                 sources,
                 loggerHelper,
-                stopwatch,
                 (source, discoverer, discoveryOptions) => new VsDiscoveryVisitor(source, discoverer, loggerHelper, discoverySink, discoveryOptions, () => cancelled)
             );
         }
 
-        public void RunTests(IEnumerable<string> sources, IRunContext runContext, IFrameworkHandle frameworkHandle)
+        void ITestExecutor.RunTests(IEnumerable<string> sources, IRunContext runContext, IFrameworkHandle frameworkHandle)
         {
             Guard.ArgumentNotNull("sources", sources);
 
@@ -87,10 +86,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                    .ToList();
             }
 
-            RunTests(runContext, frameworkHandle, logger, stopwatch, () => GetTests(sources, logger, stopwatch));
+            RunTests(runContext, frameworkHandle, logger, () => GetTests(sources, logger, runContext));
         }
 
-        public void RunTests(IEnumerable<TestCase> tests, IRunContext runContext, IFrameworkHandle frameworkHandle)
+        void ITestExecutor.RunTests(IEnumerable<TestCase> tests, IRunContext runContext, IFrameworkHandle frameworkHandle)
         {
             Guard.ArgumentNotNull("tests", tests);
             Guard.ArgumentValid("tests", "AppX not supported in this overload", !ContainsAppX(tests.Select(t => t.Source)));
@@ -99,7 +98,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var logger = new LoggerHelper(frameworkHandle, stopwatch);
 
             RunTests(
-                runContext, frameworkHandle, logger, stopwatch,
+                runContext, frameworkHandle, logger,
                 () => tests.GroupBy(testCase => testCase.Source)
                            .Select(group => new AssemblyRunInfo { AssemblyFileName = group.Key, Configuration = ConfigReader.Load(group.Key), TestCases = group })
                            .ToList()
@@ -128,7 +127,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         void DiscoverTests<TVisitor>(IEnumerable<string> sources,
                                      LoggerHelper logger,
-                                     Stopwatch stopwatch,
                                      Func<string, ITestFrameworkDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor> visitorFactory,
                                      Action<string, ITestFrameworkDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor> visitComplete = null)
             where TVisitor : IVsDiscoveryVisitor, IDisposable
@@ -156,7 +154,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                             }
                             else
                             {
-                                var diagnosticMessageVisitor = new DiagnosticMessageVisitor(logger.InnerLogger, fileName, configuration.DiagnosticMessagesOrDefault, stopwatch);
+                                var diagnosticMessageVisitor = new DiagnosticMessageVisitor(logger, fileName, configuration.DiagnosticMessagesOrDefault);
 
                                 using (var framework = new XunitFrontController(assemblyFileName, configFileName: null, shadowCopy: true, diagnosticMessageSink: diagnosticMessageVisitor))
                                 {
@@ -213,8 +211,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             {
                 logger.LogWarning("Exception discovering tests: {0}", e.Unwrap());
             }
-
-            stopwatch.Stop();
         }
 
         static TestProperty GetTestProperty()
@@ -222,37 +218,43 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             return TestProperty.Register("XunitTestCase", "xUnit.net Test Case", typeof(string), typeof(VsTestRunner));
         }
 
-        List<AssemblyRunInfo> GetTests(IEnumerable<string> sources, LoggerHelper logger, Stopwatch stopwatch)
+        List<AssemblyRunInfo> GetTests(IEnumerable<string> sources, LoggerHelper logger, IRunContext runContext)
         {
-
             // For store apps, the files are copied to the AppX dir, we need to load it from there
 #if WINDOWS_PHONE_APP || WINDOWS_APP
             sources = sources.Select(s => Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, Path.GetFileName(s)));
 #endif
 
             var result = new List<AssemblyRunInfo>();
+            var knownTraitNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             DiscoverTests(
                 sources,
                 logger,
-                stopwatch,
                 (source, discoverer, discoveryOptions) => new VsExecutionDiscoveryVisitor(),
                 (source, discoverer, discoveryOptions, visitor) =>
-                    result.Add(
-                        new AssemblyRunInfo
-                        {
-                            AssemblyFileName = source,
-                            Configuration = ConfigReader.Load(source),
-                            TestCases = visitor.TestCases
-                                   .GroupBy(tc => string.Format("{0}.{1}", tc.TestMethod.TestClass.Class.Name, tc.TestMethod.Method.Name))
-                                   .SelectMany(group => group.Select(testCase => VsDiscoveryVisitor.CreateVsTestCase(source,
-                                                                                                                     discoverer,
-                                                                                                                     testCase,
-                                                                                                                     forceUniqueNames: group.Count() > 1,
-                                                                                                                     logger: logger))
-                                                             .Where(vsTestCase => vsTestCase != null))
-                                   .ToList()
-                        })
+                {
+                    var testCases = visitor.TestCases
+                                           .GroupBy(tc => string.Format("{0}.{1}", tc.TestMethod.TestClass.Class.Name, tc.TestMethod.Method.Name))
+                                           .SelectMany(group => group.Select(testCase => VsDiscoveryVisitor.CreateVsTestCase(source, discoverer, testCase,
+                                                                                                                             forceUniqueNames: group.Count() > 1,
+                                                                                                                             logger: logger,
+                                                                                                                             knownTraitNames: knownTraitNames))
+                                                                     .Where(vsTestCase => vsTestCase != null))
+                                           .ToList(); // pre-enumerate these as it populates the known trait names collection
+
+                    // Apply any filtering
+                    var filterHelper = new TestCaseFilterHelper(knownTraitNames);
+                    testCases = filterHelper.GetFilteredTestList(testCases.ToList(), runContext, logger, source).ToList();
+
+                    var runInfo = new AssemblyRunInfo
+                    {
+                        AssemblyFileName = source,
+                        Configuration = ConfigReader.Load(source),
+                        TestCases = testCases
+                    };
+                    result.Add(runInfo);
+                }
             );
 
             return result;
@@ -269,7 +271,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             return File.Exists(xunitPath) || File.Exists(xunitExecutionPath);
         }
 
-        void RunTests(IRunContext runContext, IFrameworkHandle frameworkHandle, LoggerHelper logger, Stopwatch stopwatch, Func<List<AssemblyRunInfo>> testCaseAccessor)
+        void RunTests(IRunContext runContext, IFrameworkHandle frameworkHandle, LoggerHelper logger, Func<List<AssemblyRunInfo>> testCaseAccessor)
         {
             Guard.ArgumentNotNull("runContext", runContext);
             Guard.ArgumentNotNull("frameworkHandle", frameworkHandle);
@@ -288,12 +290,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 using (AssemblyHelper.SubscribeResolve())
                     if (parallelizeAssemblies)
                         assemblies
-                            .Select(runInfo => RunTestsInAssemblyAsync(frameworkHandle, logger, toDispose, runInfo, stopwatch))
+                            .Select(runInfo => RunTestsInAssemblyAsync(frameworkHandle, logger, toDispose, runInfo))
                             .ToList()
                             .ForEach(@event => @event.WaitOne());
                     else
                         assemblies
-                            .ForEach(runInfo => RunTestsInAssembly(frameworkHandle, logger, toDispose, runInfo, stopwatch));
+                            .ForEach(runInfo => RunTestsInAssembly(frameworkHandle, logger, toDispose, runInfo));
             }
             catch (Exception ex)
             {
@@ -308,8 +310,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         void RunTestsInAssembly(IFrameworkHandle frameworkHandle,
                                 LoggerHelper logger,
                                 List<IDisposable> toDispose,
-                                AssemblyRunInfo runInfo,
-                                Stopwatch stopwatch)
+                                AssemblyRunInfo runInfo)
         {
             if (cancelled)
                 return;
@@ -320,19 +321,18 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             try
             {
                 if (runInfo.Configuration.DiagnosticMessagesOrDefault)
-                    lock (stopwatch)
-                        logger.Log("Starting: {0} (parallel test collections = {1}, max threads = {2})",
-                                   assemblyDisplayName,
-                                   runInfo.Configuration.ParallelizeTestCollectionsOrDefault ? "on" : "off",
-                                   runInfo.Configuration.MaxParallelThreadsOrDefault);
+                    logger.Log("Starting: {0} (parallel test collections = {1}, max threads = {2})",
+                               assemblyDisplayName,
+                               runInfo.Configuration.ParallelizeTestCollectionsOrDefault ? "on" : "off",
+                               runInfo.Configuration.MaxParallelThreadsOrDefault);
 
 
 #if WINDOWS_PHONE_APP || WINDOWS_APP
-            // For AppX Apps, use the package location
-            assemblyFileName = Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, Path.GetFileName(assemblyFileName));
+                // For AppX Apps, use the package location
+                assemblyFileName = Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, Path.GetFileName(assemblyFileName));
 #endif
 
-                var diagnosticMessageVisitor = new DiagnosticMessageVisitor(frameworkHandle, assemblyDisplayName, runInfo.Configuration.DiagnosticMessagesOrDefault, stopwatch);
+                var diagnosticMessageVisitor = new DiagnosticMessageVisitor(logger, assemblyDisplayName, runInfo.Configuration.DiagnosticMessagesOrDefault);
                 var controller = new XunitFrontController(assemblyFileName, configFileName: null, shadowCopy: true, diagnosticMessageSink: diagnosticMessageVisitor);
 
                 lock (toDispose)
@@ -361,15 +361,14 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         ManualResetEvent RunTestsInAssemblyAsync(IFrameworkHandle frameworkHandle,
                                                  LoggerHelper logger,
                                                  List<IDisposable> toDispose,
-                                                 AssemblyRunInfo runInfo,
-                                                 Stopwatch stopwatch)
+                                                 AssemblyRunInfo runInfo)
         {
             var @event = new ManualResetEvent(initialState: false);
             Action handler = () =>
             {
                 try
                 {
-                    RunTestsInAssembly(frameworkHandle, logger, toDispose, runInfo, stopwatch);
+                    RunTestsInAssembly(frameworkHandle, logger, toDispose, runInfo);
                 }
                 finally
                 {
@@ -387,7 +386,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         }
 
 
-        class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
+        internal class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
         {
             readonly IEnumerable<TElement> elements;
 
