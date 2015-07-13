@@ -52,7 +52,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         public int TotalTests { get; private set; }
 
-        public static TestCase CreateVsTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase xunitTestCase, bool forceUniqueNames, LoggerHelper logger)
+        public static TestCase CreateVsTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase xunitTestCase, bool forceUniqueNames, LoggerHelper logger, HashSet<string> knownTraitNames = null)
         {
             try
             {
@@ -65,9 +65,16 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 result.Id = GuidFromString(uri + xunitTestCase.UniqueID);
 
                 if (addTraitThunk != null)
+                {
                     foreach (var key in xunitTestCase.Traits.Keys)
+                    {
+                        if (knownTraitNames != null)
+                            knownTraitNames.Add(key);
+
                         foreach (var value in xunitTestCase.Traits[key])
                             addTraitThunk(result, key, value);
+                    }
+                }
 
                 result.CodeFilePath = xunitTestCase.SourceInformation.FileName;
                 result.LineNumber = xunitTestCase.SourceInformation.LineNumber.GetValueOrDefault();
