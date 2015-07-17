@@ -11,8 +11,8 @@
     <AssemblyName>xunit.runner.visualstudio.uwp</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion>10.0.10166.0</TargetPlatformVersion>
-    <TargetPlatformMinVersion>10.0.10166.0</TargetPlatformMinVersion>
+    <TargetPlatformVersion>10.0.10240.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.10240.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -64,6 +64,9 @@
     </Compile>
     <Compile Include="..\xunit.runner.visualstudio.testadapter\utility\LoggerHelper.cs">
       <Link>Utility\LoggerHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.runner.visualstudio.testadapter\Utility\TestCaseFilterHelper.cs">
+      <Link>Utility\TestCaseFilterHelper.cs</Link>
     </Compile>
     <Compile Include="..\xunit.runner.visualstudio.testadapter\visitors\DiagnosticMessageVisitor.cs">
       <Link>Visitors\DiagnosticMessageVisitor.cs</Link>
