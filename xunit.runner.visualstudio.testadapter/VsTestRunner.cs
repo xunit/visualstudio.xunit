@@ -156,7 +156,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                             {
                                 var diagnosticMessageVisitor = new DiagnosticMessageVisitor(logger, fileName, configuration.DiagnosticMessagesOrDefault);
 
-                                using (var framework = new XunitFrontController(assemblyFileName, configFileName: null, shadowCopy: true, diagnosticMessageSink: diagnosticMessageVisitor))
+                                using (var framework = new XunitFrontController(configuration.UseAppDomainOrDefault, assemblyFileName, configFileName: null, shadowCopy: true, diagnosticMessageSink: diagnosticMessageVisitor))
                                 {
                                     var targetFramework = framework.TargetFramework;
                                     if (targetFramework.StartsWith("MonoTouch", StringComparison.OrdinalIgnoreCase) ||
@@ -333,7 +333,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 #endif
 
                 var diagnosticMessageVisitor = new DiagnosticMessageVisitor(logger, assemblyDisplayName, runInfo.Configuration.DiagnosticMessagesOrDefault);
-                var controller = new XunitFrontController(assemblyFileName, configFileName: null, shadowCopy: true, diagnosticMessageSink: diagnosticMessageVisitor);
+                var controller = new XunitFrontController(runInfo.Configuration.UseAppDomainOrDefault, assemblyFileName, configFileName: null, shadowCopy: true, diagnosticMessageSink: diagnosticMessageVisitor);
 
                 lock (toDispose)
                     toDispose.Add(controller);
