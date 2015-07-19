@@ -78,6 +78,9 @@
     <Compile Include="..\xunit.runner.visualstudio.testadapter\Utility\TestCaseFilterHelper.cs">
       <Link>Utility\TestCaseFilterHelper.cs</Link>
     </Compile>
+    <Compile Include="..\xunit.runner.visualstudio.testadapter\Utility\VisualStudioRunnerLogger.cs">
+      <Link>Utility\VisualStudioRunnerLogger.cs</Link>
+    </Compile>
     <Compile Include="..\xunit.runner.visualstudio.testadapter\Visitors\DiagnosticMessageVisitor.cs">
       <Link>Visitors\DiagnosticMessageVisitor.cs</Link>
     </Compile>

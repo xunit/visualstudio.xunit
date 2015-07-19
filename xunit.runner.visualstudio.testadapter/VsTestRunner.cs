@@ -100,7 +100,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             RunTests(
                 runContext, frameworkHandle, logger,
                 () => tests.GroupBy(testCase => testCase.Source)
-                           .Select(group => new AssemblyRunInfo { AssemblyFileName = group.Key, Configuration = ConfigReader.Load(group.Key), TestCases = group })
+                           .Select(group => new AssemblyRunInfo { AssemblyFileName = group.Key, Configuration = ConfigReader.Load(group.Key), TestCases = group.ToList() })
                            .ToList()
             );
         }
@@ -137,8 +137,11 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                 using (AssemblyHelper.SubscribeResolve())
                 {
+                    var reporterMessageHandler = new DefaultRunnerReporter().CreateMessageHandler(new VisualStudioRunnerLogger(logger));
+
                     foreach (var assemblyFileName in sources)
                     {
+                        var assembly = new XunitProjectAssembly { AssemblyFilename = assemblyFileName };
                         var configuration = ConfigReader.Load(assemblyFileName);
                         var fileName = Path.GetFileNameWithoutExtension(assemblyFileName);
 
@@ -170,19 +173,17 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                     {
                                         var discoveryOptions = TestFrameworkOptions.ForDiscovery(configuration);
 
-                                        if (configuration.DiagnosticMessagesOrDefault)
-                                            logger.Log("Discovering: {0} (method display = {1})", fileName, discoveryOptions.GetMethodDisplayOrDefault());
-
                                         using (var visitor = visitorFactory(assemblyFileName, framework, discoveryOptions))
                                         {
+                                            reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryStarting(assembly, configuration.UseAppDomainOrDefault, discoveryOptions));
+
                                             framework.Find(includeSourceInformation: true, messageSink: visitor, discoveryOptions: discoveryOptions);
                                             var totalTests = visitor.Finish();
 
                                             if (visitComplete != null)
                                                 visitComplete(assemblyFileName, framework, discoveryOptions, visitor);
 
-                                            if (configuration.DiagnosticMessagesOrDefault)
-                                                logger.Log("Discovered: {0} ({1} tests)", fileName, totalTests);
+                                            reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryFinished(assembly, discoveryOptions, totalTests, totalTests));
                                         }
                                     }
                                 }
@@ -245,7 +246,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                     // Apply any filtering
                     var filterHelper = new TestCaseFilterHelper(knownTraitNames);
-                    testCases = filterHelper.GetFilteredTestList(testCases.ToList(), runContext, logger, source).ToList();
+                    testCases = filterHelper.GetFilteredTestList(testCases, runContext, logger, source).ToList();
 
                     var runInfo = new AssemblyRunInfo
                     {
@@ -286,16 +287,17 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                 var assemblies = testCaseAccessor();
                 var parallelizeAssemblies = assemblies.All(runInfo => runInfo.Configuration.ParallelizeAssemblyOrDefault);
+                var reporterMessageHandler = new DefaultRunnerReporter().CreateMessageHandler(new VisualStudioRunnerLogger(logger));
 
                 using (AssemblyHelper.SubscribeResolve())
                     if (parallelizeAssemblies)
                         assemblies
-                            .Select(runInfo => RunTestsInAssemblyAsync(frameworkHandle, logger, toDispose, runInfo))
+                            .Select(runInfo => RunTestsInAssemblyAsync(frameworkHandle, logger, reporterMessageHandler, toDispose, runInfo))
                             .ToList()
                             .ForEach(@event => @event.WaitOne());
                     else
                         assemblies
-                            .ForEach(runInfo => RunTestsInAssembly(frameworkHandle, logger, toDispose, runInfo));
+                            .ForEach(runInfo => RunTestsInAssembly(frameworkHandle, logger, reporterMessageHandler, toDispose, runInfo));
             }
             catch (Exception ex)
             {
@@ -309,24 +311,19 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         void RunTestsInAssembly(IFrameworkHandle frameworkHandle,
                                 LoggerHelper logger,
+                                IMessageSink reporterMessageHandler,
                                 List<IDisposable> toDispose,
                                 AssemblyRunInfo runInfo)
         {
             if (cancelled)
                 return;
 
+            var assembly = new XunitProjectAssembly { AssemblyFilename = runInfo.AssemblyFileName };
             var assemblyFileName = runInfo.AssemblyFileName;
             var assemblyDisplayName = Path.GetFileNameWithoutExtension(assemblyFileName);
 
             try
             {
-                if (runInfo.Configuration.DiagnosticMessagesOrDefault)
-                    logger.Log("Starting: {0} (parallel test collections = {1}, max threads = {2})",
-                               assemblyDisplayName,
-                               runInfo.Configuration.ParallelizeTestCollectionsOrDefault ? "on" : "off",
-                               runInfo.Configuration.MaxParallelThreadsOrDefault);
-
-
 #if WINDOWS_PHONE_APP || WINDOWS_APP
                 // For AppX Apps, use the package location
                 assemblyFileName = Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, Path.GetFileName(assemblyFileName));
@@ -343,14 +340,15 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                                       .ToDictionary(tc => tc.xunit, tc => tc.vs);
                 var executionOptions = TestFrameworkOptions.ForExecution(runInfo.Configuration);
 
+                reporterMessageHandler.OnMessage(new TestAssemblyExecutionStarting(assembly, executionOptions));
+
                 using (var executionVisitor = new VsExecutionVisitor(frameworkHandle, logger, xunitTestCases, executionOptions, () => cancelled))
                 {
                     controller.RunTests(xunitTestCases.Keys.ToList(), executionVisitor, executionOptions);
                     executionVisitor.Finished.WaitOne();
-                }
 
-                if (runInfo.Configuration.DiagnosticMessagesOrDefault)
-                    logger.Log("Finished: {0}", assemblyDisplayName);
+                    reporterMessageHandler.OnMessage(new TestAssemblyExecutionFinished(assembly, executionOptions, executionVisitor.ExecutionSummary));
+                }
             }
             catch (Exception ex)
             {
@@ -360,6 +358,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         ManualResetEvent RunTestsInAssemblyAsync(IFrameworkHandle frameworkHandle,
                                                  LoggerHelper logger,
+                                                 IMessageSink reporterMessageHandler,
                                                  List<IDisposable> toDispose,
                                                  AssemblyRunInfo runInfo)
         {
@@ -368,7 +367,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             {
                 try
                 {
-                    RunTestsInAssembly(frameworkHandle, logger, toDispose, runInfo);
+                    RunTestsInAssembly(frameworkHandle, logger, reporterMessageHandler, toDispose, runInfo);
                 }
                 finally
                 {

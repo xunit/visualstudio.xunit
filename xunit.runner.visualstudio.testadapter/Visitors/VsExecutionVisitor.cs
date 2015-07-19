@@ -28,7 +28,11 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             this.testCases = testCases;
             this.executionOptions = executionOptions;
             this.cancelledThunk = cancelledThunk;
+
+            ExecutionSummary = new ExecutionSummary();
         }
+
+        public ExecutionSummary ExecutionSummary { get; private set; }
 
         TestCase FindTestCase(ITestCase testCase)
         {
@@ -48,9 +52,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         {
             try
             {
-                if (executionOptions.GetDiagnosticMessagesOrDefault())
-                    logger.Log(testCase, "Performing {0} for test case {1}", actionDescription, testCase.DisplayName);
-
                 action();
             }
             catch (Exception ex)
@@ -61,9 +62,21 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         protected override bool Visit(IErrorMessage error)
         {
+            ExecutionSummary.Errors++;
+
             logger.LogError("Catastrophic failure: {0}", ExceptionUtility.CombineMessages(error));
 
             return !cancelledThunk();
+        }
+
+        protected override bool Visit(ITestAssemblyFinished assemblyFinished)
+        {
+            ExecutionSummary.Failed = assemblyFinished.TestsFailed;
+            ExecutionSummary.Skipped = assemblyFinished.TestsSkipped;
+            ExecutionSummary.Time = assemblyFinished.ExecutionTime;
+            ExecutionSummary.Total = assemblyFinished.TestsRun;
+
+            return base.Visit(assemblyFinished);
         }
 
         protected override bool Visit(ITestFailed testFailed)
@@ -128,31 +141,43 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         protected override bool Visit(ITestAssemblyCleanupFailure cleanupFailure)
         {
+            ExecutionSummary.Errors++;
+
             return WriteError(string.Format("Test Assembly Cleanup Failure ({0})", cleanupFailure.TestAssembly.Assembly.AssemblyPath), cleanupFailure, cleanupFailure.TestCases);
         }
 
         protected override bool Visit(ITestCaseCleanupFailure cleanupFailure)
         {
+            ExecutionSummary.Errors++;
+
             return WriteError(string.Format("Test Case Cleanup Failure ({0})", cleanupFailure.TestCase.DisplayName), cleanupFailure, cleanupFailure.TestCases);
         }
 
         protected override bool Visit(ITestClassCleanupFailure cleanupFailure)
         {
+            ExecutionSummary.Errors++;
+
             return WriteError(string.Format("Test Class Cleanup Failure ({0})", cleanupFailure.TestClass.Class.Name), cleanupFailure, cleanupFailure.TestCases);
         }
 
         protected override bool Visit(ITestCollectionCleanupFailure cleanupFailure)
         {
+            ExecutionSummary.Errors++;
+
             return WriteError(string.Format("Test Collection Cleanup Failure ({0})", cleanupFailure.TestCollection.DisplayName), cleanupFailure, cleanupFailure.TestCases);
         }
 
         protected override bool Visit(ITestCleanupFailure cleanupFailure)
         {
+            ExecutionSummary.Errors++;
+
             return WriteError(string.Format("Test Cleanup Failure ({0})", cleanupFailure.Test.DisplayName), cleanupFailure, cleanupFailure.TestCases);
         }
 
         protected override bool Visit(ITestMethodCleanupFailure cleanupFailure)
         {
+            ExecutionSummary.Errors++;
+
             return WriteError(string.Format("Test Method Cleanup Failure ({0})", cleanupFailure.TestMethod.Method.Name), cleanupFailure, cleanupFailure.TestCases);
         }
 
