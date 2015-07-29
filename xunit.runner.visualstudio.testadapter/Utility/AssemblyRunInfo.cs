@@ -7,6 +7,6 @@ namespace Xunit.Runner.VisualStudio
     {
         public string AssemblyFileName;
         public TestAssemblyConfiguration Configuration;
-        public IEnumerable<TestCase> TestCases;
+        public IList<TestCase> TestCases;
     }
 }

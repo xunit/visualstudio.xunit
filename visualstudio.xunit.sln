@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 14.0.23103.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.runner.visualstudio.testadapter", "xunit.runner.visualstudio.testadapter\xunit.runner.visualstudio.testadapter.csproj", "{EBAB9937-2A6A-41EA-848B-3F7EDE2396CB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B9CC6A98-9BE1-46C7-BC8E-1D1F67335FB7} = {B9CC6A98-9BE1-46C7-BC8E-1D1F67335FB7}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.runner.visualstudio.wpa81", "xunit.runner.visualstudio.wpa81\xunit.runner.visualstudio.wpa81.csproj", "{1F759DC9-82C9-45B1-A9DA-E3A7B7386CED}"
 EndProject
@@ -21,9 +24,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.runner.visualstudio.w
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.runner.visualstudio.uwp", "xunit.runner.visualstudio.uwp\xunit.runner.visualstudio.uwp.csproj", "{9220495E-D0C7-4F0D-B963-A5E17FF63386}"
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test.harness", "test.harness\test.harness.csproj", "{B9CC6A98-9BE1-46C7-BC8E-1D1F67335FB7}"
-	ProjectSection(ProjectDependencies) = postProject
-		{EBAB9937-2A6A-41EA-848B-3F7EDE2396CB} = {EBAB9937-2A6A-41EA-848B-3F7EDE2396CB}
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test.xunit.runner.visualstudio.testadapter", "test.xunit.runner.visualstudio.testadapter\test.xunit.runner.visualstudio.testadapter.csproj", "{276BA4CF-B023-4159-85E8-B5A9A4D4493A}"
 EndProject
