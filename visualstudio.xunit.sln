@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.22823.1
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.runner.visualstudio.testadapter", "xunit.runner.visualstudio.testadapter\xunit.runner.visualstudio.testadapter.csproj", "{EBAB9937-2A6A-41EA-848B-3F7EDE2396CB}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -14,6 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		xunit.runner.visualstudio.nuspec = xunit.runner.visualstudio.nuspec
 		build\xunit.runner.visualstudio.props = build\xunit.runner.visualstudio.props
+		build\xunit.runner.visualstudio.uwp.props = build\xunit.runner.visualstudio.uwp.props
+		build\xunit.runner.visualstudio.uwp.targets = build\xunit.runner.visualstudio.uwp.targets
 		build\xunit.runner.visualstudio.win81.targets = build\xunit.runner.visualstudio.win81.targets
 		build\xunit.runner.visualstudio.wpa81.targets = build\xunit.runner.visualstudio.wpa81.targets
 	EndProjectSection
@@ -27,6 +29,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{BA799592-92C2-40AD-9FB2-623E94A427F3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{88AA0DC3-2723-4E7D-A89E-A977F319B3AA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.runner.visualstudio.uwp", "xunit.runner.visualstudio.uwp\xunit.runner.visualstudio.uwp.csproj", "{9220495E-D0C7-4F0D-B963-A5E17FF63386}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -54,6 +58,10 @@ Global
 		{276BA4CF-B023-4159-85E8-B5A9A4D4493A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{276BA4CF-B023-4159-85E8-B5A9A4D4493A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{276BA4CF-B023-4159-85E8-B5A9A4D4493A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9220495E-D0C7-4F0D-B963-A5E17FF63386}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9220495E-D0C7-4F0D-B963-A5E17FF63386}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9220495E-D0C7-4F0D-B963-A5E17FF63386}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9220495E-D0C7-4F0D-B963-A5E17FF63386}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -64,5 +72,6 @@ Global
 		{442EF4E5-67F5-4906-B8A8-D93AB4EBAD82} = {BA799592-92C2-40AD-9FB2-623E94A427F3}
 		{B9CC6A98-9BE1-46C7-BC8E-1D1F67335FB7} = {88AA0DC3-2723-4E7D-A89E-A977F319B3AA}
 		{276BA4CF-B023-4159-85E8-B5A9A4D4493A} = {88AA0DC3-2723-4E7D-A89E-A977F319B3AA}
+		{9220495E-D0C7-4F0D-B963-A5E17FF63386} = {BA799592-92C2-40AD-9FB2-623E94A427F3}
 	EndGlobalSection
 EndGlobal
