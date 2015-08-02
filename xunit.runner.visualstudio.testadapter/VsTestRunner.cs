@@ -56,6 +56,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             Guard.ArgumentNotNull("discoverySink", discoverySink);
             Guard.ArgumentValid("sources", "AppX not supported for discovery", !ContainsAppX(sources));
 
+#if WINDOWS_UAP
+            ConfigReader_Json.FileOpenRead = File.OpenRead;
+#endif
+
             var stopwatch = Stopwatch.StartNew();
             var loggerHelper = new LoggerHelper(logger, stopwatch);
 
@@ -69,6 +73,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         void ITestExecutor.RunTests(IEnumerable<string> sources, IRunContext runContext, IFrameworkHandle frameworkHandle)
         {
             Guard.ArgumentNotNull("sources", sources);
+
+#if WINDOWS_UAP
+            ConfigReader_Json.FileOpenRead = File.OpenRead;
+#endif
 
             var stopwatch = Stopwatch.StartNew();
             var logger = new LoggerHelper(frameworkHandle, stopwatch);
@@ -93,6 +101,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         {
             Guard.ArgumentNotNull("tests", tests);
             Guard.ArgumentValid("tests", "AppX not supported in this overload", !ContainsAppX(tests.Select(t => t.Source)));
+
+#if WINDOWS_UAP
+            ConfigReader_Json.FileOpenRead = File.OpenRead;
+#endif
 
             var stopwatch = Stopwatch.StartNew();
             var logger = new LoggerHelper(frameworkHandle, stopwatch);
