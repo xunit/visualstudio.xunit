@@ -13,6 +13,7 @@
     <TrackFileAccess>false</TrackFileAccess>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">$(MSBuildProjectDirectory)</SolutionDir>
     <NuGetExePath Condition=" '$(NuGetExePath)' == '' ">$(SolutionDir)\.nuget\nuget.exe</NuGetExePath>
+    <NuGetNoCache></NuGetNoCache>
   </PropertyGroup>
   <ItemGroup>
     <NuspecFiles Include="**\*.nuspec" />
@@ -25,7 +26,7 @@
 
   <!-- Build server targets -->
 
-  <Target Name="CI" DependsOnTargets="Clean;PackageRestore;SetVersionNumber;Build;GitLink;Packages;ZipArtifacts" />
+  <Target Name="CI" DependsOnTargets="_NoCache;Clean;PackageRestore;SetVersionNumber;Build;GitLink;Packages;ZipArtifacts" />
   <Target Name="TeamCity" DependsOnTargets="CI;PushMyGet" />
   <Target Name="Release" DependsOnTargets="Clean;PackageRestore;Build;Packages;ZipArtifacts" />
 
@@ -46,10 +47,16 @@
     <Message Text="Restoring NuGet packages..." Importance="High" />
     <Exec Command="&quot;$(NuGetExePath)&quot; install xunit.buildtasks -Source @(PackageSource) -SolutionDir &quot;$(SolutionDir)&quot; -Verbosity quiet -ExcludeVersion" Condition="!Exists('$(SolutionDir)\packages\xunit.buildtasks\')" />
     <Exec Command="&quot;$(NuGetExePath)&quot; install gitlink -SolutionDir &quot;$(SolutionDir)&quot; -Verbosity quiet -ExcludeVersion" Condition="!Exists('$(SolutionDir)\packages\gitlink\')" />
-    <Exec Command="&quot;$(NuGetExePath)&quot; restore &quot;$(SolutionDir)\visualstudio.xunit.sln&quot; -NonInteractive -Source @(PackageSource) -Verbosity quiet" />
+    <Exec Command="&quot;$(NuGetExePath)&quot; restore &quot;$(SolutionDir)\visualstudio.xunit.sln&quot; -NonInteractive -Source @(PackageSource) -Verbosity quiet $(NuGetNoCache)" />
   </Target>
 
   <Target Name="Build" DependsOnTargets="PackageRestore;_BuildProject" />
+  
+  <Target Name="_NoCache">
+    <PropertyGroup>
+      <NuGetNoCache>-NoCache</NuGetNoCache>
+    </PropertyGroup>
+  </Target>
 
   <Target Name="_BuildProject">
     <MSBuild
