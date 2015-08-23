@@ -3,7 +3,7 @@
     "Microsoft.NETCore.UniversalWindowsPlatform": "5.0.0",
     "Microsoft.VisualStudio.TestPlatform.ObjectModel": "0.0.5",
     "xunit.abstractions": "2.0.0",
-    "xunit.runner.utility": "2.1.0-rc1-build3110"
+    "xunit.runner.utility": "2.1.0-rc1-build3128"
   },
   "frameworks": {
     "uap10.0": {}

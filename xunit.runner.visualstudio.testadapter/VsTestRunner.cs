@@ -21,6 +21,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
     {
         public static TestProperty SerializedTestCaseProperty = GetTestProperty();
 
+#if PLATFORM_DOTNET
+        AppDomainSupport AppDomain = AppDomainSupport.Denied;
+#else
+        AppDomainSupport AppDomain = AppDomainSupport.Required;
+#endif
+
         static readonly HashSet<string> platformAssemblies = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "microsoft.visualstudio.testplatform.unittestframework.dll",
@@ -32,11 +38,15 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             "vstest.executionengine.appcontainer.exe",
             "vstest.executionengine.appcontainer.x86.exe",
             "xunit.execution.desktop.dll",
+            "xunit.execution.dotnet.dll",
             "xunit.execution.win8.dll",
             "xunit.execution.universal.dll",
             "xunit.runner.utility.desktop.dll",
-            "xunit.runner.utility.universal.dll",
+            "xunit.runner.utility.dotnet.dll",
             "xunit.runner.visualstudio.testadapter.dll",
+            "xunit.runner.visualstudio.uwp.dll",
+            "xunit.runner.visualstudio.win81.dll",
+            "xunit.runner.visualstudio.wpa81.dll",
             "xunit.core.dll",
             "xunit.assert.dll",
             "xunit.dll"
@@ -56,10 +66,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             Guard.ArgumentNotNull("discoverySink", discoverySink);
             Guard.ArgumentValid("sources", "AppX not supported for discovery", !ContainsAppX(sources));
 
-#if WINDOWS_UAP
-            ConfigReader_Json.FileOpenRead = File.OpenRead;
-#endif
-
             var stopwatch = Stopwatch.StartNew();
             var loggerHelper = new LoggerHelper(logger, stopwatch);
 
@@ -74,17 +80,13 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         {
             Guard.ArgumentNotNull("sources", sources);
 
-#if WINDOWS_UAP
-            ConfigReader_Json.FileOpenRead = File.OpenRead;
-#endif
-
             var stopwatch = Stopwatch.StartNew();
             var logger = new LoggerHelper(frameworkHandle, stopwatch);
 
             // In this case, we need to go thru the files manually
             if (ContainsAppX(sources))
             {
-#if WINDOWS_PHONE_APP || WINDOWS_APP
+#if PLATFORM_DOTNET
                 var sourcePath = Windows.ApplicationModel.Package.Current.InstalledLocation.Path;
 #else
                 var sourcePath = Environment.CurrentDirectory;
@@ -101,10 +103,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         {
             Guard.ArgumentNotNull("tests", tests);
             Guard.ArgumentValid("tests", "AppX not supported in this overload", !ContainsAppX(tests.Select(t => t.Source)));
-
-#if WINDOWS_UAP
-            ConfigReader_Json.FileOpenRead = File.OpenRead;
-#endif
 
             var stopwatch = Stopwatch.StartNew();
             var logger = new LoggerHelper(frameworkHandle, stopwatch);
@@ -171,7 +169,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                             {
                                 var diagnosticMessageVisitor = new DiagnosticMessageVisitor(logger, fileName, configuration.DiagnosticMessagesOrDefault);
 
-                                using (var framework = new XunitFrontController(useAppDomain: true, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: true, diagnosticMessageSink: diagnosticMessageVisitor))
+                                using (var framework = new XunitFrontController(AppDomain, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: true, diagnosticMessageSink: diagnosticMessageVisitor))
                                 {
                                     var targetFramework = framework.TargetFramework;
                                     if (targetFramework.StartsWith("MonoTouch", StringComparison.OrdinalIgnoreCase) ||
@@ -187,7 +185,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                                         using (var visitor = visitorFactory(assemblyFileName, framework, discoveryOptions))
                                         {
-                                            reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryStarting(assembly, configuration.UseAppDomainOrDefault, discoveryOptions));
+                                            reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryStarting(assembly, AppDomain != AppDomainSupport.Denied, discoveryOptions));
 
                                             framework.Find(includeSourceInformation: true, messageSink: visitor, discoveryOptions: discoveryOptions);
                                             var totalTests = visitor.Finish();
@@ -205,12 +203,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                         {
                             var ex = e.Unwrap();
                             var fileNotFound = ex as FileNotFoundException;
-#if !WINDOWS_PHONE_APP && !WINDOWS_PHONE && !WINDOWS_APP
+#if !PLATFORM_DOTNET
                             var fileLoad = ex as FileLoadException;
 #endif
                             if (fileNotFound != null)
                                 logger.LogWarning("Skipping: {0} (could not find dependent assembly '{1}')", fileName, Path.GetFileNameWithoutExtension(fileNotFound.FileName));
-#if !WINDOWS_PHONE_APP && !WINDOWS_PHONE && !WINDOWS_APP
+#if !PLATFORM_DOTNET
                             else if (fileLoad != null)
                                 logger.LogWarning("Skipping: {0} (could not find dependent assembly '{1}')", fileName, Path.GetFileNameWithoutExtension(fileLoad.FileName));
 #endif
@@ -234,7 +232,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         List<AssemblyRunInfo> GetTests(IEnumerable<string> sources, LoggerHelper logger, IRunContext runContext)
         {
             // For store apps, the files are copied to the AppX dir, we need to load it from there
-#if WINDOWS_PHONE_APP || WINDOWS_APP
+#if PLATFORM_DOTNET
             sources = sources.Select(s => Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, Path.GetFileName(s)));
 #endif
 
@@ -279,9 +277,9 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             if (platformAssemblies.Contains(Path.GetFileName(assemblyFileName)))
                 return false;
 
-            var xunitPath = Path.Combine(Path.GetDirectoryName(assemblyFileName), "xunit.dll");
-            var xunitExecutionPath = Path.Combine(Path.GetDirectoryName(assemblyFileName), ExecutionHelper.AssemblyName);
-            return File.Exists(xunitPath) || File.Exists(xunitExecutionPath);
+            var assemblyFolder = Path.GetDirectoryName(assemblyFileName);
+            return File.Exists(Path.Combine(assemblyFolder, "xunit.dll"))
+                || Directory.GetFiles(assemblyFolder, "xunit.execution.*.dll").Length > 0;
         }
 
         void RunTests(IRunContext runContext, IFrameworkHandle frameworkHandle, LoggerHelper logger, Func<List<AssemblyRunInfo>> testCaseAccessor)
@@ -336,13 +334,13 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             try
             {
-#if WINDOWS_PHONE_APP || WINDOWS_APP
+#if PLATFORM_DOTNET
                 // For AppX Apps, use the package location
                 assemblyFileName = Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, Path.GetFileName(assemblyFileName));
 #endif
 
                 var diagnosticMessageVisitor = new DiagnosticMessageVisitor(logger, assemblyDisplayName, runInfo.Configuration.DiagnosticMessagesOrDefault);
-                var controller = new XunitFrontController(useAppDomain: true, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: true, diagnosticMessageSink: diagnosticMessageVisitor);
+                var controller = new XunitFrontController(AppDomain, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: true, diagnosticMessageSink: diagnosticMessageVisitor);
 
                 lock (toDispose)
                     toDispose.Add(controller);
@@ -387,7 +385,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 }
             };
 
-#if WINDOWS_PHONE_APP || WINDOWS_APP
+#if PLATFORM_DOTNET
             var fireAndForget = Windows.System.Threading.ThreadPool.RunAsync(_ => handler());
 #else
             ThreadPool.QueueUserWorkItem(_ => handler());

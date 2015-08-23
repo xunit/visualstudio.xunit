@@ -5,7 +5,14 @@
     <version>99.99.99-dev</version>
     <title>xUnit.net [Runner: Visual Studio]</title>
     <authors>James Newkirk, Brad Wilson</authors>
-    <description>Visual Studio 2012+ Test Explorer runner for the xUnit.net framework. Capable of running xUnit.net v1.9.2 and v2.0+ tests.</description>
+    <description>Visual Studio 2012+ Test Explorer runner for the xUnit.net framework. Capable of running xUnit.net v1.9.2 and v2.0+ tests.
+
+Supported platforms:
+- Desktop .NET 2.0+
+- Universal Windows App 10+
+- Windows App 8.1
+- Windows Phone App 8.1
+- Portable Libraries (supporting Profile259)</description>
     <language>en-US</language>
     <projectUrl>https://github.com/xunit/xunit</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/xunit/media/master/logo-512-transparent.png</iconUrl>
@@ -13,32 +20,35 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
   </metadata>
   <files>
-    <!-- Discovery -->
-    <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.abstractions.dll"                    target="build\_common\" />
-    <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.runner.utility.desktop.dll"          target="build\_common\" />
+    <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.abstractions.dll" target="build\_common\" />
+    <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.runner.utility.desktop.dll" target="build\_common\" />
     <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.runner.visualstudio.testadapter.dll" target="build\_common\" />
-    <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.utility.universal.dll"              target="build\_universal\" />
-    <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.utility.universal.pri"              target="build\_universal\" />
+    <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.utility.dotnet.dll" target="build\_common\" />
 
-    <!-- Execution -->
-    <file src="build\xunit.runner.visualstudio.props" target="build\net20\xunit.runner.visualstudio.props" />
+    <file src="build\xunit.runner.visualstudio.v1.props" target="build\net20\xunit.runner.visualstudio.props" />
 
-    <file src="build\xunit.runner.visualstudio.props" target="build\portable-net45+netcore45+wp8+wpa81\xunit.runner.visualstudio.props" />
+    <file src="build\xunit.runner.visualstudio.v2.props" target="build\portable-net45+win8+wp8+wpa81\xunit.runner.visualstudio.props" />
 
-    <file src="build\xunit.runner.visualstudio.props"                                           target="build\win81\xunit.runner.visualstudio.props" />
-    <file src="build\xunit.runner.visualstudio.win81.targets"                                   target="build\win81\xunit.runner.visualstudio.targets" />
+    <file src="build\xunit.runner.visualstudio.v2.props" target="build\uap10.0\xunit.runner.visualstudio.props" />
+    <file src="build\xunit.runner.visualstudio.uwp.targets" target="build\uap10.0\xunit.runner.visualstudio.targets" />
+    <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.visualstudio.uwp.dll" target="build\uap10.0\" />
+    <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.visualstudio.uwp.pri" target="build\uap10.0\" />
+    <file src="xunit.runner.visualstudio.uwp\Properties\xunit.runner.visualstudio.uwp.rd.xml" target="build\uap10.0\Properties\" />
+
+    <file src="build\xunit.runner.visualstudio.v2.props" target="build\win81\xunit.runner.visualstudio.props" />
+    <file src="build\xunit.runner.visualstudio.win81.targets" target="build\win81\xunit.runner.visualstudio.targets" />
     <file src="xunit.runner.visualstudio.win81\bin\Release\xunit.runner.visualstudio.win81.dll" target="build\win81\" />
     <file src="xunit.runner.visualstudio.win81\bin\Release\xunit.runner.visualstudio.win81.pri" target="build\win81\" />
 
-    <file src="build\xunit.runner.visualstudio.props"                                           target="build\wpa81\xunit.runner.visualstudio.props" />
-    <file src="build\xunit.runner.visualstudio.wpa81.targets"                                   target="build\wpa81\xunit.runner.visualstudio.targets" />
+    <file src="build\xunit.runner.visualstudio.v2.props" target="build\wpa81\xunit.runner.visualstudio.props" />
+    <file src="build\xunit.runner.visualstudio.wpa81.targets" target="build\wpa81\xunit.runner.visualstudio.targets" />
     <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.visualstudio.wpa81.dll" target="build\wpa81\" />
     <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.visualstudio.wpa81.pri" target="build\wpa81\" />
 
-    <file src="build\xunit.runner.visualstudio.uwp.props"                                       target="build\uap10.0\xunit.runner.visualstudio.props" />
-    <file src="build\xunit.runner.visualstudio.uwp.targets"                                     target="build\uap10.0\xunit.runner.visualstudio.targets" />
-    <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.visualstudio.uwp.dll"     target="build\uap10.0\" />
-    <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.visualstudio.uwp.pri"     target="build\uap10.0\" />
-    <file src="xunit.runner.visualstudio.uwp\Properties\xunit.runner.visualstudio.uwp.rd.xml"   target="build\uap10.0\Properties\" />
+    <file src="build\_._" target="build\monoandroid\" />
+    <file src="build\_._" target="build\monotouch\" />
+    <file src="build\_._" target="build\win8\" />
+    <file src="build\_._" target="build\wp8\" />
+    <file src="build\_._" target="build\xamarinios\" />
   </files>
 </package>

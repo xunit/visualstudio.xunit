@@ -23,7 +23,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;NETFX_CORE;WINDOWS_UAP;WINDOWS_APP</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;NETFX_CORE;WINDOWS_UAP;WINDOWS_APP;PLATFORM_DOTNET</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -32,7 +32,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UAP;WINDOWS_APP</DefineConstants>
+    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UAP;WINDOWS_APP;PLATFORM_DOTNET</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -55,9 +55,6 @@
     </Compile>
     <Compile Include="..\xunit.runner.visualstudio.testadapter\utility\ExceptionExtensions.cs">
       <Link>Utility\ExceptionExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\Utility\ExecutionHelper.cs">
-      <Link>Utility\ExecutionHelper.cs</Link>
     </Compile>
     <Compile Include="..\xunit.runner.visualstudio.testadapter\utility\Guard.cs">
       <Link>Utility\Guard.cs</Link>

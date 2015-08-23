@@ -8,11 +8,8 @@
       <xUnitVsLibs Include="$(MSBuildThisFileDirectory)xunit.runner.visualstudio.win81.pri">
         <TargetPath>xunit.runner.visualstudio.win81.pri</TargetPath>
       </xUnitVsLibs>
-      <xUnitVsLibs Include="$(MSBuildThisFileDirectory)..\_universal\xunit.runner.utility.universal.dll">
-        <TargetPath>xunit.runner.utility.universal.dll</TargetPath>
-      </xUnitVsLibs>
-      <xUnitVsLibs Include="$(MSBuildThisFileDirectory)..\_universal\xunit.runner.utility.universal.pri">
-        <TargetPath>xunit.runner.utility.universal.pri</TargetPath>
+      <xUnitVsLibs Include="$(MSBuildThisFileDirectory)..\_common\xunit.runner.utility.dotnet.dll">
+        <TargetPath>xunit.runner.utility.dotnet.dll</TargetPath>
       </xUnitVsLibs>
       <xUnitVsLibsToRemove Include="@(AppxPackagePayload)" Condition="'%(TargetPath)' == 'xunit.runner.visualstudio.testadapter.dll'"/>
       <xUnitVsLibsToRemove Include="@(AppxPackagePayload)" Condition="'%(TargetPath)' == 'xunit.runner.utility.desktop.dll'"/>

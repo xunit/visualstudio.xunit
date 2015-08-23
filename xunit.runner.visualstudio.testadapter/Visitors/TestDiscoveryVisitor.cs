@@ -1,11 +1,7 @@
 ﻿using System.Collections.Generic;
 using Xunit.Abstractions;
 
-#if XUNIT_CORE_DLL
-namespace Xunit.Sdk
-#else
 namespace Xunit
-#endif
 {
     internal class TestDiscoveryVisitor : TestMessageVisitor<IDiscoveryCompleteMessage>
     {
