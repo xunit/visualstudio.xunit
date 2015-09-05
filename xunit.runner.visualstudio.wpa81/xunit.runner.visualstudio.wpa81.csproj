@@ -97,8 +97,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\xunit.abstractions.2.0.0\lib\portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="xunit.runner.utility.dotnet, Version=2.1.0.3139, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\xunit.runner.utility.2.1.0-rc1-build3139\lib\dotnet\xunit.runner.utility.dotnet.dll</HintPath>
+    <Reference Include="xunit.runner.utility.dotnet, Version=2.1.0.3167, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <HintPath>..\packages\xunit.runner.utility.2.1.0-rc1-build3167\lib\dotnet\xunit.runner.utility.dotnet.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>

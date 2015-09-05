@@ -154,6 +154,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                         var assembly = new XunitProjectAssembly { AssemblyFilename = assemblyFileName };
                         var configuration = ConfigReader.Load(assemblyFileName);
                         var fileName = Path.GetFileNameWithoutExtension(assemblyFileName);
+                        var shadowCopy = configuration.ShadowCopyOrDefault;
 
                         try
                         {
@@ -169,7 +170,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                             {
                                 var diagnosticMessageVisitor = new DiagnosticMessageVisitor(logger, fileName, configuration.DiagnosticMessagesOrDefault);
 
-                                using (var framework = new XunitFrontController(AppDomain, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: true, diagnosticMessageSink: diagnosticMessageVisitor))
+                                using (var framework = new XunitFrontController(AppDomain, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: shadowCopy, diagnosticMessageSink: diagnosticMessageVisitor))
                                 {
                                     var targetFramework = framework.TargetFramework;
                                     if (targetFramework.StartsWith("MonoTouch", StringComparison.OrdinalIgnoreCase) ||
@@ -185,7 +186,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                                         using (var visitor = visitorFactory(assemblyFileName, framework, discoveryOptions))
                                         {
-                                            reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryStarting(assembly, AppDomain != AppDomainSupport.Denied, discoveryOptions));
+                                            reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryStarting(assembly, AppDomain != AppDomainSupport.Denied, shadowCopy, discoveryOptions));
 
                                             framework.Find(includeSourceInformation: true, messageSink: visitor, discoveryOptions: discoveryOptions);
                                             var totalTests = visitor.Finish();
