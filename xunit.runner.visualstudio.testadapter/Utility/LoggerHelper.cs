@@ -47,7 +47,7 @@ public class LoggerHelper
 
     void SendMessage(TestMessageLevel level, string assemblyName, string message)
     {
-        var assemblyText = assemblyName == null ? "" : string.Format("{0}: ", Path.GetFileNameWithoutExtension(assemblyName));
-        InnerLogger.SendMessage(level, string.Format("[xUnit.net {0}] {1}{2}", Stopwatch.Elapsed, assemblyText, message));
+        var assemblyText = assemblyName == null ? "" : $"{Path.GetFileNameWithoutExtension(assemblyName)}: ";
+        InnerLogger.SendMessage(level, $"[xUnit.net {Stopwatch.Elapsed}] {assemblyText}{message}");
     }
 }

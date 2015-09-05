@@ -247,7 +247,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 (source, discoverer, discoveryOptions, visitor) =>
                 {
                     var testCases = visitor.TestCases
-                                           .GroupBy(tc => string.Format("{0}.{1}", tc.TestMethod.TestClass.Class.Name, tc.TestMethod.Method.Name))
+                                           .GroupBy(tc => $"{tc.TestMethod.TestClass.Class.Name}.{tc.TestMethod.Method.Name}")
                                            .SelectMany(group => group.Select(testCase => VsDiscoveryVisitor.CreateVsTestCase(source, discoverer, testCase,
                                                                                                                              forceUniqueNames: group.Count() > 1,
                                                                                                                              logger: logger,

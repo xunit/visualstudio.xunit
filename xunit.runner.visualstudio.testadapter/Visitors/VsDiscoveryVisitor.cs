@@ -57,8 +57,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             try
             {
                 var serializedTestCase = discoverer.Serialize(xunitTestCase);
-                var fqTestMethodName = string.Format("{0}.{1}", xunitTestCase.TestMethod.TestClass.Class.Name, xunitTestCase.TestMethod.Method.Name);
-                var uniqueName = forceUniqueNames ? string.Format("{0} ({1})", fqTestMethodName, xunitTestCase.UniqueID) : fqTestMethodName;
+                var fqTestMethodName = $"{xunitTestCase.TestMethod.TestClass.Class.Name}.{xunitTestCase.TestMethod.Method.Name}";
+                var uniqueName = forceUniqueNames ? $"{fqTestMethodName} ({xunitTestCase.UniqueID})" : fqTestMethodName;
 
                 var result = new TestCase(uniqueName, uri, source) { DisplayName = Escape(xunitTestCase.DisplayName) };
                 result.SetPropertyValue(VsTestRunner.SerializedTestCaseProperty, serializedTestCase);
@@ -150,7 +150,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         protected override bool Visit(ITestCaseDiscoveryMessage discovery)
         {
             var testCase = discovery.TestCase;
-            var testClass = string.Format("{0}.{1}", testCase.TestMethod.TestClass.Class.Name, testCase.TestMethod.Method.Name);
+            var testClass = $"{testCase.TestMethod.TestClass.Class.Name}.{testCase.TestMethod.Method.Name}";
             if (lastTestClass != testClass)
                 SendExistingTestCases();
 

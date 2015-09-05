@@ -143,42 +143,42 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         {
             ExecutionSummary.Errors++;
 
-            return WriteError(string.Format("Test Assembly Cleanup Failure ({0})", cleanupFailure.TestAssembly.Assembly.AssemblyPath), cleanupFailure, cleanupFailure.TestCases);
+            return WriteError($"Test Assembly Cleanup Failure ({cleanupFailure.TestAssembly.Assembly.AssemblyPath})", cleanupFailure, cleanupFailure.TestCases);
         }
 
         protected override bool Visit(ITestCaseCleanupFailure cleanupFailure)
         {
             ExecutionSummary.Errors++;
 
-            return WriteError(string.Format("Test Case Cleanup Failure ({0})", cleanupFailure.TestCase.DisplayName), cleanupFailure, cleanupFailure.TestCases);
+            return WriteError($"Test Case Cleanup Failure ({cleanupFailure.TestCase.DisplayName})", cleanupFailure, cleanupFailure.TestCases);
         }
 
         protected override bool Visit(ITestClassCleanupFailure cleanupFailure)
         {
             ExecutionSummary.Errors++;
 
-            return WriteError(string.Format("Test Class Cleanup Failure ({0})", cleanupFailure.TestClass.Class.Name), cleanupFailure, cleanupFailure.TestCases);
+            return WriteError($"Test Class Cleanup Failure ({cleanupFailure.TestClass.Class.Name})", cleanupFailure, cleanupFailure.TestCases);
         }
 
         protected override bool Visit(ITestCollectionCleanupFailure cleanupFailure)
         {
             ExecutionSummary.Errors++;
 
-            return WriteError(string.Format("Test Collection Cleanup Failure ({0})", cleanupFailure.TestCollection.DisplayName), cleanupFailure, cleanupFailure.TestCases);
+            return WriteError($"Test Collection Cleanup Failure ({cleanupFailure.TestCollection.DisplayName})", cleanupFailure, cleanupFailure.TestCases);
         }
 
         protected override bool Visit(ITestCleanupFailure cleanupFailure)
         {
             ExecutionSummary.Errors++;
 
-            return WriteError(string.Format("Test Cleanup Failure ({0})", cleanupFailure.Test.DisplayName), cleanupFailure, cleanupFailure.TestCases);
+            return WriteError($"Test Cleanup Failure ({cleanupFailure.Test.DisplayName})", cleanupFailure, cleanupFailure.TestCases);
         }
 
         protected override bool Visit(ITestMethodCleanupFailure cleanupFailure)
         {
             ExecutionSummary.Errors++;
 
-            return WriteError(string.Format("Test Method Cleanup Failure ({0})", cleanupFailure.TestMethod.Method.Name), cleanupFailure, cleanupFailure.TestCases);
+            return WriteError($"Test Method Cleanup Failure ({cleanupFailure.TestMethod.Method.Name})", cleanupFailure, cleanupFailure.TestCases);
         }
 
         protected bool WriteError(string failureName, IFailureInformation failureInfo, IEnumerable<ITestCase> testCases)
@@ -188,7 +188,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 var result = MakeVsTestResult(TestOutcome.Failed, testCase, testCase.DisplayName);
                 if (result != null)
                 {
-                    result.ErrorMessage = string.Format("[{0}]: {1}", failureName, ExceptionUtility.CombineMessages(failureInfo));
+                    result.ErrorMessage = $"[{failureName}]: {ExceptionUtility.CombineMessages(failureInfo)}";
                     result.ErrorStackTrace = ExceptionUtility.CombineStackTraces(failureInfo);
 
                     TryAndReport("RecordEnd (Failure)", testCase, () => recorder.RecordEnd(result.TestCase, result.Outcome));
