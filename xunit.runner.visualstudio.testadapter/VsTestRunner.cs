@@ -332,6 +332,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var assembly = new XunitProjectAssembly { AssemblyFilename = runInfo.AssemblyFileName };
             var assemblyFileName = runInfo.AssemblyFileName;
             var assemblyDisplayName = Path.GetFileNameWithoutExtension(assemblyFileName);
+            var shadowCopy = assembly.Configuration.ShadowCopyOrDefault;
 
             try
             {
@@ -341,7 +342,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 #endif
 
                 var diagnosticMessageVisitor = new DiagnosticMessageVisitor(logger, assemblyDisplayName, runInfo.Configuration.DiagnosticMessagesOrDefault);
-                var controller = new XunitFrontController(AppDomain, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: true, diagnosticMessageSink: diagnosticMessageVisitor);
+                var controller = new XunitFrontController(AppDomain, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: shadowCopy, diagnosticMessageSink: diagnosticMessageVisitor);
 
                 lock (toDispose)
                     toDispose.Add(controller);
