@@ -186,7 +186,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                                         using (var visitor = visitorFactory(assemblyFileName, framework, discoveryOptions))
                                         {
-                                            reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryStarting(assembly, AppDomain != AppDomainSupport.Denied, shadowCopy, discoveryOptions));
+                                            reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryStarting(assembly, framework.CanUseAppDomains && AppDomain != AppDomainSupport.Denied, shadowCopy, discoveryOptions));
 
                                             framework.Find(includeSourceInformation: true, messageSink: visitor, discoveryOptions: discoveryOptions);
                                             var totalTests = visitor.Finish();
@@ -207,7 +207,9 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 #if !PLATFORM_DOTNET
                             var fileLoad = ex as FileLoadException;
 #endif
-                            if (fileNotFound != null)
+                            if (ex is InvalidOperationException)
+                                logger.LogWarning("Skipping: {0} ({1})", fileName, ex.Message);
+                            else if (fileNotFound != null)
                                 logger.LogWarning("Skipping: {0} (could not find dependent assembly '{1}')", fileName, Path.GetFileNameWithoutExtension(fileNotFound.FileName));
 #if !PLATFORM_DOTNET
                             else if (fileLoad != null)
