@@ -110,7 +110,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             RunTests(
                 runContext, frameworkHandle, logger,
                 () => tests.GroupBy(testCase => testCase.Source)
-                           .Select(group => new AssemblyRunInfo { AssemblyFileName = group.Key, Configuration = ConfigReader.Load(group.Key), TestCases = group.ToList() })
+                           .Select(group => new AssemblyRunInfo { AssemblyFileName = group.Key, Configuration = LoadConfiguration(group.Key), TestCases = group.ToList() })
                            .ToList()
             );
         }
@@ -118,9 +118,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         // Helpers
 
         static bool ContainsAppX(IEnumerable<string> sources)
-        {
-            return sources.Any(s => string.Compare(Path.GetExtension(s), ".appx", StringComparison.OrdinalIgnoreCase) == 0);
-        }
+            => sources.Any(s => string.Compare(Path.GetExtension(s), ".appx", StringComparison.OrdinalIgnoreCase) == 0);
 
         static ITestCase Deserialize(LoggerHelper logger, ITestFrameworkExecutor executor, TestCase testCase)
         {
@@ -152,7 +150,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                     foreach (var assemblyFileName in sources)
                     {
                         var assembly = new XunitProjectAssembly { AssemblyFilename = assemblyFileName };
-                        var configuration = ConfigReader.Load(assemblyFileName);
+                        var configuration = LoadConfiguration(assemblyFileName);
                         var fileName = Path.GetFileNameWithoutExtension(assemblyFileName);
                         var shadowCopy = configuration.ShadowCopyOrDefault;
 
@@ -227,10 +225,30 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             }
         }
 
-        static TestProperty GetTestProperty()
+        static Stream GetConfigurationStreamForAssembly(string assemblyName)
         {
-            return TestProperty.Register("XunitTestCase", "xUnit.net Test Case", typeof(string), typeof(VsTestRunner));
+            // See if there's a directory with the assm name. this might be the case for appx
+            if (Directory.Exists(assemblyName))
+            {
+                if (File.Exists(Path.Combine(assemblyName, $"{assemblyName}.xunit.runner.json")))
+                    return File.OpenRead(Path.Combine(assemblyName, $"{assemblyName}.xunit.runner.json"));
+
+                if (File.Exists(Path.Combine(assemblyName, "xunit.runner.json")))
+                    return File.OpenRead(Path.Combine(assemblyName, "xunit.runner.json"));
+            }
+
+            // Fallback to working dir
+            if (File.Exists($"{assemblyName}.xunit.runner.json"))
+                return File.OpenRead($"{assemblyName}.xunit.runner.json");
+
+            if (File.Exists("xunit.runner.json"))
+                return File.OpenRead("xunit.runner.json");
+
+            return null;
         }
+
+        static TestProperty GetTestProperty()
+            => TestProperty.Register("XunitTestCase", "xUnit.net Test Case", typeof(string), typeof(VsTestRunner));
 
         List<AssemblyRunInfo> GetTests(IEnumerable<string> sources, LoggerHelper logger, IRunContext runContext)
         {
@@ -264,7 +282,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                     var runInfo = new AssemblyRunInfo
                     {
                         AssemblyFileName = source,
-                        Configuration = ConfigReader.Load(source),
+                        Configuration = LoadConfiguration(source),
                         TestCases = testCases
                     };
                     result.Add(runInfo);
@@ -283,6 +301,16 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var assemblyFolder = Path.GetDirectoryName(assemblyFileName);
             return File.Exists(Path.Combine(assemblyFolder, "xunit.dll"))
                 || Directory.GetFiles(assemblyFolder, "xunit.execution.*.dll").Length > 0;
+        }
+
+        static TestAssemblyConfiguration LoadConfiguration(string assemblyName)
+        {
+#if PLATFORM_DOTNET
+            var stream = GetConfigurationStreamForAssembly(assemblyName);
+            return stream == null ? new TestAssemblyConfiguration() : ConfigReader.Load(stream);
+#else
+            return ConfigReader.Load(assemblyName);
+#endif
         }
 
         void RunTests(IRunContext runContext, IFrameworkHandle frameworkHandle, LoggerHelper logger, Func<List<AssemblyRunInfo>> testCaseAccessor)
