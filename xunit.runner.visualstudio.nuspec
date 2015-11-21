@@ -27,6 +27,8 @@ Supported platforms:
 
     <file src="build\xunit.runner.visualstudio.v1.props" target="build\net20\xunit.runner.visualstudio.props" />
 
+    <file src="build\xunit.runner.visualstudio.v2.props" target="build\portable-net45+win8+wp8+wpa81\xunit.runner.visualstudio.props" />
+
     <file src="build\xunit.runner.visualstudio.v2.props" target="build\uap10.0\xunit.runner.visualstudio.props" />
     <file src="build\xunit.runner.visualstudio.uwp.targets" target="build\uap10.0\xunit.runner.visualstudio.targets" />
     <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.visualstudio.uwp.dll" target="build\uap10.0\" />
