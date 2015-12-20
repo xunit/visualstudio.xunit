@@ -267,16 +267,16 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 (source, discoverer, discoveryOptions, visitor) =>
                 {
                     var vsFilteredTestCases = visitor.TestCases.Select(testCase => VsDiscoveryVisitor.CreateVsTestCase(source, discoverer, testCase, false, logger: logger, knownTraitNames: knownTraitNames)).ToList();
-                    
+
                     // Apply any filtering
                     var filterHelper = new TestCaseFilterHelper(knownTraitNames);
                     vsFilteredTestCases = filterHelper.GetFilteredTestList(vsFilteredTestCases, runContext, logger, source).ToList();
 
                     // Re-create testcases with unique names if there is more than 1
                     var testCases = visitor.TestCases.Where(tc => vsFilteredTestCases.Any(vsTc => vsTc.DisplayName == tc.DisplayName)).GroupBy(tc => $"{tc.TestMethod.TestClass.Class.Name}.{tc.TestMethod.Method.Name}")
-                                                        .SelectMany(group => group.Select(testCase => 
+                                                        .SelectMany(group => group.Select(testCase =>
                                                                                                     VsDiscoveryVisitor.CreateVsTestCase(
-                                                                                                        source, 
+                                                                                                        source,
                                                                                                         discoverer,
                                                                                                         testCase,
                                                                                                         forceUniqueNames: group.Count() > 1,
@@ -323,8 +323,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             Guard.ArgumentNotNull("runContext", runContext);
             Guard.ArgumentNotNull("frameworkHandle", frameworkHandle);
 
-            var toDispose = new List<IDisposable>();
-
             try
             {
                 RemotingUtility.CleanUpRegisteredChannels();
@@ -338,27 +336,22 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 using (AssemblyHelper.SubscribeResolve())
                     if (parallelizeAssemblies)
                         assemblies
-                            .Select(runInfo => RunTestsInAssemblyAsync(frameworkHandle, logger, reporterMessageHandler, toDispose, runInfo))
+                            .Select(runInfo => RunTestsInAssemblyAsync(frameworkHandle, logger, reporterMessageHandler, runInfo))
                             .ToList()
                             .ForEach(@event => @event.WaitOne());
                     else
                         assemblies
-                            .ForEach(runInfo => RunTestsInAssembly(frameworkHandle, logger, reporterMessageHandler, toDispose, runInfo));
+                            .ForEach(runInfo => RunTestsInAssembly(frameworkHandle, logger, reporterMessageHandler, runInfo));
             }
             catch (Exception ex)
             {
                 logger.LogError("Catastrophic failure: {0}", ex);
-            }
-            finally
-            {
-                toDispose.ForEach(disposable => disposable.Dispose());
             }
         }
 
         void RunTestsInAssembly(IFrameworkHandle frameworkHandle,
                                 LoggerHelper logger,
                                 IMessageSink reporterMessageHandler,
-                                List<IDisposable> toDispose,
                                 AssemblyRunInfo runInfo)
         {
             if (cancelled)
@@ -377,24 +370,22 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 #endif
 
                 var diagnosticMessageVisitor = new DiagnosticMessageVisitor(logger, assemblyDisplayName, runInfo.Configuration.DiagnosticMessagesOrDefault);
-                var controller = new XunitFrontController(AppDomain, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: shadowCopy, diagnosticMessageSink: diagnosticMessageVisitor);
-
-                lock (toDispose)
-                    toDispose.Add(controller);
-
-                var xunitTestCases = runInfo.TestCases.Select(tc => new { vs = tc, xunit = Deserialize(logger, controller, tc) })
-                                                      .Where(tc => tc.xunit != null)
-                                                      .ToDictionary(tc => tc.xunit, tc => tc.vs);
-                var executionOptions = TestFrameworkOptions.ForExecution(runInfo.Configuration);
-
-                reporterMessageHandler.OnMessage(new TestAssemblyExecutionStarting(assembly, executionOptions));
-
-                using (var executionVisitor = new VsExecutionVisitor(frameworkHandle, logger, xunitTestCases, executionOptions, () => cancelled))
+                using (var controller = new XunitFrontController(AppDomain, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: shadowCopy, diagnosticMessageSink: diagnosticMessageVisitor))
                 {
-                    controller.RunTests(xunitTestCases.Keys.ToList(), executionVisitor, executionOptions);
-                    executionVisitor.Finished.WaitOne();
+                    var xunitTestCases = runInfo.TestCases.Select(tc => new { vs = tc, xunit = Deserialize(logger, controller, tc) })
+                                                          .Where(tc => tc.xunit != null)
+                                                          .ToDictionary(tc => tc.xunit, tc => tc.vs);
+                    var executionOptions = TestFrameworkOptions.ForExecution(runInfo.Configuration);
 
-                    reporterMessageHandler.OnMessage(new TestAssemblyExecutionFinished(assembly, executionOptions, executionVisitor.ExecutionSummary));
+                    reporterMessageHandler.OnMessage(new TestAssemblyExecutionStarting(assembly, executionOptions));
+
+                    using (var executionVisitor = new VsExecutionVisitor(frameworkHandle, logger, xunitTestCases, executionOptions, () => cancelled))
+                    {
+                        controller.RunTests(xunitTestCases.Keys.ToList(), executionVisitor, executionOptions);
+                        executionVisitor.Finished.WaitOne();
+
+                        reporterMessageHandler.OnMessage(new TestAssemblyExecutionFinished(assembly, executionOptions, executionVisitor.ExecutionSummary));
+                    }
                 }
             }
             catch (Exception ex)
@@ -406,7 +397,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         ManualResetEvent RunTestsInAssemblyAsync(IFrameworkHandle frameworkHandle,
                                                  LoggerHelper logger,
                                                  IMessageSink reporterMessageHandler,
-                                                 List<IDisposable> toDispose,
                                                  AssemblyRunInfo runInfo)
         {
             var @event = new ManualResetEvent(initialState: false);
@@ -414,7 +404,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             {
                 try
                 {
-                    RunTestsInAssembly(frameworkHandle, logger, reporterMessageHandler, toDispose, runInfo);
+                    RunTestsInAssembly(frameworkHandle, logger, reporterMessageHandler, runInfo);
                 }
                 finally
                 {
