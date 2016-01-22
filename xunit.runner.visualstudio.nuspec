@@ -27,8 +27,6 @@ Supported platforms:
 
     <file src="build\xunit.runner.visualstudio.v1.props" target="build\net20\xunit.runner.visualstudio.props" />
 
-    <file src="build\xunit.runner.visualstudio.v2.props" target="build\portable-net45+win8+wp8+wpa81\xunit.runner.visualstudio.props" />
-
     <file src="build\xunit.runner.visualstudio.v2.props" target="build\uap10.0\xunit.runner.visualstudio.props" />
     <file src="build\xunit.runner.visualstudio.uwp.targets" target="build\uap10.0\xunit.runner.visualstudio.targets" />
     <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.visualstudio.uwp.dll" target="build\uap10.0\" />
@@ -43,11 +41,5 @@ Supported platforms:
     <file src="build\xunit.runner.visualstudio.wpa81.targets" target="build\wpa81\xunit.runner.visualstudio.targets" />
     <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.visualstudio.wpa81.dll" target="build\wpa81\" />
     <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.visualstudio.wpa81.pri" target="build\wpa81\" />
-
-    <file src="build\_._" target="build\monoandroid\" />
-    <file src="build\_._" target="build\monotouch\" />
-    <file src="build\_._" target="build\win8\" />
-    <file src="build\_._" target="build\wp8\" />
-    <file src="build\_._" target="build\xamarinios\" />
   </files>
 </package>
