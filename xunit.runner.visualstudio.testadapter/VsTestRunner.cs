@@ -147,8 +147,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 {
                     var reporterMessageHandler = new DefaultRunnerReporter().CreateMessageHandler(new VisualStudioRunnerLogger(logger));
 
-                    foreach (var assemblyFileName in sources)
+                    foreach (var assemblyFileNameCanBeWithoutAbsolutePath in sources)
                     {
+                        var assemblyFileName = assemblyFileNameCanBeWithoutAbsolutePath;
+#if !PLATFORM_DOTNET
+                        assemblyFileName = Path.GetFullPath(assemblyFileNameCanBeWithoutAbsolutePath);
+#endif
                         var assembly = new XunitProjectAssembly { AssemblyFilename = assemblyFileName };
                         var configuration = LoadConfiguration(assemblyFileName);
                         var fileName = Path.GetFileNameWithoutExtension(assemblyFileName);
