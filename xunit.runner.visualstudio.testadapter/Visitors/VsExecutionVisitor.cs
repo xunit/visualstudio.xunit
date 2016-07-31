@@ -87,6 +87,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 result.ErrorMessage = ExceptionUtility.CombineMessages(testFailed);
                 result.ErrorStackTrace = ExceptionUtility.CombineStackTraces(testFailed);
 
+                TryAndReport("RecordEnd", testFailed.TestCase, () => recorder.RecordEnd(FindTestCase(testFailed.TestCase), TestOutcome.Failed));
                 TryAndReport("RecordResult (Fail)", testFailed.TestCase, () => recorder.RecordResult(result));
             }
             else
@@ -99,7 +100,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         {
             var result = MakeVsTestResult(TestOutcome.Passed, testPassed);
             if (result != null)
+            {
+                TryAndReport("RecordEnd", testPassed.TestCase, () => recorder.RecordEnd(FindTestCase(testPassed.TestCase), TestOutcome.Passed));
                 TryAndReport("RecordResult (Pass)", testPassed.TestCase, () => recorder.RecordResult(result));
+            }
             else
                 logger.LogWarning(testPassed.TestCase, "(Pass) Could not find VS test case for {0} (ID = {1})", testPassed.TestCase.DisplayName, testPassed.TestCase.UniqueID);
 
@@ -110,7 +114,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         {
             var result = MakeVsTestResult(TestOutcome.Skipped, testSkipped);
             if (result != null)
+            {
+                TryAndReport("RecordEnd", testSkipped.TestCase, () => recorder.RecordEnd(FindTestCase(testSkipped.TestCase), TestOutcome.Skipped));
                 TryAndReport("RecordResult (Skip)", testSkipped.TestCase, () => recorder.RecordResult(result));
+            }
             else
                 logger.LogWarning(testSkipped.TestCase, "(Skip) Could not find VS test case for {0} (ID = {1})", testSkipped.TestCase.DisplayName, testSkipped.TestCase.UniqueID);
 
@@ -130,12 +137,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         protected override bool Visit(ITestCaseFinished testCaseFinished)
         {
-            var vsTestCase = FindTestCase(testCaseFinished.TestCase);
-            if (vsTestCase != null)
-                TryAndReport("RecordEnd", testCaseFinished.TestCase, () => recorder.RecordEnd(vsTestCase, TestOutcome.Passed));    // TODO: Don't have an aggregate outcome here!
-            else
-                logger.LogWarning(testCaseFinished.TestCase, "(Finished) Could not find VS test case for {0} (ID = {1})", testCaseFinished.TestCase.DisplayName, testCaseFinished.TestCase.UniqueID);
-
             return !cancelledThunk();
         }
 
