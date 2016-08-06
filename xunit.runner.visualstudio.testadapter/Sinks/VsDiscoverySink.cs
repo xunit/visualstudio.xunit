@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Xunit.Abstractions;
@@ -17,7 +18,7 @@ using System.Security.Cryptography;
 
 namespace Xunit.Runner.VisualStudio.TestAdapter
 {
-    public class VsDiscoveryVisitor : TestMessageVisitor<IDiscoveryCompleteMessage>, IVsDiscoveryVisitor
+    public class VsDiscoverySink : TestMessageSink, IVsDiscoverySink, IDisposable
     {
         const string Ellipsis = "...";
         const int MaximumDisplayNameLength = 447;
@@ -35,12 +36,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         string lastTestClass;
 
-        public VsDiscoveryVisitor(string source,
-                                  ITestFrameworkDiscoverer discoverer,
-                                  LoggerHelper logger,
-                                  ITestCaseDiscoverySink discoverySink,
-                                  ITestFrameworkDiscoveryOptions discoveryOptions,
-                                  Func<bool> cancelThunk)
+        public VsDiscoverySink(string source,
+                               ITestFrameworkDiscoverer discoverer,
+                               LoggerHelper logger,
+                               ITestCaseDiscoverySink discoverySink,
+                               ITestFrameworkDiscoveryOptions discoveryOptions,
+                               Func<bool> cancelThunk)
         {
             this.source = source;
             this.discoverer = discoverer;
@@ -48,9 +49,17 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             this.discoverySink = discoverySink;
             this.discoveryOptions = discoveryOptions;
             this.cancelThunk = cancelThunk;
+
+            TestCaseDiscoveryMessageEvent += HandleTestCaseDiscoveryMessage;
+            DiscoveryCompleteMessageEvent += HandleDiscoveryCompleteMessage;
         }
 
+        public ManualResetEvent Finished { get; } = new ManualResetEvent(initialState: false);
+
         public int TotalTests { get; private set; }
+
+        public void Dispose()
+            => ((IDisposable)Finished).Dispose();
 
         public static TestCase CreateVsTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase xunitTestCase, bool forceUniqueNames, LoggerHelper logger, HashSet<string> knownTraitNames = null)
         {
@@ -147,9 +156,15 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             }
         }
 
-        protected override bool Visit(ITestCaseDiscoveryMessage discovery)
+        void HandleCancellation(MessageHandlerArgs args)
         {
-            var testCase = discovery.TestCase;
+            if (cancelThunk())
+                args.Stop();
+        }
+
+        void HandleTestCaseDiscoveryMessage(MessageHandlerArgs<ITestCaseDiscoveryMessage> args)
+        {
+            var testCase = args.Message.TestCase;
             var testClass = $"{testCase.TestMethod.TestClass.Class.Name}.{testCase.TestMethod.Method.Name}";
             if (lastTestClass != testClass)
                 SendExistingTestCases();
@@ -158,14 +173,16 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             lastTestClassTestCases.Add(testCase);
             TotalTests++;
 
-            return !cancelThunk();
+            HandleCancellation(args);
         }
 
-        protected override bool Visit(IDiscoveryCompleteMessage discoveryComplete)
+        void HandleDiscoveryCompleteMessage(MessageHandlerArgs<IDiscoveryCompleteMessage> args)
         {
             SendExistingTestCases();
 
-            return !cancelThunk();
+            Finished.Set();
+
+            HandleCancellation(args);
         }
 
         private void SendExistingTestCases()

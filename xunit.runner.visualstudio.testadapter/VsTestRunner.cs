@@ -72,7 +72,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             DiscoverTests(
                 sources,
                 loggerHelper,
-                (source, discoverer, discoveryOptions) => new VsDiscoveryVisitor(source, discoverer, loggerHelper, discoverySink, discoveryOptions, () => cancelled)
+                (source, discoverer, discoveryOptions) => new VsDiscoverySink(source, discoverer, loggerHelper, discoverySink, discoveryOptions, () => cancelled)
             );
         }
 
@@ -137,7 +137,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                      LoggerHelper logger,
                                      Func<string, ITestFrameworkDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor> visitorFactory,
                                      Action<string, ITestFrameworkDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor> visitComplete = null)
-            where TVisitor : IVsDiscoveryVisitor, IDisposable
+            where TVisitor : IVsDiscoverySink, IDisposable
         {
             try
             {
@@ -145,7 +145,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                 using (AssemblyHelper.SubscribeResolve())
                 {
-                    var reporterMessageHandler = new DefaultRunnerReporter().CreateMessageHandler(new VisualStudioRunnerLogger(logger));
+                    var reporterMessageHandler = new DefaultRunnerReporterWithTypes().CreateMessageHandler(new VisualStudioRunnerLogger(logger));
 
                     foreach (var assemblyFileNameCanBeWithoutAbsolutePath in sources)
                     {
@@ -170,7 +170,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                             }
                             else
                             {
-                                var diagnosticMessageVisitor = new DiagnosticMessageVisitor(logger, fileName, configuration.DiagnosticMessagesOrDefault);
+                                var diagnosticMessageVisitor = new DiagnosticMessageSink(logger, fileName, configuration.DiagnosticMessagesOrDefault);
 
                                 using (var framework = new XunitFrontController(AppDomain, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: shadowCopy, diagnosticMessageSink: diagnosticMessageVisitor))
                                 {
@@ -267,10 +267,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             DiscoverTests(
                 sources,
                 logger,
-                (source, discoverer, discoveryOptions) => new VsExecutionDiscoveryVisitor(),
+                (source, discoverer, discoveryOptions) => new VsExecutionDiscoverySink(() => cancelled),
                 (source, discoverer, discoveryOptions, visitor) =>
                 {
-                    var vsFilteredTestCases = visitor.TestCases.Select(testCase => VsDiscoveryVisitor.CreateVsTestCase(source, discoverer, testCase, false, logger: logger, knownTraitNames: knownTraitNames)).ToList();
+                    var vsFilteredTestCases = visitor.TestCases.Select(testCase => VsDiscoverySink.CreateVsTestCase(source, discoverer, testCase, false, logger: logger, knownTraitNames: knownTraitNames)).ToList();
 
                     // Apply any filtering
                     var filterHelper = new TestCaseFilterHelper(knownTraitNames);
@@ -279,7 +279,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                     // Re-create testcases with unique names if there is more than 1
                     var testCases = visitor.TestCases.Where(tc => vsFilteredTestCases.Any(vsTc => vsTc.DisplayName == tc.DisplayName)).GroupBy(tc => $"{tc.TestMethod.TestClass.Class.Name}.{tc.TestMethod.Method.Name}")
                                                         .SelectMany(group => group.Select(testCase =>
-                                                                                                    VsDiscoveryVisitor.CreateVsTestCase(
+                                                                                                    VsDiscoverySink.CreateVsTestCase(
                                                                                                         source,
                                                                                                         discoverer,
                                                                                                         testCase,
@@ -335,7 +335,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                 var assemblies = testCaseAccessor();
                 var parallelizeAssemblies = assemblies.All(runInfo => runInfo.Configuration.ParallelizeAssemblyOrDefault);
-                var reporterMessageHandler = new DefaultRunnerReporter().CreateMessageHandler(new VisualStudioRunnerLogger(logger));
+                var reporterMessageHandler = new DefaultRunnerReporterWithTypes().CreateMessageHandler(new VisualStudioRunnerLogger(logger));
 
                 using (AssemblyHelper.SubscribeResolve())
                     if (parallelizeAssemblies)
@@ -373,7 +373,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 assemblyFileName = Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, Path.GetFileName(assemblyFileName));
 #endif
 
-                var diagnosticMessageVisitor = new DiagnosticMessageVisitor(logger, assemblyDisplayName, runInfo.Configuration.DiagnosticMessagesOrDefault);
+                var diagnosticMessageVisitor = new DiagnosticMessageSink(logger, assemblyDisplayName, runInfo.Configuration.DiagnosticMessagesOrDefault);
                 using (var controller = new XunitFrontController(AppDomain, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: shadowCopy, diagnosticMessageSink: diagnosticMessageVisitor))
                 {
                     var xunitTestCases = runInfo.TestCases.Select(tc => new { vs = tc, xunit = Deserialize(logger, controller, tc) })
@@ -383,12 +383,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                     reporterMessageHandler.OnMessage(new TestAssemblyExecutionStarting(assembly, executionOptions));
 
-                    using (var executionVisitor = new VsExecutionVisitor(frameworkHandle, logger, xunitTestCases, executionOptions, () => cancelled))
+                    using (var executionSink = new VsExecutionSink(frameworkHandle, logger, xunitTestCases, executionOptions, () => cancelled))
                     {
-                        controller.RunTests(xunitTestCases.Keys.ToList(), executionVisitor, executionOptions);
-                        executionVisitor.Finished.WaitOne();
+                        controller.RunTests(xunitTestCases.Keys.ToList(), executionSink, executionOptions);
+                        executionSink.Finished.WaitOne();
 
-                        reporterMessageHandler.OnMessage(new TestAssemblyExecutionFinished(assembly, executionOptions, executionVisitor.ExecutionSummary));
+                        reporterMessageHandler.OnMessage(new TestAssemblyExecutionFinished(assembly, executionOptions, executionSink.ExecutionSummary));
                     }
                 }
             }

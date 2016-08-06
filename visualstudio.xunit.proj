@@ -26,9 +26,9 @@
 
   <!-- Build server targets -->
 
-  <Target Name="CI" DependsOnTargets="_NoCache;Clean;PackageRestore;SetVersionNumber;Build;GitLink;Packages;ZipArtifacts" />
+  <Target Name="CI" DependsOnTargets="_NoCache;Clean;PackageRestore;SetVersionNumber;Test;GitLink;Packages;ZipArtifacts" />
   <Target Name="TeamCity" DependsOnTargets="CI;PushMyGet" />
-  <Target Name="Release" DependsOnTargets="Clean;PackageRestore;Build;Packages;ZipArtifacts" />
+  <Target Name="Release" DependsOnTargets="Clean;PackageRestore;Test;Packages;ZipArtifacts" />
 
   <!-- Individiual targets -->
 
@@ -46,12 +46,14 @@
   <Target Name="PackageRestore" DependsOnTargets="_DownloadNuGet">
     <Message Text="Restoring NuGet packages..." Importance="High" />
     <Exec Command="&quot;$(NuGetExePath)&quot; install xunit.buildtasks -Source @(PackageSource) -SolutionDir &quot;$(SolutionDir)&quot; -Verbosity quiet -ExcludeVersion" Condition="!Exists('$(SolutionDir)\packages\xunit.buildtasks\')" />
+    <Exec Command="&quot;$(NuGetExePath)&quot; install xunit.runner.console -Source @(PackageSource) -SolutionDir &quot;$(SolutionDir)&quot; -Verbosity quiet -ExcludeVersion" Condition="!Exists('$(SolutionDir)\packages\xunit.runner.console\')" />
     <Exec Command="&quot;$(NuGetExePath)&quot; install gitlink -SolutionDir &quot;$(SolutionDir)&quot; -Verbosity quiet -ExcludeVersion" Condition="!Exists('$(SolutionDir)\packages\gitlink\')" />
     <Exec Command="&quot;$(NuGetExePath)&quot; restore &quot;$(SolutionDir)\visualstudio.xunit.sln&quot; -NonInteractive -Source @(PackageSource) -Verbosity quiet $(NuGetNoCache)" />
   </Target>
 
   <Target Name="Build" DependsOnTargets="PackageRestore;_BuildProject" />
-  
+  <Target Name="Test" DependsOnTargets="Build;_Test" />
+
   <Target Name="_NoCache">
     <PropertyGroup>
       <NuGetNoCache>-NoCache</NuGetNoCache>
@@ -63,6 +65,10 @@
         Projects="visualstudio.xunit.sln"
         Targets="Build"
         Properties="Configuration=$(Configuration);TrackFileAccess=$(TrackFileAccess)"/>
+  </Target>
+
+  <Target Name="_Test">
+    <Exec Command="packages\xunit.runner.console\tools\xunit.console.exe test.xunit.runner.visualstudio.testadapter\bin\$(Configuration)\test.xunit.runner.visualstudio.testadapter.dll -diagnostics" />
   </Target>
 
   <Target Name="SetVersionNumber">

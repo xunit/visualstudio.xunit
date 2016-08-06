@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Xunit.Abstractions;
@@ -9,7 +10,7 @@ using VsTestResultMessage = Microsoft.VisualStudio.TestPlatform.ObjectModel.Test
 
 namespace Xunit.Runner.VisualStudio.TestAdapter
 {
-    public class VsExecutionVisitor : TestMessageVisitor<ITestAssemblyFinished>
+    public class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposable
     {
         readonly Func<bool> cancelledThunk;
         readonly ITestFrameworkExecutionOptions executionOptions;
@@ -17,11 +18,11 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         readonly ITestExecutionRecorder recorder;
         readonly Dictionary<ITestCase, TestCase> testCases;
 
-        public VsExecutionVisitor(ITestExecutionRecorder recorder,
-                                  LoggerHelper logger,
-                                  Dictionary<ITestCase, TestCase> testCases,
-                                  ITestFrameworkExecutionOptions executionOptions,
-                                  Func<bool> cancelledThunk)
+        public VsExecutionSink(ITestExecutionRecorder recorder,
+                               LoggerHelper logger,
+                               Dictionary<ITestCase, TestCase> testCases,
+                               ITestFrameworkExecutionOptions executionOptions,
+                               Func<bool> cancelledThunk)
         {
             this.recorder = recorder;
             this.logger = logger;
@@ -30,9 +31,28 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             this.cancelledThunk = cancelledThunk;
 
             ExecutionSummary = new ExecutionSummary();
+
+            ErrorMessageEvent += HandleErrorMessage;
+            TestAssemblyCleanupFailureEvent += HandleTestAssemblyCleanupFailure;
+            TestAssemblyFinishedEvent += HandleTestAssemblyFinished;
+            TestCaseCleanupFailureEvent += HandleTestCaseCleanupFailure;
+            TestCaseFinishedEvent += HandleTestCaseFinished;
+            TestCaseStartingEvent += HandleTestCaseStarting;
+            TestClassCleanupFailureEvent += HandleTestClassCleanupFailure;
+            TestCleanupFailureEvent += HandleTestCleanupFailure;
+            TestCollectionCleanupFailureEvent += HandleTestCollectionCleanupFailure;
+            TestFailedEvent += HandleTestFailed;
+            TestMethodCleanupFailureEvent += HandleTestMethodCleanupFailure;
+            TestPassedEvent += HandleTestPassed;
+            TestSkippedEvent += HandleTestSkipped;
         }
 
         public ExecutionSummary ExecutionSummary { get; private set; }
+
+        public ManualResetEvent Finished { get; } = new ManualResetEvent(initialState: false);
+
+        public void Dispose()
+            => ((IDisposable)Finished).Dispose();
 
         TestCase FindTestCase(ITestCase testCase)
         {
@@ -60,27 +80,38 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             }
         }
 
-        protected override bool Visit(IErrorMessage error)
+        void HandleCancellation(MessageHandlerArgs args)
+        {
+            if (cancelledThunk())
+                args.Stop();
+        }
+
+        void HandleErrorMessage(MessageHandlerArgs<IErrorMessage> args)
         {
             ExecutionSummary.Errors++;
 
-            logger.LogError("Catastrophic failure: {0}", ExceptionUtility.CombineMessages(error));
+            logger.LogError("Catastrophic failure: {0}", ExceptionUtility.CombineMessages(args.Message));
 
-            return !cancelledThunk();
+            HandleCancellation(args);
         }
 
-        protected override bool Visit(ITestAssemblyFinished assemblyFinished)
+        void HandleTestAssemblyFinished(MessageHandlerArgs<ITestAssemblyFinished> args)
         {
+            var assemblyFinished = args.Message;
+
             ExecutionSummary.Failed = assemblyFinished.TestsFailed;
             ExecutionSummary.Skipped = assemblyFinished.TestsSkipped;
             ExecutionSummary.Time = assemblyFinished.ExecutionTime;
             ExecutionSummary.Total = assemblyFinished.TestsRun;
 
-            return base.Visit(assemblyFinished);
+            Finished.Set();
+
+            HandleCancellation(args);
         }
 
-        protected override bool Visit(ITestFailed testFailed)
+        void HandleTestFailed(MessageHandlerArgs<ITestFailed> args)
         {
+            var testFailed = args.Message;
             var result = MakeVsTestResult(TestOutcome.Failed, testFailed);
             if (result != null)
             {
@@ -92,96 +123,118 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             else
                 logger.LogWarning(testFailed.TestCase, "(Fail) Could not find VS test case for {0} (ID = {1})", testFailed.TestCase.DisplayName, testFailed.TestCase.UniqueID);
 
-            return !cancelledThunk();
+            HandleCancellation(args);
         }
 
-        protected override bool Visit(ITestPassed testPassed)
+        void HandleTestPassed(MessageHandlerArgs<ITestPassed> args)
         {
+            var testPassed = args.Message;
             var result = MakeVsTestResult(TestOutcome.Passed, testPassed);
             if (result != null)
                 TryAndReport("RecordResult (Pass)", testPassed.TestCase, () => recorder.RecordResult(result));
             else
                 logger.LogWarning(testPassed.TestCase, "(Pass) Could not find VS test case for {0} (ID = {1})", testPassed.TestCase.DisplayName, testPassed.TestCase.UniqueID);
 
-            return !cancelledThunk();
+            HandleCancellation(args);
         }
 
-        protected override bool Visit(ITestSkipped testSkipped)
+        void HandleTestSkipped(MessageHandlerArgs<ITestSkipped> args)
         {
+            var testSkipped = args.Message;
             var result = MakeVsTestResult(TestOutcome.Skipped, testSkipped);
             if (result != null)
                 TryAndReport("RecordResult (Skip)", testSkipped.TestCase, () => recorder.RecordResult(result));
             else
                 logger.LogWarning(testSkipped.TestCase, "(Skip) Could not find VS test case for {0} (ID = {1})", testSkipped.TestCase.DisplayName, testSkipped.TestCase.UniqueID);
 
-            return !cancelledThunk();
+            HandleCancellation(args);
         }
 
-        protected override bool Visit(ITestCaseStarting testCaseStarting)
+        void HandleTestCaseStarting(MessageHandlerArgs<ITestCaseStarting> args)
         {
+            var testCaseStarting = args.Message;
             var vsTestCase = FindTestCase(testCaseStarting.TestCase);
             if (vsTestCase != null)
                 TryAndReport("RecordStart", testCaseStarting.TestCase, () => recorder.RecordStart(vsTestCase));
             else
                 logger.LogWarning(testCaseStarting.TestCase, "(Starting) Could not find VS test case for {0} (ID = {1})", testCaseStarting.TestCase.DisplayName, testCaseStarting.TestCase.UniqueID);
 
-            return !cancelledThunk();
+            HandleCancellation(args);
         }
 
-        protected override bool Visit(ITestCaseFinished testCaseFinished)
+        void HandleTestCaseFinished(MessageHandlerArgs<ITestCaseFinished> args)
         {
+            var testCaseFinished = args.Message;
             var vsTestCase = FindTestCase(testCaseFinished.TestCase);
             if (vsTestCase != null)
                 TryAndReport("RecordEnd", testCaseFinished.TestCase, () => recorder.RecordEnd(vsTestCase, TestOutcome.Passed));    // TODO: Don't have an aggregate outcome here!
             else
                 logger.LogWarning(testCaseFinished.TestCase, "(Finished) Could not find VS test case for {0} (ID = {1})", testCaseFinished.TestCase.DisplayName, testCaseFinished.TestCase.UniqueID);
 
-            return !cancelledThunk();
+            HandleCancellation(args);
         }
 
-        protected override bool Visit(ITestAssemblyCleanupFailure cleanupFailure)
+        void HandleTestAssemblyCleanupFailure(MessageHandlerArgs<ITestAssemblyCleanupFailure> args)
         {
             ExecutionSummary.Errors++;
 
-            return WriteError($"Test Assembly Cleanup Failure ({cleanupFailure.TestAssembly.Assembly.AssemblyPath})", cleanupFailure, cleanupFailure.TestCases);
+            var cleanupFailure = args.Message;
+            WriteError($"Test Assembly Cleanup Failure ({cleanupFailure.TestAssembly.Assembly.AssemblyPath})", cleanupFailure, cleanupFailure.TestCases);
+
+            HandleCancellation(args);
         }
 
-        protected override bool Visit(ITestCaseCleanupFailure cleanupFailure)
+        void HandleTestCaseCleanupFailure(MessageHandlerArgs<ITestCaseCleanupFailure> args)
         {
             ExecutionSummary.Errors++;
 
-            return WriteError($"Test Case Cleanup Failure ({cleanupFailure.TestCase.DisplayName})", cleanupFailure, cleanupFailure.TestCases);
+            var cleanupFailure = args.Message;
+            WriteError($"Test Case Cleanup Failure ({cleanupFailure.TestCase.DisplayName})", cleanupFailure, cleanupFailure.TestCases);
+
+            HandleCancellation(args);
         }
 
-        protected override bool Visit(ITestClassCleanupFailure cleanupFailure)
+        void HandleTestClassCleanupFailure(MessageHandlerArgs<ITestClassCleanupFailure> args)
         {
             ExecutionSummary.Errors++;
 
-            return WriteError($"Test Class Cleanup Failure ({cleanupFailure.TestClass.Class.Name})", cleanupFailure, cleanupFailure.TestCases);
+            var cleanupFailure = args.Message;
+            WriteError($"Test Class Cleanup Failure ({cleanupFailure.TestClass.Class.Name})", cleanupFailure, cleanupFailure.TestCases);
+
+            HandleCancellation(args);
         }
 
-        protected override bool Visit(ITestCollectionCleanupFailure cleanupFailure)
+        void HandleTestCollectionCleanupFailure(MessageHandlerArgs<ITestCollectionCleanupFailure> args)
         {
             ExecutionSummary.Errors++;
 
-            return WriteError($"Test Collection Cleanup Failure ({cleanupFailure.TestCollection.DisplayName})", cleanupFailure, cleanupFailure.TestCases);
+            var cleanupFailure = args.Message;
+            WriteError($"Test Collection Cleanup Failure ({cleanupFailure.TestCollection.DisplayName})", cleanupFailure, cleanupFailure.TestCases);
+
+            HandleCancellation(args);
         }
 
-        protected override bool Visit(ITestCleanupFailure cleanupFailure)
+        void HandleTestCleanupFailure(MessageHandlerArgs<ITestCleanupFailure> args)
         {
             ExecutionSummary.Errors++;
 
-            return WriteError($"Test Cleanup Failure ({cleanupFailure.Test.DisplayName})", cleanupFailure, cleanupFailure.TestCases);
+            var cleanupFailure = args.Message;
+            WriteError($"Test Cleanup Failure ({cleanupFailure.Test.DisplayName})", cleanupFailure, cleanupFailure.TestCases);
+
+            HandleCancellation(args);
         }
 
-        protected override bool Visit(ITestMethodCleanupFailure cleanupFailure)
+        void HandleTestMethodCleanupFailure(MessageHandlerArgs<ITestMethodCleanupFailure> args)
         {
             ExecutionSummary.Errors++;
 
-            return WriteError($"Test Method Cleanup Failure ({cleanupFailure.TestMethod.Method.Name})", cleanupFailure, cleanupFailure.TestCases);
+            var cleanupFailure = args.Message;
+            WriteError($"Test Method Cleanup Failure ({cleanupFailure.TestMethod.Method.Name})", cleanupFailure, cleanupFailure.TestCases);
+
+            HandleCancellation(args);
         }
 
-        protected bool WriteError(string failureName, IFailureInformation failureInfo, IEnumerable<ITestCase> testCases)
+        void WriteError(string failureName, IFailureInformation failureInfo, IEnumerable<ITestCase> testCases)
         {
             foreach (var testCase in testCases)
             {
@@ -197,16 +250,14 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 else
                     logger.LogWarning(testCase, "(Failure) Could not find VS test case for {0} (ID = {1})", testCase.DisplayName, testCase.UniqueID);
             }
-
-            return !cancelledThunk();
         }
 
-        private VsTestResult MakeVsTestResult(TestOutcome outcome, ITestResultMessage testResult)
+        VsTestResult MakeVsTestResult(TestOutcome outcome, ITestResultMessage testResult)
         {
             return MakeVsTestResult(outcome, testResult.TestCase, testResult.Test.DisplayName, (double)testResult.ExecutionTime, testResult.Output);
         }
 
-        private VsTestResult MakeVsTestResult(TestOutcome outcome, ITestCase testCase, string displayName, double executionTime = 0.0, string output = null)
+        VsTestResult MakeVsTestResult(TestOutcome outcome, ITestCase testCase, string displayName, double executionTime = 0.0, string output = null)
         {
             var vsTestCase = FindTestCase(testCase);
             if (vsTestCase == null)

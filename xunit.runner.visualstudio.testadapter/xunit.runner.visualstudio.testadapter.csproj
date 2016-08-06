@@ -22,6 +22,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,6 +32,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.TestPlatform.ObjectModel">
@@ -43,8 +45,8 @@
       <HintPath>..\packages\xunit.abstractions.2.0.1-rc2\lib\net35\xunit.abstractions.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="xunit.runner.utility.desktop, Version=2.2.0.3300, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <HintPath>..\packages\xunit.runner.utility.2.2.0-beta2-build3300\lib\net35\xunit.runner.utility.desktop.dll</HintPath>
+    <Reference Include="xunit.runner.utility.desktop, Version=2.2.0.3329, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <HintPath>..\packages\xunit.runner.utility.2.2.0-beta3-build3329\lib\net35\xunit.runner.utility.desktop.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -61,12 +63,11 @@
     <Compile Include="Utility\ExceptionExtensions.cs" />
     <Compile Include="Utility\Guard.cs" />
     <Compile Include="Utility\LoggerHelper.cs" />
-    <Compile Include="Visitors\DiagnosticMessageVisitor.cs" />
-    <Compile Include="Visitors\TestDiscoveryVisitor.cs" />
-    <Compile Include="Visitors\IVsDiscoveryVisitor.cs" />
-    <Compile Include="Visitors\VsDiscoveryVisitor.cs" />
-    <Compile Include="Visitors\VsExecutionDiscoveryVisitor.cs" />
-    <Compile Include="Visitors\VsExecutionVisitor.cs" />
+    <Compile Include="Sinks\DiagnosticMessageSink.cs" />
+    <Compile Include="Sinks\IVsDiscoverySink.cs" />
+    <Compile Include="Sinks\VsDiscoverySink.cs" />
+    <Compile Include="Sinks\VsExecutionDiscoverySink.cs" />
+    <Compile Include="Sinks\VsExecutionSink.cs" />
     <Compile Include="VsTestRunner.cs" />
   </ItemGroup>
   <ItemGroup>

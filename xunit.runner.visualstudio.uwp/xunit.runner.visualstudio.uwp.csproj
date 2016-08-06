@@ -26,6 +26,7 @@
     <DefineConstants>TRACE;DEBUG;NETFX_CORE;WINDOWS_UAP;WINDOWS_APP;PLATFORM_DOTNET</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -35,6 +36,7 @@
     <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UAP;WINDOWS_APP;PLATFORM_DOTNET</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .Net Framework and Windows SDK are automatically included -->
@@ -49,6 +51,21 @@
     </Compile>
     <Compile Include="..\xunit.runner.visualstudio.testadapter\Constants.cs">
       <Link>Constants.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.runner.visualstudio.testadapter\Sinks\DiagnosticMessageSink.cs">
+      <Link>Sinks\DiagnosticMessageSink.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.runner.visualstudio.testadapter\Sinks\IVsDiscoverySink.cs">
+      <Link>Sinks\IVsDiscoverySink.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.runner.visualstudio.testadapter\Sinks\VsDiscoverySink.cs">
+      <Link>Sinks\VsDiscoverySink.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.runner.visualstudio.testadapter\Sinks\VsExecutionDiscoverySink.cs">
+      <Link>Sinks\VsExecutionDiscoverySink.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.runner.visualstudio.testadapter\Sinks\VsExecutionSink.cs">
+      <Link>Sinks\VsExecutionSink.cs</Link>
     </Compile>
     <Compile Include="..\xunit.runner.visualstudio.testadapter\Utility\AssemblyRunInfo.cs">
       <Link>Utility\AssemblyRunInfo.cs</Link>
@@ -67,24 +84,6 @@
     </Compile>
     <Compile Include="..\xunit.runner.visualstudio.testadapter\Utility\VisualStudioRunnerLogger.cs">
       <Link>Utility\VisualStudioRunnerLogger.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\Visitors\DiagnosticMessageVisitor.cs">
-      <Link>Visitors\DiagnosticMessageVisitor.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\visitors\IVsDiscoveryVisitor.cs">
-      <Link>Visitors\IVsDiscoveryVisitor.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\Visitors\TestDiscoveryVisitor.cs">
-      <Link>Visitors\TestDiscoveryVisitor.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\visitors\VsDiscoveryVisitor.cs">
-      <Link>Visitors\VsDiscoveryVisitor.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\visitors\VsExecutionDiscoveryVisitor.cs">
-      <Link>Visitors\VsExecutionDiscoveryVisitor.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\visitors\VsExecutionVisitor.cs">
-      <Link>Visitors\VsExecutionVisitor.cs</Link>
     </Compile>
     <Compile Include="..\xunit.runner.visualstudio.testadapter\VsTestRunner.cs">
       <Link>VsTestRunner.cs</Link>

@@ -1,5 +1,5 @@
 param(
-    [string]$target = "Build",
+    [string]$target = "Test",
     [string]$verbosity = "minimal",
     [int]$maxCpuCount = 0
 )

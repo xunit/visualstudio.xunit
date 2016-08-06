@@ -26,6 +26,7 @@
     <DefineConstants>TRACE;DEBUG;NETFX_CORE;WINDOWS_PHONE_APP;PLATFORM_DOTNET</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -34,6 +35,7 @@
     <DefineConstants>TRACE;NETFX_CORE;WINDOWS_PHONE_APP;PLATFORM_DOTNET</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\common\EnumerableExtensions.cs">
@@ -50,6 +52,21 @@
     </Compile>
     <Compile Include="..\xunit.runner.visualstudio.testadapter\Constants.cs">
       <Link>Constants.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.runner.visualstudio.testadapter\sinks\DiagnosticMessageSink.cs">
+      <Link>Sinks\DiagnosticMessageSink.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.runner.visualstudio.testadapter\sinks\IVsDiscoverySink.cs">
+      <Link>Sinks\IVsDiscoverySink.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.runner.visualstudio.testadapter\sinks\VsDiscoverySink.cs">
+      <Link>Sinks\VsDiscoverySink.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.runner.visualstudio.testadapter\sinks\VsExecutionDiscoverySink.cs">
+      <Link>Sinks\VsExecutionDiscoverySink.cs</Link>
+    </Compile>
+    <Compile Include="..\xunit.runner.visualstudio.testadapter\sinks\VsExecutionSink.cs">
+      <Link>Sinks\VsExecutionSink.cs</Link>
     </Compile>
     <Compile Include="..\xunit.runner.visualstudio.testadapter\Utility\AssemblyRunInfo.cs">
       <Link>Utility\AssemblyRunInfo.cs</Link>
@@ -69,24 +86,6 @@
     <Compile Include="..\xunit.runner.visualstudio.testadapter\Utility\VisualStudioRunnerLogger.cs">
       <Link>Utility\VisualStudioRunnerLogger.cs</Link>
     </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\Visitors\DiagnosticMessageVisitor.cs">
-      <Link>Visitors\DiagnosticMessageVisitor.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\visitors\IVsDiscoveryVisitor.cs">
-      <Link>Visitors\IVsDiscoveryVisitor.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\Visitors\TestDiscoveryVisitor.cs">
-      <Link>Visitors\TestDiscoveryVisitor.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\visitors\VsDiscoveryVisitor.cs">
-      <Link>Visitors\VsDiscoveryVisitor.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\visitors\VsExecutionDiscoveryVisitor.cs">
-      <Link>Visitors\VsExecutionDiscoveryVisitor.cs</Link>
-    </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\visitors\VsExecutionVisitor.cs">
-      <Link>Visitors\VsExecutionVisitor.cs</Link>
-    </Compile>
     <Compile Include="..\xunit.runner.visualstudio.testadapter\VsTestRunner.cs">
       <Link>VsTestRunner.cs</Link>
     </Compile>
@@ -102,8 +101,8 @@
       <HintPath>..\packages\xunit.abstractions.2.0.1-rc2\lib\netstandard1.0\xunit.abstractions.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="xunit.runner.utility.dotnet, Version=2.2.0.3300, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <HintPath>..\packages\xunit.runner.utility.2.2.0-beta2-build3300\lib\netstandard1.1\xunit.runner.utility.dotnet.dll</HintPath>
+    <Reference Include="xunit.runner.utility.dotnet, Version=2.2.0.3329, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <HintPath>..\packages\xunit.runner.utility.2.2.0-beta3-build3329\lib\netstandard1.1\xunit.runner.utility.dotnet.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
