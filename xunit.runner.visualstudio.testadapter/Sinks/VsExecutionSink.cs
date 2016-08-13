@@ -288,7 +288,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             if (testCaseFinished.TestsRun == 0)
                 return TestOutcome.NotFound;
             else if (testCaseFinished.TestsFailed > 0)
-                return TestOutcome.Skipped;
+                return TestOutcome.Failed;
             else if (testCaseFinished.TestsSkipped > 0)
                 return TestOutcome.Skipped;
             else
