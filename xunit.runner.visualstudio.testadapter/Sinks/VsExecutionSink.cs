@@ -167,7 +167,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var testCaseFinished = args.Message;
             var vsTestCase = FindTestCase(testCaseFinished.TestCase);
             if (vsTestCase != null)
-                TryAndReport("RecordEnd", testCaseFinished.TestCase, () => recorder.RecordEnd(vsTestCase, TestOutcome.Passed));    // TODO: Don't have an aggregate outcome here!
+                TryAndReport("RecordEnd", testCaseFinished.TestCase, () => recorder.RecordEnd(vsTestCase, GetAggregatedTestOutcome(testCaseFinished)));
             else
                 logger.LogWarning(testCaseFinished.TestCase, "(Finished) Could not find VS test case for {0} (ID = {1})", testCaseFinished.TestCase.DisplayName, testCaseFinished.TestCase.UniqueID);
 
@@ -281,6 +281,18 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 result.Messages.Add(new VsTestResultMessage(VsTestResultMessage.StandardOutCategory, output));
 
             return result;
+        }
+
+        TestOutcome GetAggregatedTestOutcome(ITestCaseFinished testCaseFinished)
+        {
+            if (testCaseFinished.TestsRun == 0)
+                return TestOutcome.NotFound;
+            else if (testCaseFinished.TestsFailed > 0)
+                return TestOutcome.Failed;
+            else if (testCaseFinished.TestsSkipped > 0)
+                return TestOutcome.Skipped;
+            else
+                return TestOutcome.Passed;
         }
     }
 }
