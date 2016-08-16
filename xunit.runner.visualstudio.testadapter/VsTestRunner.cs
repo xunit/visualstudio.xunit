@@ -308,9 +308,13 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             if (platformAssemblies.Contains(Path.GetFileName(assemblyFileName)))
                 return false;
 
+#if DOTNET_CORE
+            return true;
+#else
             var assemblyFolder = Path.GetDirectoryName(assemblyFileName);
             return File.Exists(Path.Combine(assemblyFolder, "xunit.dll"))
                 || Directory.GetFiles(assemblyFolder, "xunit.execution.*.dll").Length > 0;
+#endif
         }
 
         static TestAssemblyConfiguration LoadConfiguration(string assemblyName)
