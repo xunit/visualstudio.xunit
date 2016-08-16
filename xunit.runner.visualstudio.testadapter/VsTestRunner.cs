@@ -21,7 +21,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
     {
         public static TestProperty SerializedTestCaseProperty = GetTestProperty();
 
-#if PLATFORM_DOTNET
+#if PLATFORM_DOTNET || DOTNET_CORE
         AppDomainSupport AppDomain = AppDomainSupport.Denied;
 #else
         AppDomainSupport AppDomain = AppDomainSupport.Required;
@@ -88,6 +88,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             {
 #if PLATFORM_DOTNET
                 var sourcePath = Windows.ApplicationModel.Package.Current.InstalledLocation.Path;
+#elif DOTNET_CORE
+                var sourcePath=Directory.GetCurrentDirectory();
 #else
                 var sourcePath = Environment.CurrentDirectory;
 #endif
