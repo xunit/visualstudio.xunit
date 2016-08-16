@@ -193,8 +193,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                             framework.Find(includeSourceInformation: true, messageSink: visitor, discoveryOptions: discoveryOptions);
                                             var totalTests = visitor.Finish();
 
-                                            if (visitComplete != null)
-                                                visitComplete(assemblyFileName, framework, discoveryOptions, visitor);
+                                            visitComplete?.Invoke(assemblyFileName, framework, discoveryOptions, visitor);
 
                                             reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryFinished(assembly, discoveryOptions, totalTests, totalTests));
                                         }
@@ -379,7 +378,9 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                     var xunitTestCases = runInfo.TestCases.Select(tc => new { vs = tc, xunit = Deserialize(logger, controller, tc) })
                                                           .Where(tc => tc.xunit != null)
                                                           .ToDictionary(tc => tc.xunit, tc => tc.vs);
+
                     var executionOptions = TestFrameworkOptions.ForExecution(runInfo.Configuration);
+                    executionOptions.SetSynchronousMessageReporting(true);
 
                     reporterMessageHandler.OnMessage(new TestAssemblyExecutionStarting(assembly, executionOptions));
 
