@@ -42,11 +42,11 @@
       <HintPath>..\packages\Microsoft.VisualStudio.TestPlatform.ObjectModel.0.0.4\lib\net35\Microsoft.VisualStudio.TestPlatform.ObjectModel.dll</HintPath>
     </Reference>
     <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <HintPath>..\packages\xunit.abstractions.2.0.1-rc2\lib\netstandard1.0\xunit.abstractions.dll</HintPath>
+      <HintPath>..\packages\xunit.abstractions.2.0.1\lib\netstandard1.0\xunit.abstractions.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="xunit.runner.utility.dotnet, Version=2.2.0.3329, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <HintPath>..\packages\xunit.runner.utility.2.2.0-beta3-build3329\lib\netstandard1.1\xunit.runner.utility.dotnet.dll</HintPath>
+    <Reference Include="xunit.runner.utility.dotnet, Version=2.2.0.3335, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <HintPath>..\packages\xunit.runner.utility.2.2.0-beta3-build3335\lib\netstandard1.1\xunit.runner.utility.dotnet.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
