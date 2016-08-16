@@ -42,7 +42,7 @@ Supported platforms:
     <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.visualstudio.wpa81.dll" target="build\wpa81\" />
     <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.visualstudio.wpa81.pri" target="build\wpa81\" />
 
-    <file src="xunit.runner.visualstudio.testadapter.dotnetcore\bin\Release\netcoreapp\xunit.runner.visualstudio.testadapter.deps.json" target="build\netcoreapp1.0\" />
-    <file src="xunit.runner.visualstudio.testadapter.dotnetcore\bin\Release\netcoreapp\xunit.runner.visualstudio.testadapter.dll" target="build\netcoreapp1.0\" />
+    <file src="xunit.runner.visualstudio.testadapter.dotnetcore\bin\Release\netstandard1.5\xunit.runner.visualstudio.testadapter.deps.json" target="build\netstandard1.5\" />
+    <file src="xunit.runner.visualstudio.testadapter.dotnetcore\bin\Release\netstandard1.5\xunit.runner.visualstudio.testadapter.dll" target="build\netstandard1.5\" />
   </files>
 </package>
