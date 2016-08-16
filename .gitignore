@@ -5,9 +5,11 @@ Test*.html
 Test*.xml
 *.zip
 nuget.exe
+*.nuget.props
+*.nuget.targets
 
 ## --------------------------------------------
-##  Adapted from https://raw.githubusercontent.com/github/gitignore/d45714707eeab8cbc35f37412162e76b0352746a/VisualStudio.gitignore
+##  Adapted from https://github.com/github/gitignore/blob/d45714707eeab8cbc35f37412162e76b0352746a/VisualStudio.gitignore
 
 # User-specific files
 *.suo
