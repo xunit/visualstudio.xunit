@@ -10,6 +10,13 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using Xunit.Abstractions;
 
+#if DOTNET_CORE
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Text;
+using  Microsoft.Extensions.DependencyModel;
+#endif
+
 namespace Xunit.Runner.VisualStudio.TestAdapter
 {
     [FileExtension(".appx")]
@@ -310,13 +317,45 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 return false;
 
 #if DOTNET_CORE
-            return true;
+           return IsXunitPackageReferenced(assemblyFileName);
 #else
             var assemblyFolder = Path.GetDirectoryName(assemblyFileName);
             return File.Exists(Path.Combine(assemblyFolder, "xunit.dll"))
                 || Directory.GetFiles(assemblyFolder, "xunit.execution.*.dll").Length > 0;
 #endif
         }
+
+#if DOTNET_CORE
+        static bool IsXunitPackageReferenced(string assemblyFileName)
+        {
+            var depsFile = assemblyFileName.Replace(".dll", ".deps.json");
+            if(!File.Exists(depsFile))
+            {
+                return false;
+            }
+
+            try
+            {
+                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(File.ReadAllText(depsFile))))
+                {
+                    var context = new DependencyContextJsonReader().Read(stream);
+                    var xunitLibrary = context.CompileLibraries.Where(lib => lib.Name.Equals("xunit")).FirstOrDefault();
+                    if (xunitLibrary != null)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+#endif
 
         static TestAssemblyConfiguration LoadConfiguration(string assemblyName)
         {

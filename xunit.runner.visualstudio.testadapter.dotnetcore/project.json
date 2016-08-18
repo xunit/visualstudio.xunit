@@ -33,7 +33,9 @@
       ],
       "dependencies": {
         "NETStandard.Library": "1.6.0",
-        "System.Threading.ThreadPool": "4.0.10-rc4-24126-00"
+        "System.Threading.ThreadPool": "4.0.10-rc4-24126-00",
+        "Newtonsoft.Json": "9.0.1",
+        "Microsoft.Extensions.DependencyModel": "1.0.0-rc2-002702"
       },
       "buildOptions": {
         "define": [ "DOTNET_CORE" ]
