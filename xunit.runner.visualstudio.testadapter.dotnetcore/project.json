@@ -43,7 +43,6 @@
 
   "dependencies": {
     "MSTest.ObjectModel": "1.0.1-preview",
-    "xunit.abstractions": "2.0.1-rc2",
     "xunit.runner.utility": "2.2.0-beta3-build3329"
   }
 }
