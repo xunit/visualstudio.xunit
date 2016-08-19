@@ -10,6 +10,10 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using Xunit.Abstractions;
 
+#if !PLATFORM_DOTNET
+using System.Xml;
+#endif
+
 namespace Xunit.Runner.VisualStudio.TestAdapter
 {
     [FileExtension(".appx")]
@@ -68,6 +72,11 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             var stopwatch = Stopwatch.StartNew();
             var loggerHelper = new LoggerHelper(logger, stopwatch);
+
+#if !PLATFORM_DOTNET
+            AppDomain = SetAppDomainSupport(discoveryContext.RunSettings.SettingsXml);
+#endif
+
 
             DiscoverTests(
                 sources,
@@ -326,6 +335,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             Guard.ArgumentNotNull("runContext", runContext);
             Guard.ArgumentNotNull("frameworkHandle", frameworkHandle);
 
+#if !PLATFORM_DOTNET
+            AppDomain = SetAppDomainSupport(runContext.RunSettings.SettingsXml);
+#endif
+
             try
             {
                 RemotingUtility.CleanUpRegisteredChannels();
@@ -449,5 +462,35 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 return elements.GetEnumerator();
             }
         }
+
+#if !PLATFORM_DOTNET
+        AppDomainSupport SetAppDomainSupport(string settingsXml)
+        {
+            AppDomainSupport appDomainSupport = AppDomainSupport.Required;
+            bool disableAppDomain = false;
+
+            if (!string.IsNullOrEmpty(settingsXml))
+            {
+                StringReader stringReader = new StringReader(settingsXml);
+                var settings = new XmlReaderSettings();
+                settings.IgnoreComments = true;
+                settings.IgnoreWhitespace = true;
+                XmlReader reader = XmlReader.Create(stringReader, settings);
+
+                if (reader.ReadToFollowing("DisableAppDomain"))
+                {
+                    bool.TryParse(reader.ReadInnerXml(), out disableAppDomain);
+                }
+            }
+
+            if (disableAppDomain)
+            {
+                appDomainSupport = AppDomainSupport.Denied;
+            }
+
+            return appDomainSupport;
+        }
+#endif
+
     }
 }

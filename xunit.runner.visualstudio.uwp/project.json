@@ -1,7 +1,7 @@
 ﻿{
   "dependencies": {
     "Microsoft.NETCore.UniversalWindowsPlatform": "5.0.0",
-    "Microsoft.VisualStudio.TestPlatform.ObjectModel": "0.0.5",
+    "MSTest.ObjectModel": "1.0.1-preview",
     "xunit.runner.utility": "2.2.0-beta3-build3335"
   },
   "frameworks": {
