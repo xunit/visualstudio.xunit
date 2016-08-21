@@ -7,11 +7,11 @@
     <authors>James Newkirk, Brad Wilson</authors>
     <description>Visual Studio 2012+ Test Explorer runner for the xUnit.net framework. Capable of running xUnit.net v1.9.2 and v2.0+ tests.
 
-      Supported platforms:
-      - Desktop .NET 2.0+
-      - Universal Windows App 10+
-      - Windows App 8.1
-      - Windows Phone App 8.1</description>
+Supported platforms:
+- Desktop .NET 2.0+
+- Universal Windows App 10+
+- Windows App 8.1
+- Windows Phone App 8.1</description>
     <language>en-US</language>
     <projectUrl>https://github.com/xunit/xunit</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/xunit/media/master/logo-512-transparent.png</iconUrl>
