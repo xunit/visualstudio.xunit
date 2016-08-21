@@ -11,8 +11,6 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using Xunit.Abstractions;
 
 #if DOTNET_CORE
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Text;
 using  Microsoft.Extensions.DependencyModel;
 #endif
