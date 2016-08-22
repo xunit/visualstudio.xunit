@@ -1,0 +1,49 @@
+﻿{
+  "version": "99.99.99-dev",
+
+  "buildOptions": {
+    "compile": [
+      "../xunit.runner.visualstudio.testadapter/sinks/diagnosticmessagesink.cs",
+      "../xunit.runner.visualstudio.testadapter/sinks/ivsdiscoverysink.cs",
+      "../xunit.runner.visualstudio.testadapter/sinks/vsdiscoverysink.cs",
+      "../xunit.runner.visualstudio.testadapter/sinks/vsexecutiondiscoverysink.cs",
+      "../xunit.runner.visualstudio.testadapter/sinks/vsexecutionsink.cs",
+      "../xunit.runner.visualstudio.testadapter/utility/assemblyextensions.cs",
+      "../xunit.runner.visualstudio.testadapter/utility/assemblyruninfo.cs",
+      "../xunit.runner.visualstudio.testadapter/utility/exceptionextensions.cs",
+      "../xunit.runner.visualstudio.testadapter/utility/guard.cs",
+      "../xunit.runner.visualstudio.testadapter/utility/loggerhelper.cs",
+      "../xunit.runner.visualstudio.testadapter/utility/testcasefilterhelper.cs",
+      "../xunit.runner.visualstudio.testadapter/utility/visualstudiorunnerlogger.cs",
+      "../xunit.runner.visualstudio.testadapter/constants.cs",
+      "../xunit.runner.visualstudio.testadapter/vstestrunner.cs",
+      "../common/GlobalAssemblyInfo.cs"
+    ],
+    "outputName": "xunit.runner.visualstudio.testadapter",
+
+    "warningsAsErrors": true
+  },
+
+  "frameworks": {
+    "netcoreapp1.0": {
+      "imports": [
+        "dotnet",
+        "portable-dnxcore50+net45+win8+wp8+wpa81",
+        "portable-net45+win8"
+      ],
+      "dependencies": {
+        "NETStandard.Library": "1.6.0",
+        "System.Threading.ThreadPool": "4.0.10",
+        "Microsoft.Extensions.DependencyModel": "1.0.0-rc2-002702"
+      },
+      "buildOptions": {
+        "define": [ "DOTNET_CORE" ]
+      }
+    }
+  },
+
+  "dependencies": {
+    "MSTest.ObjectModel": "1.0.1-preview",
+    "xunit.runner.utility": "2.2.0-beta3-build3335"
+  }
+}

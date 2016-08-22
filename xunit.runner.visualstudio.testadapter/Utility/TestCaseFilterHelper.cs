@@ -79,7 +79,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             {
                 // In Microsoft.VisualStudio.TestPlatform.ObjectModel V11 IRunContext provides a TestCaseFilter property
                 // GetTestCaseFilter only exists in V12+
-#if PLATFORM_DOTNET
+#if PLATFORM_DOTNET || DOTNET_CORE
                 var getTestCaseFilterMethod = runContext.GetType().GetRuntimeMethod("GetTestCaseFilter", new[] { typeof(IEnumerable<string>), typeof(Func<string, TestProperty>) });
 #else
                 var getTestCaseFilterMethod = runContext.GetType().GetMethod("GetTestCaseFilter", new[] { typeof(IEnumerable<string>), typeof(Func<string, TestProperty>) });
