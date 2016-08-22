@@ -30,7 +30,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             if (GetTestCaseFilterExpression(runContext, logger, assemblyFileName, out filter))
             {
                 if (filter != null)
-                    return testCases.Where(testCase => filter.MatchTestCase(testCase, (p) => PropertyProvider(testCase, p)));
+                {
+                    var result = testCases.Where(testCase => filter.MatchTestCase(testCase, (p) => PropertyProvider(testCase, p))).ToArray();
+                    return result;
+                }
             }
             else
             {
@@ -79,7 +82,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 #if PLATFORM_DOTNET
                 var getTestCaseFilterMethod = runContext.GetType().GetRuntimeMethod("GetTestCaseFilter", new[] { typeof(IEnumerable<string>), typeof(Func<string, TestProperty>) });
 #else
-                var getTestCaseFilterMethod = runContext.GetType().GetMethod("GetTestCaseFilter");
+                var getTestCaseFilterMethod = runContext.GetType().GetMethod("GetTestCaseFilter", new[] { typeof(IEnumerable<string>), typeof(Func<string, TestProperty>) });
 #endif
                 if (getTestCaseFilterMethod != null)
                     filter = (ITestCaseFilterExpression)getTestCaseFilterMethod.Invoke(runContext, new object[] { supportedPropertyNames, null });
