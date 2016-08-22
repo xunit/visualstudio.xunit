@@ -24,7 +24,7 @@ Supported platforms:
         <dependency id="System.Threading.ThreadPool" version="4.0.10" />
         <dependency id="Microsoft.Extensions.DependencyModel" version="1.0.0" />
         <dependency id="MSTest.ObjectModel" version="1.0.1-preview" />
-        <dependency id="xunit.runner.utility" version="2.2.0-beta3-build3329" />
+        <dependency id="xunit.runner.utility" version="2.2.0-beta3-build3335" />
       </group>
     </dependencies>
   </metadata>
