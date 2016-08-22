@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 
@@ -77,28 +76,13 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             try
             {
-                // In Microsoft.VisualStudio.TestPlatform.ObjectModel V11 IRunContext provides a TestCaseFilter property
-                // GetTestCaseFilter only exists in V12+
-#if PLATFORM_DOTNET
-                var getTestCaseFilterMethod = runContext.GetType().GetRuntimeMethod("GetTestCaseFilter", new[] { typeof(IEnumerable<string>), typeof(Func<string, TestProperty>) });
-#else
-                var getTestCaseFilterMethod = runContext.GetType().GetMethod("GetTestCaseFilter", new[] { typeof(IEnumerable<string>), typeof(Func<string, TestProperty>) });
-#endif
-                if (getTestCaseFilterMethod != null)
-                    filter = (ITestCaseFilterExpression)getTestCaseFilterMethod.Invoke(runContext, new object[] { supportedPropertyNames, null });
-
+                filter = runContext.GetTestCaseFilter(supportedPropertyNames, null);
                 return true;
             }
-            catch (TargetInvocationException e)
+            catch (TestPlatformFormatException e)
             {
-                var innerExceptionType = e.InnerException.GetType();
-                if (innerExceptionType.FullName.EndsWith("TestPlatformFormatException", StringComparison.OrdinalIgnoreCase))
-                {
-                    logger.LogError("{0}: Exception discovering tests: {1}", Path.GetFileNameWithoutExtension(assemblyFileName), e.InnerException.Message);
-                    return false;
-                }
-
-                throw;
+                logger.LogError("{0}: Exception filtering tests: {1}", Path.GetFileNameWithoutExtension(assemblyFileName), e.Message);
+                return false;
             }
         }
 
@@ -125,4 +109,3 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         }
     }
 }
-

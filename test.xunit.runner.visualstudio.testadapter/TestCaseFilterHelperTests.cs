@@ -23,9 +23,9 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             return testCaseList;
         }
 
-        static LoggerHelper GetLoggerHelper()
+        static LoggerHelper GetLoggerHelper(IMessageLogger messageLogger = null)
         {
-            return new LoggerHelper(Substitute.For<IMessageLogger>(), new Stopwatch());
+            return new LoggerHelper(messageLogger ?? Substitute.For<IMessageLogger>(), new Stopwatch());
         }
 
         [Fact]
@@ -61,21 +61,23 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         }
 
         [Fact]
-
         public void TestCaseFilter_ErrorParsingFilterString()
         {
+            var messageLogger = Substitute.For<IMessageLogger>();
             var filterHelper = new TestCaseFilterHelper(dummyKnownTraits);
             var dummyTestCaseList = GetDummyTestCases();
             var context = Substitute.For<IRunContext>();
-            context.GetTestCaseFilter(null, null).ReturnsForAnyArgs(x => { throw new TestPlatformFormatException(); });
+            context.GetTestCaseFilter(null, null).ReturnsForAnyArgs(x => { throw new TestPlatformFormatException("Hello from the exception"); });
 
-            var results = filterHelper.GetFilteredTestList(dummyTestCaseList, context, GetLoggerHelper(), "dummyTestAssembly");
+            var results = filterHelper.GetFilteredTestList(dummyTestCaseList, context, GetLoggerHelper(messageLogger), "dummyTestAssembly");
 
             // Make sure we don't run anything due to the filtering string parse error
             Assert.Empty(results);
+            var args = messageLogger.ReceivedCalls().Single().GetArguments();
+            Assert.Collection(args,
+                arg => Assert.Equal(TestMessageLevel.Error, arg),
+                arg => Assert.EndsWith("dummyTestAssembly: Exception filtering tests: Hello from the exception", (string)arg)
+            );
         }
     }
-
-    // Fake TestPlatformFormatException type to test against V11
-    public class TestPlatformFormatException : Exception { }
 }
