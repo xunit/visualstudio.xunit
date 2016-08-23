@@ -38,9 +38,6 @@
     <Reference Include="Microsoft.VisualStudio.TestPlatform.ObjectModel">
       <Private>False</Private>
       <HintPath>..\packages\Microsoft.VisualStudio.TestPlatform.ObjectModel.0.0.6\lib\net35\Microsoft.VisualStudio.TestPlatform.ObjectModel.dll</HintPath>
-    <Reference Include="Microsoft.VisualStudio.TestPlatform.ObjectModel, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-		<Private>False</Private>
-      <HintPath>..\packages\MSTest.ObjectModel.1.0.1-preview\lib\net20\Microsoft.VisualStudio.TestPlatform.ObjectModel.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
