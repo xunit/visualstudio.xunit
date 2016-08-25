@@ -1,0 +1,41 @@
+﻿{
+  "version": "99.99.99-dev",
+  "buildOptions": {
+    "compile": [
+      "../xunit.runner.visualstudio.testadapter/Sinks/DiagnosticMessageSink.cs",
+      "../xunit.runner.visualstudio.testadapter/Sinks/IVsDiscoverySink.cs",
+      "../xunit.runner.visualstudio.testadapter/Sinks/VsDiscoverySink.cs",
+      "../xunit.runner.visualstudio.testadapter/Sinks/VsExecutionDiscoverySink.cs",
+      "../xunit.runner.visualstudio.testadapter/Sinks/VsExecutionSink.cs",
+      "../xunit.runner.visualstudio.testadapter/Utility/AssemblyExtensions.cs",
+      "../xunit.runner.visualstudio.testadapter/Utility/AssemblyRunInfo.cs",
+      "../xunit.runner.visualstudio.testadapter/Utility/ExceptionExtensions.cs",
+      "../xunit.runner.visualstudio.testadapter/Utility/Guard.cs",
+      "../xunit.runner.visualstudio.testadapter/Utility/LoggerHelper.cs",
+      "../xunit.runner.visualstudio.testadapter/Utility/RunSettingsHelper.cs",
+      "../xunit.runner.visualstudio.testadapter/Utility/TestCaseFilterHelper.cs",
+      "../xunit.runner.visualstudio.testadapter/Utility/VisualStudioRunnerLogger.cs",
+      "../xunit.runner.visualstudio.testadapter/Constants.cs",
+      "../xunit.runner.visualstudio.testadapter/VsTestRunner.cs",
+      "../common/GlobalAssemblyInfo.cs"
+    ],
+    "outputName": "xunit.runner.visualstudio.testadapter",
+    "warningsAsErrors": true
+  },
+  "frameworks": {
+    "netcoreapp1.0": {
+      "imports": [
+        "dotnet",
+        "portable-dnxcore50+net45+win8+wp8+wpa81",
+        "portable-net45+win8"
+      ]
+    }
+  },
+  "dependencies": {
+    "Microsoft.Extensions.DependencyModel": "1.0.0-rc2-002702",
+    "MSTest.ObjectModel": "1.0.1-preview",
+    "NETStandard.Library": "1.6.0",
+    "System.Threading.ThreadPool": "4.0.10",
+    "xunit.runner.utility": "2.2.0-beta3-build3401"
+  }
+}

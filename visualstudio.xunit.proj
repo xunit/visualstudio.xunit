@@ -62,9 +62,16 @@
 
   <Target Name="_BuildProject">
     <MSBuild
-        Projects="visualstudio.xunit.sln"
+        Projects="xunit.runner.visualstudio.testadapter\xunit.runner.visualstudio.testadapter.csproj;
+                  xunit.runner.visualstudio.wpa81\xunit.runner.visualstudio.wpa81.csproj;
+                  xunit.runner.visualstudio.win81\xunit.runner.visualstudio.win81.csproj;
+                  xunit.runner.visualstudio.uwp\xunit.runner.visualstudio.uwp.csproj;
+                  test.harness\test.harness.csproj;
+                  test.xunit.runner.visualstudio.testadapter\test.xunit.runner.visualstudio.testadapter.csproj"
         Targets="Build"
         Properties="Configuration=$(Configuration);TrackFileAccess=$(TrackFileAccess)"/>
+    <Exec Command="dotnet restore -v Warning" />
+    <Exec Command="dotnet build --configuration $(Configuration) xunit.runner.visualstudio.testadapter.dotnetcore\project.json"/>
   </Target>
 
   <Target Name="_Test">
