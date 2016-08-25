@@ -276,16 +276,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                     vsFilteredTestCases = filterHelper.GetFilteredTestList(vsFilteredTestCases, runContext, logger, source).ToList();
 
                     // Re-create testcases with unique names if there is more than 1
-                    var testCases = visitor.TestCases.Where(tc => vsFilteredTestCases.Any(vsTc => vsTc.DisplayName == tc.DisplayName)).GroupBy(tc => $"{tc.TestMethod.TestClass.Class.Name}.{tc.TestMethod.Method.Name}")
-                                                        .SelectMany(group => group.Select(testCase =>
-                                                                                                    VsDiscoverySink.CreateVsTestCase(
-                                                                                                        source,
-                                                                                                        discoverer,
-                                                                                                        testCase,
-                                                                                                        forceUniqueNames: group.Count() > 1,
-                                                                                                        logger: logger,
-                                                                                                        knownTraitNames: knownTraitNames))
-                                                        .Where(vsTestCase => vsTestCase != null)).ToList(); // pre-enumerate these as it populates the known trait names collection
+                    var testCases = visitor.TestCases.Where(tc => vsFilteredTestCases.Any(vsTc => vsTc.DisplayName == tc.DisplayName))
+                                                     .GroupBy(tc => $"{tc.TestMethod.TestClass.Class.Name}.{tc.TestMethod.Method.Name}")
+                                                     .SelectMany(group => group.Select(testCase => VsDiscoverySink.CreateVsTestCase(source, discoverer, testCase, forceUniqueNames: group.Count() > 1, logger: logger, knownTraitNames: knownTraitNames))
+                                                     .Where(vsTestCase => vsTestCase != null)).ToList(); // pre-enumerate these as it populates the known trait names collection
 
                     var runInfo = new AssemblyRunInfo
                     {
