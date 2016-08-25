@@ -10,6 +10,10 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using Xunit.Abstractions;
 
+#if !PLATFORM_DOTNET
+using System.Xml;
+#endif
+
 namespace Xunit.Runner.VisualStudio.TestAdapter
 {
     [FileExtension(".appx")]
@@ -22,9 +26,9 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         public static TestProperty SerializedTestCaseProperty = GetTestProperty();
 
 #if PLATFORM_DOTNET
-        AppDomainSupport AppDomain = AppDomainSupport.Denied;
+        static readonly AppDomainSupport AppDomainDefaultBehavior = AppDomainSupport.Denied;
 #else
-        AppDomainSupport AppDomain = AppDomainSupport.Required;
+        static readonly AppDomainSupport AppDomainDefaultBehavior = AppDomainSupport.Required;
 #endif
 
         static readonly HashSet<string> platformAssemblies = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -172,7 +176,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                             {
                                 var diagnosticMessageVisitor = new DiagnosticMessageSink(logger, fileName, configuration.DiagnosticMessagesOrDefault);
 
-                                using (var framework = new XunitFrontController(AppDomain, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: shadowCopy, diagnosticMessageSink: diagnosticMessageVisitor))
+                                using (var framework = new XunitFrontController(AppDomainDefaultBehavior, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: shadowCopy, diagnosticMessageSink: diagnosticMessageVisitor))
                                 {
                                     var targetFramework = framework.TargetFramework;
                                     if (targetFramework.StartsWith("MonoTouch", StringComparison.OrdinalIgnoreCase) ||
@@ -188,7 +192,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                                         using (var visitor = visitorFactory(assemblyFileName, framework, discoveryOptions))
                                         {
-                                            reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryStarting(assembly, framework.CanUseAppDomains && AppDomain != AppDomainSupport.Denied, shadowCopy, discoveryOptions));
+                                            reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryStarting(assembly, framework.CanUseAppDomains && AppDomainDefaultBehavior != AppDomainSupport.Denied, shadowCopy, discoveryOptions));
 
                                             framework.Find(includeSourceInformation: true, messageSink: visitor, discoveryOptions: discoveryOptions);
                                             var totalTests = visitor.Finish();
@@ -333,12 +337,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 using (AssemblyHelper.SubscribeResolve())
                     if (parallelizeAssemblies)
                         assemblies
-                            .Select(runInfo => RunTestsInAssemblyAsync(frameworkHandle, logger, reporterMessageHandler, runInfo))
+                            .Select(runInfo => RunTestsInAssemblyAsync(runContext, frameworkHandle, logger, reporterMessageHandler, runInfo))
                             .ToList()
                             .ForEach(@event => @event.WaitOne());
                     else
                         assemblies
-                            .ForEach(runInfo => RunTestsInAssembly(frameworkHandle, logger, reporterMessageHandler, runInfo));
+                            .ForEach(runInfo => RunTestsInAssembly(runContext, frameworkHandle, logger, reporterMessageHandler, runInfo));
             }
             catch (Exception ex)
             {
@@ -346,7 +350,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             }
         }
 
-        void RunTestsInAssembly(IFrameworkHandle frameworkHandle,
+        void RunTestsInAssembly(IRunContext runContext,
+                                IFrameworkHandle frameworkHandle,
                                 LoggerHelper logger,
                                 IMessageSink reporterMessageHandler,
                                 AssemblyRunInfo runInfo)
@@ -358,6 +363,9 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var assemblyFileName = runInfo.AssemblyFileName;
             var assemblyDisplayName = Path.GetFileNameWithoutExtension(assemblyFileName);
             var shadowCopy = assembly.Configuration.ShadowCopyOrDefault;
+            var appDomain = assembly.Configuration.AppDomain ?? AppDomainDefaultBehavior;
+            if (DisableAppDomainRequestedInRunContext(runContext.RunSettings.SettingsXml))
+                appDomain = AppDomainSupport.Denied;
 
             try
             {
@@ -367,7 +375,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 #endif
 
                 var diagnosticMessageVisitor = new DiagnosticMessageSink(logger, assemblyDisplayName, runInfo.Configuration.DiagnosticMessagesOrDefault);
-                using (var controller = new XunitFrontController(AppDomain, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: shadowCopy, diagnosticMessageSink: diagnosticMessageVisitor))
+                using (var controller = new XunitFrontController(appDomain, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: shadowCopy, diagnosticMessageSink: diagnosticMessageVisitor))
                 {
                     var xunitTestCases = runInfo.TestCases.Select(tc => new { vs = tc, xunit = Deserialize(logger, controller, tc) })
                                                           .Where(tc => tc.xunit != null)
@@ -393,7 +401,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             }
         }
 
-        ManualResetEvent RunTestsInAssemblyAsync(IFrameworkHandle frameworkHandle,
+        ManualResetEvent RunTestsInAssemblyAsync(IRunContext runContext,
+                                                 IFrameworkHandle frameworkHandle,
                                                  LoggerHelper logger,
                                                  IMessageSink reporterMessageHandler,
                                                  AssemblyRunInfo runInfo)
@@ -403,7 +412,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             {
                 try
                 {
-                    RunTestsInAssembly(frameworkHandle, logger, reporterMessageHandler, runInfo);
+                    RunTestsInAssembly(runContext, frameworkHandle, logger, reporterMessageHandler, runInfo);
                 }
                 finally
                 {
@@ -419,7 +428,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             return @event;
         }
-
 
         internal class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
         {
@@ -442,6 +450,26 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             {
                 return elements.GetEnumerator();
             }
+        }
+
+        bool DisableAppDomainRequestedInRunContext(string settingsXml)
+        {
+#if !PLATFORM_DOTNET
+            if (string.IsNullOrEmpty(settingsXml))
+                return false;
+
+            var disableAppDomain = false;
+            var stringReader = new StringReader(settingsXml);
+            var settings = new XmlReaderSettings { IgnoreComments = true, IgnoreWhitespace = true };
+            var reader = XmlReader.Create(stringReader, settings);
+
+            if (reader.ReadToFollowing("DisableAppDomain"))
+                bool.TryParse(reader.ReadInnerXml(), out disableAppDomain);
+
+            return disableAppDomain;
+#else
+            return false;
+#endif
         }
     }
 }
