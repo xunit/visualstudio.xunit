@@ -2,7 +2,7 @@
 <package>
   <metadata minClientVersion="2.5">
     <id>xunit.runner.visualstudio</id>
-    <version>99.99.99-dev</version>
+    <version>99.99.99-dev-hybrid</version>
     <title>xUnit.net [Runner: Visual Studio]</title>
     <authors>James Newkirk, Brad Wilson</authors>
     <description>Visual Studio 2012+ Test Explorer runner for the xUnit.net framework. Capable of running xUnit.net v1.9.2 and v2.0+ tests.
@@ -24,6 +24,9 @@ Supported platforms:
     <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.runner.utility.desktop.dll"          target="build\_common\" />
     <file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.runner.visualstudio.testadapter.dll" target="build\_common\" />
     <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.utility.dotnet.dll"                 target="build\_common\" />
+	<file src="xunit.runner.visualstudio.testadapter\bin\Release\Newtonsoft.Json.dll"                 target="build\_common\" />
+	<file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.core.dll"                 target="build\_common\" />
+	<file src="xunit.runner.visualstudio.testadapter\bin\Release\xunit.execution.desktop.dll"                 target="build\_common\" />
 
     <file src="build\xunit.runner.visualstudio.v1.props" target="build\net20\xunit.runner.visualstudio.props" />
 
