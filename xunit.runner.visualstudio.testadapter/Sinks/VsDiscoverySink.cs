@@ -6,6 +6,8 @@ using System.Threading;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Xunit.Abstractions;
+using Xunit.Sdk;
+using Newtonsoft.Json;
 
 #if PLATFORM_DOTNET
 using System.Reflection;
@@ -65,13 +67,31 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         {
             try
             {
-                var serializedTestCase = discoverer.Serialize(xunitTestCase);
                 var fqTestMethodName = $"{xunitTestCase.TestMethod.TestClass.Class.Name}.{xunitTestCase.TestMethod.Method.Name}";
                 var uniqueName = forceUniqueNames ? $"{fqTestMethodName} ({xunitTestCase.UniqueID})" : fqTestMethodName;
 
                 var result = new TestCase(uniqueName, uri, source) { DisplayName = Escape(xunitTestCase.DisplayName) };
-                result.SetPropertyValue(VsTestRunner.SerializedTestCaseProperty, serializedTestCase);
+
+                if (VsTestRunner.AppDomain != AppDomainSupport.Denied)
+                {
+                    var serializedTestCase = discoverer.Serialize(xunitTestCase);
+                    result.SetPropertyValue(VsTestRunner.SerializedTestCaseProperty, serializedTestCase);
+                }
                 result.Id = GuidFromString(uri + xunitTestCase.UniqueID);
+
+                if (xunitTestCase.TestMethodArguments != null)
+                {
+                    var serializedTestArguments = JsonConvert.SerializeObject(xunitTestCase.TestMethodArguments, new JsonSerializerSettings
+                    {
+                        TypeNameHandling = TypeNameHandling.Auto
+                    });
+                    result.SetPropertyValue(VsTestRunner.SerializedTestCaseArgumentProperty, serializedTestArguments);
+                }
+
+                if (xunitTestCase is XunitTheoryTestCase)
+                {
+                    result.SetPropertyValue(VsTestRunner.TheoryAgrumentProperty, "Theory");
+                }
 
                 if (addTraitThunk != null)
                 {

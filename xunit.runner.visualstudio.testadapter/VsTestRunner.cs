@@ -9,6 +9,9 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using Xunit.Abstractions;
+using System.Reflection;
+using Xunit.Sdk;
+using Newtonsoft.Json;
 
 #if !PLATFORM_DOTNET
 using System.Xml;
@@ -24,11 +27,13 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
     public class VsTestRunner : ITestDiscoverer, ITestExecutor
     {
         public static TestProperty SerializedTestCaseProperty = GetTestProperty();
+        public static TestProperty SerializedTestCaseArgumentProperty = GetTestArgumentProperty();
+        public static TestProperty TheoryAgrumentProperty = GetTheoryAgrumentProperty();
 
 #if PLATFORM_DOTNET
-        static readonly AppDomainSupport AppDomainDefaultBehavior = AppDomainSupport.Denied;
+        internal static AppDomainSupport AppDomain = AppDomainSupport.Denied;
 #else
-        static readonly AppDomainSupport AppDomainDefaultBehavior = AppDomainSupport.Required;
+        internal static AppDomainSupport AppDomain = AppDomainSupport.Required;
 #endif
 
         static readonly HashSet<string> platformAssemblies = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -111,10 +116,16 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var stopwatch = Stopwatch.StartNew();
             var logger = new LoggerHelper(frameworkHandle, stopwatch);
 
+            Dictionary<ITestCase, TestCase> testCaseMap = null;
+            if (AppDomain == AppDomainSupport.Denied)
+            {
+                testCaseMap = GetXunitTestCaseMap(tests);
+            }
+
             RunTests(
                 runContext, frameworkHandle, logger,
                 () => tests.GroupBy(testCase => testCase.Source)
-                           .Select(group => new AssemblyRunInfo { AssemblyFileName = group.Key, Configuration = LoadConfiguration(group.Key), TestCases = group.ToList() })
+                           .Select(group => new AssemblyRunInfo { AssemblyFileName = group.Key, Configuration = LoadConfiguration(group.Key), TestCases = group.ToList(), TestCaseMap = testCaseMap })
                            .ToList()
             );
         }
@@ -257,6 +268,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         static TestProperty GetTestProperty()
             => TestProperty.Register("XunitTestCase", "xUnit.net Test Case", typeof(string), typeof(VsTestRunner));
 
+        static TestProperty GetTestArgumentProperty()
+          => TestProperty.Register("XunitTestCaseArgument", "xUnit.net Test Case Argument", typeof(string), typeof(object[]));
+
+        static TestProperty GetTheoryAgrumentProperty()
+            => TestProperty.Register("TheoryAgrument", "xUnit.net Theory Argument", typeof(string), typeof(object[]));
+
         List<AssemblyRunInfo> GetTests(IEnumerable<string> sources, LoggerHelper logger, IRunContext runContext)
         {
             // For store apps, the files are copied to the AppX dir, we need to load it from there
@@ -280,16 +297,45 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                     vsFilteredTestCases = filterHelper.GetFilteredTestList(vsFilteredTestCases, runContext, logger, source).ToList();
 
                     // Re-create testcases with unique names if there is more than 1
-                    var testCases = visitor.TestCases.Where(tc => vsFilteredTestCases.Any(vsTc => vsTc.DisplayName == tc.DisplayName))
-                                                     .GroupBy(tc => $"{tc.TestMethod.TestClass.Class.Name}.{tc.TestMethod.Method.Name}")
-                                                     .SelectMany(group => group.Select(testCase => VsDiscoverySink.CreateVsTestCase(source, discoverer, testCase, forceUniqueNames: group.Count() > 1, logger: logger, knownTraitNames: knownTraitNames))
-                                                     .Where(vsTestCase => vsTestCase != null)).ToList(); // pre-enumerate these as it populates the known trait names collection
+                    Dictionary<ITestCase, TestCase> testCaseMap = null;
+                    List<TestCase> testCases = null;
+
+                    if (AppDomain == AppDomainSupport.Denied)
+                    {
+                        testCaseMap = visitor.TestCases.Where(tc => vsFilteredTestCases.Any(vsTc => vsTc.DisplayName == tc.DisplayName)).GroupBy(tc => $"{tc.TestMethod.TestClass.Class.Name}.{tc.TestMethod.Method.Name}")
+                                                           .SelectMany(group => group.Select((testCase, i) => new
+                                                           {
+                                                               testCase,
+                                                               v = VsDiscoverySink.CreateVsTestCase(
+                                                                                                           source,
+                                                                                                           discoverer,
+                                                                                                           testCase,
+                                                                                                           forceUniqueNames: group.Count() > 1,
+                                                                                                           logger: logger,
+                                                                                                           knownTraitNames: knownTraitNames)
+                                                           })).ToDictionary(x => x.testCase, x => x.v);
+
+                    }
+                    else
+                    {
+                        testCases = visitor.TestCases.Where(tc => vsFilteredTestCases.Any(vsTc => vsTc.DisplayName == tc.DisplayName)).GroupBy(tc => $"{tc.TestMethod.TestClass.Class.Name}.{tc.TestMethod.Method.Name}")
+                                                          .SelectMany(group => group.Select(testCase =>
+                                                                                                      VsDiscoverySink.CreateVsTestCase(
+                                                                                                          source,
+                                                                                                          discoverer,
+                                                                                                          testCase,
+                                                                                                          forceUniqueNames: group.Count() > 1,
+                                                                                                          logger: logger,
+                                                                                                          knownTraitNames: knownTraitNames))
+                                                          .Where(vsTestCase => vsTestCase != null)).ToList(); // pre-enumerate these as it populates the known trait names collection
+                    }
 
                     var runInfo = new AssemblyRunInfo
                     {
                         AssemblyFileName = source,
                         Configuration = LoadConfiguration(source),
-                        TestCases = testCases
+                        TestCases = testCases,
+                        TestCaseMap = testCaseMap
                     };
                     result.Add(runInfo);
                 }
@@ -377,9 +423,18 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 var diagnosticMessageVisitor = new DiagnosticMessageSink(logger, assemblyDisplayName, runInfo.Configuration.DiagnosticMessagesOrDefault);
                 using (var controller = new XunitFrontController(appDomain, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: shadowCopy, diagnosticMessageSink: diagnosticMessageVisitor))
                 {
-                    var xunitTestCases = runInfo.TestCases.Select(tc => new { vs = tc, xunit = Deserialize(logger, controller, tc) })
-                                                          .Where(tc => tc.xunit != null)
-                                                          .ToDictionary(tc => tc.xunit, tc => tc.vs);
+                    Dictionary<ITestCase, TestCase> xunitTestCases;
+                    if (AppDomain == AppDomainSupport.Denied)
+                    {
+                        xunitTestCases = runInfo.TestCaseMap;
+                    }
+                    else
+                    {
+                        xunitTestCases = runInfo.TestCases.Select(tc => new { vs = tc, xunit = Deserialize(logger, controller, tc) })
+                                                              .Where(tc => tc.xunit != null)
+                                                              .ToDictionary(tc => tc.xunit, tc => tc.vs);
+                    }
+
 
                     var executionOptions = TestFrameworkOptions.ForExecution(runInfo.Configuration);
                     executionOptions.SetSynchronousMessageReporting(true);
@@ -450,6 +505,111 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             {
                 return elements.GetEnumerator();
             }
+        }
+
+        Dictionary<ITestCase, TestCase> GetXunitTestCaseMap(IEnumerable<TestCase> tests)
+        {
+            // -- Get the xunit ITestCase from TestCase
+            Dictionary<ITestCase, TestCase> testcaselist = new Dictionary<ITestCase, TestCase>();
+
+            var dict = new Dictionary<string, Assembly>();
+            foreach (TestCase test in tests)
+            {
+                var asmName = test.Source.Substring(test.Source.LastIndexOf('\\') + 1, test.Source.LastIndexOf('.') - test.Source.LastIndexOf('\\') - 1);
+                Assembly asm = null;
+                if (!dict.ContainsKey(asmName))
+                {
+#if PLATFORM_DOTNET
+                    // todo : revisit this
+                    asm = Assembly.Load(new AssemblyName(asmName));
+#else
+                    asm = Assembly.LoadFrom(test.Source);
+#endif
+                    dict.Add(asmName, asm);
+                }
+                else
+                {
+                    asm = dict[asmName];
+                }
+
+                IAssemblyInfo assemblyInfo = new ReflectionAssemblyInfo(asm);
+                ITestAssembly testAssembly = new TestAssembly(assemblyInfo);
+
+                var lastIndexOfDot = test.FullyQualifiedName.LastIndexOf('.');
+                var testname = test.FullyQualifiedName.Split(' ')[0].Substring(lastIndexOfDot + 1);
+                var classname = test.FullyQualifiedName.Substring(0, lastIndexOfDot);
+
+                var methodClass = asm.GetType(classname);
+
+                ITypeInfo typeInfo = new ReflectionTypeInfo(methodClass);
+                TestCollection testCollection = new TestCollection(testAssembly, typeInfo, "Test collection for " + classname);
+                TestClass tc = new TestClass(testCollection, typeInfo);
+
+                //IMethodInfo
+#if PLATFORM_DOTNET
+                var methodinfos = methodClass.GetRuntimeMethods().ToList();
+#else
+                var methodinfos = methodClass.GetMethods().ToList();
+#endif
+
+                XunitTestCase xunitTestCase = null;
+                var serializedTestArgs = test.GetPropertyValue<string>(SerializedTestCaseArgumentProperty, null);
+
+
+                Object[] testarguments = serializedTestArgs == null ? null : JsonConvert.DeserializeObject<Object[]>(serializedTestArgs, new JsonSerializerSettings
+                {
+                    TypeNameHandling = TypeNameHandling.Auto
+                });
+
+                if (testarguments != null)
+                {
+                    testname = testname.Split('(')[0];
+                }
+
+
+                MethodInfo methodinfo = null;
+                for (int i = 0; i < methodinfos.Count(); i++)
+                {
+                    if (methodinfos[i].Name.Equals(testname))
+                    {
+                        methodinfo = methodinfos[i];
+                        break;
+                    }
+                }
+
+                ReflectionMethodInfo refMethodInfo = new ReflectionMethodInfo(methodinfo);
+                ITestMethod method = new TestMethod(tc, refMethodInfo);
+                NullMessageSink sink = new NullMessageSink();
+
+                if (testarguments == null && !string.IsNullOrEmpty(test.GetPropertyValue<string>(TheoryAgrumentProperty, null)))
+                {
+#if !PLATFORM_DOTNET
+                    Type type = typeof(XunitTheoryTestCase);
+                    ConstructorInfo ctor = (ConstructorInfo)type.GetConstructors().GetValue(1);
+                    xunitTestCase = (XunitTheoryTestCase)ctor.Invoke(new object[] { sink, 1, method });
+#else
+                    xunitTestCase = new XunitTheoryTestCase(sink, Xunit.Sdk.TestMethodDisplay.ClassAndMethod, method);
+
+#endif
+                }
+                else
+                {
+#if !PLATFORM_DOTNET
+                    Type type = typeof(XunitTestCase);
+                    ConstructorInfo ctor = (ConstructorInfo)type.GetConstructors().GetValue(1);
+                    xunitTestCase = (XunitTestCase)ctor.Invoke(new object[] { sink, 1, method, testarguments });
+#else
+                    xunitTestCase = new XunitTestCase(sink, Xunit.Sdk.TestMethodDisplay.ClassAndMethod, method, testarguments);
+#endif
+                }
+
+                xunitTestCase.SourceInformation = new SourceInformation();
+                xunitTestCase.SourceInformation.FileName = test.CodeFilePath;
+                xunitTestCase.SourceInformation.LineNumber = test.LineNumber;
+
+                testcaselist.Add(xunitTestCase, test);
+            }
+            return testcaselist;
         }
 
         bool DisableAppDomainRequestedInRunContext(string settingsXml)
