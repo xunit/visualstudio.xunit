@@ -2,7 +2,7 @@
 <package>
   <metadata minClientVersion="2.5">
     <id>xunit.runner.visualstudio</id>
-    <version>99.99.99-dev-hybrid</version>
+    <version>99.99.99-dev</version>
     <title>xUnit.net [Runner: Visual Studio]</title>
     <authors>James Newkirk, Brad Wilson</authors>
     <description>Visual Studio 2012+ Test Explorer runner for the xUnit.net framework. Capable of running xUnit.net v1.9.2 and v2.0+ tests.

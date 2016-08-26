@@ -329,13 +329,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                                                                                           knownTraitNames: knownTraitNames))
                                                           .Where(vsTestCase => vsTestCase != null)).ToList(); // pre-enumerate these as it populates the known trait names collection
                     }
-                    //if (AppDomain == AppDomainSupport.Denied)
-                    //{
-                    //    testCaseMap =
-                    //       testCases.Select(
-                    //           (k, i) => new { k, v = visitor.TestCases.Where(e => VsDiscoverySink.GuidFromString(string.Concat(VsDiscoverySink.uri,e.UniqueID)).Equals(k.Id)).First() })
-                    //           .ToDictionary(x => x.v, x => x.k);
-                    //}
 
                     var runInfo = new AssemblyRunInfo
                     {
