@@ -220,7 +220,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             return new Guid(b);
         }
 #else
-        readonly static HashAlgorithm Hasher = new SHA1Managed();
+        readonly static HashAlgorithm Hasher = SHA1.Create ();
 
         static Guid GuidFromString(string data)
         {
