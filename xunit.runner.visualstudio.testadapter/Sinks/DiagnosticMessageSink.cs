@@ -1,6 +1,6 @@
 ﻿namespace Xunit.Runner.VisualStudio.TestAdapter
 {
-    public class DiagnosticMessageSink : TestMessageSink
+    public class DiagnosticMessageSink : DiagnosticEventSink
     {
         public DiagnosticMessageSink(LoggerHelper logger, string assemblyDisplayName, bool showDiagnostics)
         {

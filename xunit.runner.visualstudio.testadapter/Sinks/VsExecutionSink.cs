@@ -32,27 +32,30 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             ExecutionSummary = new ExecutionSummary();
 
-            ErrorMessageEvent += HandleErrorMessage;
-            TestAssemblyCleanupFailureEvent += HandleTestAssemblyCleanupFailure;
-            TestAssemblyFinishedEvent += HandleTestAssemblyFinished;
-            TestCaseCleanupFailureEvent += HandleTestCaseCleanupFailure;
-            TestCaseFinishedEvent += HandleTestCaseFinished;
-            TestCaseStartingEvent += HandleTestCaseStarting;
-            TestClassCleanupFailureEvent += HandleTestClassCleanupFailure;
-            TestCleanupFailureEvent += HandleTestCleanupFailure;
-            TestCollectionCleanupFailureEvent += HandleTestCollectionCleanupFailure;
-            TestFailedEvent += HandleTestFailed;
-            TestMethodCleanupFailureEvent += HandleTestMethodCleanupFailure;
-            TestPassedEvent += HandleTestPassed;
-            TestSkippedEvent += HandleTestSkipped;
+            Diagnostics.ErrorMessageEvent += HandleErrorMessage;
+            Execution.TestAssemblyCleanupFailureEvent += HandleTestAssemblyCleanupFailure;
+            Execution.TestAssemblyFinishedEvent += HandleTestAssemblyFinished;
+            Execution.TestCaseCleanupFailureEvent += HandleTestCaseCleanupFailure;
+            Execution.TestCaseFinishedEvent += HandleTestCaseFinished;
+            Execution.TestCaseStartingEvent += HandleTestCaseStarting;
+            Execution.TestClassCleanupFailureEvent += HandleTestClassCleanupFailure;
+            Execution.TestCleanupFailureEvent += HandleTestCleanupFailure;
+            Execution.TestCollectionCleanupFailureEvent += HandleTestCollectionCleanupFailure;
+            Execution.TestFailedEvent += HandleTestFailed;
+            Execution.TestMethodCleanupFailureEvent += HandleTestMethodCleanupFailure;
+            Execution.TestPassedEvent += HandleTestPassed;
+            Execution.TestSkippedEvent += HandleTestSkipped;
         }
 
         public ExecutionSummary ExecutionSummary { get; private set; }
 
         public ManualResetEvent Finished { get; } = new ManualResetEvent(initialState: false);
 
-        public void Dispose()
-            => ((IDisposable)Finished).Dispose();
+        public override void Dispose()
+        {
+            ((IDisposable)Finished).Dispose();
+            base.Dispose();
+        }
 
         TestCase FindTestCase(ITestCase testCase)
         {

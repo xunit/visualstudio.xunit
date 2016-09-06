@@ -18,7 +18,7 @@ using System.Security.Cryptography;
 
 namespace Xunit.Runner.VisualStudio.TestAdapter
 {
-    public class VsDiscoverySink : TestMessageSink, IVsDiscoverySink, IDisposable
+    public class VsDiscoverySink : IMessageSinkWithTypes, IVsDiscoverySink, IDisposable
     {
         const string Ellipsis = "...";
         const int MaximumDisplayNameLength = 447;
@@ -30,6 +30,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         readonly ITestFrameworkDiscoverer discoverer;
         readonly ITestFrameworkDiscoveryOptions discoveryOptions;
         readonly ITestCaseDiscoverySink discoverySink;
+        readonly DiscoveryEventSink discoveryEventSink = new DiscoveryEventSink();
         readonly List<ITestCase> lastTestClassTestCases = new List<ITestCase>();
         readonly LoggerHelper logger;
         readonly string source;
@@ -50,8 +51,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             this.discoveryOptions = discoveryOptions;
             this.cancelThunk = cancelThunk;
 
-            TestCaseDiscoveryMessageEvent += HandleTestCaseDiscoveryMessage;
-            DiscoveryCompleteMessageEvent += HandleDiscoveryCompleteMessage;
+            discoveryEventSink.TestCaseDiscoveryMessageEvent += HandleTestCaseDiscoveryMessage;
+            discoveryEventSink.DiscoveryCompleteMessageEvent += HandleDiscoveryCompleteMessage;
         }
 
         public ManualResetEvent Finished { get; } = new ManualResetEvent(initialState: false);
@@ -59,7 +60,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         public int TotalTests { get; private set; }
 
         public void Dispose()
-            => ((IDisposable)Finished).Dispose();
+        {
+            ((IDisposable)Finished).Dispose();
+            discoveryEventSink.Dispose();
+        }
 
         public static TestCase CreateVsTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase xunitTestCase, bool forceUniqueNames, LoggerHelper logger, HashSet<string> knownTraitNames = null)
         {
@@ -185,6 +189,9 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             HandleCancellation(args);
         }
 
+        bool IMessageSinkWithTypes.OnMessageWithTypes(IMessageSinkMessage message, HashSet<string> messageTypes)
+            => discoveryEventSink.OnMessageWithTypes(message, messageTypes);
+
         private void SendExistingTestCases()
         {
             var forceUniqueNames = lastTestClassTestCases.Count > 1;
@@ -220,7 +227,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             return new Guid(b);
         }
 #else
-        readonly static HashAlgorithm Hasher = SHA1.Create ();
+        readonly static HashAlgorithm Hasher = SHA1.Create();
 
         static Guid GuidFromString(string data)
         {

@@ -174,9 +174,9 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                             }
                             else
                             {
-                                var diagnosticMessageVisitor = new DiagnosticMessageSink(logger, fileName, configuration.DiagnosticMessagesOrDefault);
+                                var diagnosticSink = new DiagnosticMessageSink(logger, fileName, configuration.DiagnosticMessagesOrDefault);
 
-                                using (var framework = new XunitFrontController(AppDomainDefaultBehavior, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: shadowCopy, diagnosticMessageSink: diagnosticMessageVisitor))
+                                using (var framework = new XunitFrontController(AppDomainDefaultBehavior, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: shadowCopy, diagnosticMessageSink: MessageSinkAdapter.Wrap(diagnosticSink)))
                                 {
                                     var targetFramework = framework.TargetFramework;
                                     if (targetFramework.StartsWith("MonoTouch", StringComparison.OrdinalIgnoreCase) ||
@@ -194,7 +194,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                         {
                                             reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryStarting(assembly, framework.CanUseAppDomains && AppDomainDefaultBehavior != AppDomainSupport.Denied, shadowCopy, discoveryOptions));
 
-                                            framework.Find(includeSourceInformation: true, messageSink: visitor, discoveryOptions: discoveryOptions);
+                                            framework.Find(includeSourceInformation: true, discoveryMessageSink: visitor, discoveryOptions: discoveryOptions);
                                             var totalTests = visitor.Finish();
 
                                             visitComplete?.Invoke(assemblyFileName, framework, discoveryOptions, visitor);
@@ -374,8 +374,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 assemblyFileName = Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, Path.GetFileName(assemblyFileName));
 #endif
 
-                var diagnosticMessageVisitor = new DiagnosticMessageSink(logger, assemblyDisplayName, runInfo.Configuration.DiagnosticMessagesOrDefault);
-                using (var controller = new XunitFrontController(appDomain, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: shadowCopy, diagnosticMessageSink: diagnosticMessageVisitor))
+                var diagnosticSink = new DiagnosticMessageSink(logger, assemblyDisplayName, runInfo.Configuration.DiagnosticMessagesOrDefault);
+                using (var controller = new XunitFrontController(appDomain, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: shadowCopy, diagnosticMessageSink: MessageSinkAdapter.Wrap(diagnosticSink)))
                 {
                     var xunitTestCases = runInfo.TestCases.Select(tc => new { vs = tc, xunit = Deserialize(logger, controller, tc) })
                                                           .Where(tc => tc.xunit != null)
