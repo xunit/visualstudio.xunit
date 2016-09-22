@@ -331,7 +331,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 #if !PLATFORM_DOTNET
                 // Reads settings like disabling appdomains, parallel etc.
                 // Do this first before invoking any thing else to ensure correct settings for the run
-                RunSettingsHelper.ReadRunSettings(runContext, logger);
+                RunSettingsHelper.ReadRunSettings(runContext);
 #endif
 
                 cancelled = false;

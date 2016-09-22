@@ -21,7 +21,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         /// Reads settings for the current run from run context
         /// </summary>
         /// <param name="runContext">RunContext of the run</param>
-        public static void ReadRunSettings(IRunContext runContext, LoggerHelper logger)
+        public static void ReadRunSettings(IRunContext runContext)
         {
             var settingsXml = runContext?.RunSettings?.SettingsXml;
 
@@ -63,9 +63,9 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                         }
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    logger.LogError("Error reading RunSettingsXml: {0}, Exception: {1}", settingsXml, ex);
+                    // ignore
                 }
             }
 #endif
