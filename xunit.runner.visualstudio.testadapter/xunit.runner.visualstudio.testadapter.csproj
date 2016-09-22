@@ -57,6 +57,7 @@
     <Compile Include="..\common\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Utility\RunSettingsHelper.cs" />
     <Compile Include="Utility\VisualStudioRunnerLogger.cs" />
     <Compile Include="Utility\TestCaseFilterHelper.cs" />
     <Compile Include="Utility\AssemblyExtensions.cs" />

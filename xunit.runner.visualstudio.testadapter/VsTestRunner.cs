@@ -328,10 +328,16 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             {
                 RemotingUtility.CleanUpRegisteredChannels();
 
+#if !PLATFORM_DOTNET
+                // Reads settings like disabling appdomains, parallel etc.
+                // Do this first before invoking any thing else to ensure correct settings for the run
+                RunSettingsHelper.ReadRunSettings(runContext, logger);
+#endif
+
                 cancelled = false;
 
                 var assemblies = testCaseAccessor();
-                var parallelizeAssemblies = assemblies.All(runInfo => runInfo.Configuration.ParallelizeAssemblyOrDefault);
+                var parallelizeAssemblies = !RunSettingsHelper.DisableParallelization && assemblies.All(runInfo => runInfo.Configuration.ParallelizeAssemblyOrDefault);
                 var reporterMessageHandler = new DefaultRunnerReporterWithTypes().CreateMessageHandler(new VisualStudioRunnerLogger(logger));
 
                 using (AssemblyHelper.SubscribeResolve())
@@ -363,9 +369,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var assemblyFileName = runInfo.AssemblyFileName;
             var assemblyDisplayName = Path.GetFileNameWithoutExtension(assemblyFileName);
             var shadowCopy = assembly.Configuration.ShadowCopyOrDefault;
-            var appDomain = assembly.Configuration.AppDomain ?? AppDomainDefaultBehavior;
-            if (DisableAppDomainRequestedInRunContext(runContext.RunSettings.SettingsXml))
-                appDomain = AppDomainSupport.Denied;
+            var appDomain = !RunSettingsHelper.DisableAppDomain ? AppDomainSupport.Denied : (assembly.Configuration.AppDomain ?? AppDomainDefaultBehavior);
 
             try
             {
@@ -383,6 +387,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                     var executionOptions = TestFrameworkOptions.ForExecution(runInfo.Configuration);
                     executionOptions.SetSynchronousMessageReporting(true);
+                    if (RunSettingsHelper.DisableParallelization)
+                    {
+                        executionOptions.SetDisableParallelization(true);
+                    }
 
                     reporterMessageHandler.OnMessage(new TestAssemblyExecutionStarting(assembly, executionOptions));
 
@@ -450,26 +458,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             {
                 return elements.GetEnumerator();
             }
-        }
-
-        bool DisableAppDomainRequestedInRunContext(string settingsXml)
-        {
-#if !PLATFORM_DOTNET
-            if (string.IsNullOrEmpty(settingsXml))
-                return false;
-
-            var disableAppDomain = false;
-            var stringReader = new StringReader(settingsXml);
-            var settings = new XmlReaderSettings { IgnoreComments = true, IgnoreWhitespace = true };
-            var reader = XmlReader.Create(stringReader, settings);
-
-            if (reader.ReadToFollowing("DisableAppDomain"))
-                bool.TryParse(reader.ReadInnerXml(), out disableAppDomain);
-
-            return disableAppDomain;
-#else
-            return false;
-#endif
         }
     }
 }
