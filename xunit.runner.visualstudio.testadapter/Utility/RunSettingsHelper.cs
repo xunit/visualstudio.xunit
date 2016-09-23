@@ -22,6 +22,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         /// <param name="runSettingsXml">RunSettingsXml of the run</param>
         public static void ReadRunSettings(string runSettingsXml)
         {
+            // reset first, do not want to propagate earlier settings in cases where execution host is kept alive
+            DisableAppDomain = false;
+            DisableParallelization = false;
+
 #if !PLATFORM_DOTNET
             if (!string.IsNullOrEmpty(runSettingsXml))
             {
