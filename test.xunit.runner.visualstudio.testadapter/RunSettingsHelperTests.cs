@@ -4,9 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
-using Xunit.Runner.VisualStudio.TestAdapter;
 
-namespace test.xunit.runner.visualstudio.testadapter
+namespace Xunit.Runner.VisualStudio.TestAdapter
 {
     public class RunSettingsHelperTests
     {
