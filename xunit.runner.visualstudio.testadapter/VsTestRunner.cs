@@ -369,7 +369,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var assemblyFileName = runInfo.AssemblyFileName;
             var assemblyDisplayName = Path.GetFileNameWithoutExtension(assemblyFileName);
             var shadowCopy = assembly.Configuration.ShadowCopyOrDefault;
-            var appDomain = !RunSettingsHelper.DisableAppDomain ? AppDomainSupport.Denied : (assembly.Configuration.AppDomain ?? AppDomainDefaultBehavior);
+
+            var appDomain = assembly.Configuration.AppDomain ?? AppDomainDefaultBehavior;
+            if (RunSettingsHelper.DisableAppDomain)
+                appDomain = AppDomainSupport.Denied;
 
             try
             {

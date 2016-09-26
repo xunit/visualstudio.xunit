@@ -36,14 +36,14 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                     {
                         var disableAppDomainString = element.Element("DisableAppDomain")?.Value;
                         bool disableAppDomain;
-                        if (!string.IsNullOrEmpty(disableAppDomainString) && bool.TryParse(disableAppDomainString, out disableAppDomain))
+                        if (bool.TryParse(disableAppDomainString, out disableAppDomain))
                         {
                             DisableAppDomain = disableAppDomain;
                         }
 
                         var disableParallelizationString = element.Element("DisableParallelization")?.Value;
                         bool disableParallelization;
-                        if(!string.IsNullOrEmpty(disableParallelizationString) && bool.TryParse(disableParallelizationString, out disableParallelization))
+                        if(bool.TryParse(disableParallelizationString, out disableParallelization))
                         {
                             DisableParallelization = disableParallelization;
                         }
