@@ -22,10 +22,10 @@
     <dependencies>
       <group targetFramework="netcoreapp1.0">
         <dependency id="Microsoft.Extensions.DependencyModel" version="1.0.0" />
-        <dependency id="MSTest.ObjectModel" version="1.0.1-preview" />
+        <dependency id="Microsoft.TestPlatform.ObjectModel" version="11.0.0" />
         <dependency id="NETStandard.Library" version="1.6.0" />
         <dependency id="System.Threading.ThreadPool" version="4.0.10" />
-        <dependency id="xunit.runner.utility" version="2.2.0-beta3-build3335" />
+        <dependency id="xunit.runner.utility" version="2.2.0-beta3-build3401" />
       </group>
     </dependencies>
   </metadata>

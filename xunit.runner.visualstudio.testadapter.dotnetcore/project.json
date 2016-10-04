@@ -32,8 +32,8 @@
     }
   },
   "dependencies": {
-    "Microsoft.Extensions.DependencyModel": "1.0.0-rc2-002702",
-    "MSTest.ObjectModel": "1.0.1-preview",
+    "Microsoft.Extensions.DependencyModel": "1.0.0",
+    "Microsoft.TestPlatform.ObjectModel": "11.0.0",
     "NETStandard.Library": "1.6.0",
     "System.Threading.ThreadPool": "4.0.10",
     "xunit.runner.utility": "2.2.0-beta3-build3401"
