@@ -53,15 +53,15 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="xunit.assert, Version=2.2.0.3349, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <HintPath>..\packages\xunit.assert.2.2.0-beta3-build3349\lib\netstandard1.0\xunit.assert.dll</HintPath>
+      <HintPath>..\packages\xunit.assert.2.2.0-beta3-build3402\lib\netstandard1.0\xunit.assert.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="xunit.core, Version=2.2.0.3349, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <HintPath>..\packages\xunit.extensibility.core.2.2.0-beta3-build3349\lib\net45\xunit.core.dll</HintPath>
+      <HintPath>..\packages\xunit.extensibility.core.2.2.0-beta3-build3402\lib\net45\xunit.core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="xunit.execution.desktop, Version=2.2.0.3349, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <HintPath>..\packages\xunit.extensibility.execution.2.2.0-beta3-build3349\lib\net45\xunit.execution.desktop.dll</HintPath>
+      <HintPath>..\packages\xunit.extensibility.execution.2.2.0-beta3-build3402\lib\net45\xunit.execution.desktop.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
