@@ -19,7 +19,7 @@
       "../xunit.runner.visualstudio.testadapter/VsTestRunner.cs",
       "../common/GlobalAssemblyInfo.cs"
     ],
-    "outputName": "xunit.runner.visualstudio.testadapter",
+    "outputName": "xunit.runner.visualstudio.dotnetcore.testadapter",
     "warningsAsErrors": true
   },
   "frameworks": {
