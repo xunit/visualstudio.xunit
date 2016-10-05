@@ -53,6 +53,6 @@
     <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.visualstudio.wpa81.pri" target="build\wpa81\" />
 
     <file src="build\xunit.runner.visualstudio.dotnetcore.props"                                                                     target="build\netcoreapp1.0\xunit.runner.visualstudio.props" />
-    <file src="xunit.runner.visualstudio.testadapter.dotnetcore\bin\Release\netcoreapp1.0\xunit.runner.visualstudio.testadapter.dll" target="build\netcoreapp1.0\" />
+    <file src="xunit.runner.visualstudio.testadapter.dotnetcore\bin\Release\netcoreapp1.0\xunit.runner.visualstudio.dotnetcore.testadapter.dll" target="build\netcoreapp1.0\" />
   </files>
 </package>
