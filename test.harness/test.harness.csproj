@@ -77,7 +77,7 @@
     <StartAction>Program</StartAction>
     <StartProgram>$(DevEnvDir)CommonExtensions\Microsoft\TestWindow\vstest.console.exe</StartProgram>
     <StartWorkingDirectory>$(TargetDir)</StartWorkingDirectory>
-    <StartArguments>test.harness.dll /testadapterpath:$(SolutionDir)xunit.runner.visualstudio.testadapter\bin\$(Configuration)</StartArguments>
+    <StartArguments>test.harness.dll /testadapterpath:$(SolutionDir)xunit.runner.visualstudio.desktop\bin\$(Configuration)</StartArguments>
     <EnableUnmanagedDebugging>true</EnableUnmanagedDebugging>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
