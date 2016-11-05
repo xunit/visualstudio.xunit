@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -9,6 +8,11 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using Xunit.Abstractions;
+
+#if NETCOREAPP1_0
+using System.Text;
+using Microsoft.Extensions.DependencyModel;
+#endif
 
 #if !PLATFORM_DOTNET
 using System.Xml;
@@ -25,7 +29,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
     {
         public static TestProperty SerializedTestCaseProperty = GetTestProperty();
 
-#if PLATFORM_DOTNET
+#if PLATFORM_DOTNET || NETCOREAPP1_0
         static readonly AppDomainSupport AppDomainDefaultBehavior = AppDomainSupport.Denied;
 #else
         static readonly AppDomainSupport AppDomainDefaultBehavior = AppDomainSupport.Required;
@@ -92,6 +96,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             {
 #if PLATFORM_DOTNET
                 var sourcePath = Windows.ApplicationModel.Package.Current.InstalledLocation.Path;
+#elif NETCOREAPP1_0
+                var sourcePath = Directory.GetCurrentDirectory();
 #else
                 var sourcePath = Environment.CurrentDirectory;
 #endif
@@ -304,10 +310,37 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             if (platformAssemblies.Contains(Path.GetFileName(assemblyFileName)))
                 return false;
 
+#if NETCOREAPP1_0
+            return IsXunitPackageReferenced(assemblyFileName);
+#else
             var assemblyFolder = Path.GetDirectoryName(assemblyFileName);
             return File.Exists(Path.Combine(assemblyFolder, "xunit.dll"))
                 || Directory.GetFiles(assemblyFolder, "xunit.execution.*.dll").Length > 0;
+#endif
         }
+
+#if NETCOREAPP1_0
+        static bool IsXunitPackageReferenced(string assemblyFileName)
+        {
+            var depsFile = assemblyFileName.Replace(".dll", ".deps.json");
+            if (!File.Exists(depsFile))
+                return false;
+
+            try
+            {
+                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(File.ReadAllText(depsFile))))
+                {
+                    var context = new DependencyContextJsonReader().Read(stream);
+                    var xunitLibrary = context.RuntimeLibraries.Where(lib => lib.Name.Equals("xunit")).FirstOrDefault();
+                    return xunitLibrary != null;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+#endif
 
         static TestAssemblyConfiguration LoadConfiguration(string assemblyName)
         {
@@ -328,7 +361,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             {
                 RemotingUtility.CleanUpRegisteredChannels();
 
-#if !PLATFORM_DOTNET
+#if NET35
                 // Reads settings like disabling appdomains, parallel etc.
                 // Do this first before invoking any thing else to ensure correct settings for the run
                 RunSettingsHelper.ReadRunSettings(runContext?.RunSettings?.SettingsXml);
@@ -440,27 +473,5 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             return @event;
         }
 
-        internal class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
-        {
-            readonly IEnumerable<TElement> elements;
-
-            public Grouping(TKey key, IEnumerable<TElement> elements)
-            {
-                Key = key;
-                this.elements = elements;
-            }
-
-            public TKey Key { get; private set; }
-
-            public IEnumerator<TElement> GetEnumerator()
-            {
-                return elements.GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return elements.GetEnumerator();
-            }
-        }
     }
 }

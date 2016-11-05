@@ -26,15 +26,15 @@
 
   <!-- Build server targets -->
 
-  <Target Name="CI" DependsOnTargets="_NoCache;Clean;PackageRestore;SetVersionNumber;Test;GitLink;Packages;ZipArtifacts" />
+  <Target Name="CI" DependsOnTargets="_NoCache;PackageRestore;Clean;SetVersionNumber;Test;GitLink;Packages;ZipArtifacts" />
   <Target Name="TeamCity" DependsOnTargets="CI;PushMyGet" />
-  <Target Name="Release" DependsOnTargets="Clean;PackageRestore;Test;Packages;ZipArtifacts" />
+  <Target Name="Release" DependsOnTargets="PackageRestore;Clean;Test;Packages;ZipArtifacts" />
 
   <!-- Individiual targets -->
 
   <Target Name="Clean">
     <ItemGroup>
-      <CleanFileList Include="*.html;*.xml;*.nupkg;.nuget\NuGet.exe"/>
+      <CleanFileList Include="*.html;*.xml;*.nupkg"/>
     </ItemGroup>
     <MSBuild
         Projects="visualstudio.xunit.sln"
@@ -62,9 +62,17 @@
 
   <Target Name="_BuildProject">
     <MSBuild
-        Projects="visualstudio.xunit.sln"
+        Projects="xunit.runner.visualstudio.desktop\xunit.runner.visualstudio.desktop.csproj;
+                  xunit.runner.visualstudio.wpa81\xunit.runner.visualstudio.wpa81.csproj;
+                  xunit.runner.visualstudio.win81\xunit.runner.visualstudio.win81.csproj;
+                  xunit.runner.visualstudio.uwp\xunit.runner.visualstudio.uwp.csproj;
+                  test.harness\test.harness.csproj;
+                  test.xunit.runner.visualstudio.desktop\test.xunit.runner.visualstudio.desktop.csproj"
         Targets="Build"
         Properties="Configuration=$(Configuration);TrackFileAccess=$(TrackFileAccess)"/>
+    <Exec Command="dotnet restore" />
+    <Exec Command="dotnet build --configuration $(Configuration) xunit.runner.visualstudio.dotnetcore"/>
+    <Exec Command="dotnet publish --configuration $(Configuration) xunit.runner.visualstudio.dotnetcore"/>
   </Target>
 
   <Target Name="_Test">
@@ -141,7 +149,7 @@
 
               Log.LogMessage("Downloading latest version of NuGet.exe...");
               WebClient webClient = new WebClient();
-              webClient.DownloadFile("https://dist.nuget.org/win-x86-commandline/latest/nuget.exe", OutputFilename);
+              webClient.DownloadFile("https://dist.nuget.org/win-x86-commandline/v3.5.0/NuGet.exe", OutputFilename);
 
               return true;
           }
