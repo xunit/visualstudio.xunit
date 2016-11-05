@@ -68,7 +68,7 @@
   </Target>
 
   <Target Name="_Test">
-    <Exec Command="packages\xunit.runner.console\tools\xunit.console.exe test.xunit.runner.visualstudio.testadapter\bin\$(Configuration)\test.xunit.runner.visualstudio.testadapter.dll -diagnostics" />
+    <Exec Command="packages\xunit.runner.console\tools\xunit.console.exe test.xunit.runner.visualstudio.desktop\bin\$(Configuration)\test.xunit.runner.visualstudio.desktop.dll -diagnostics" />
   </Target>
 
   <Target Name="SetVersionNumber">

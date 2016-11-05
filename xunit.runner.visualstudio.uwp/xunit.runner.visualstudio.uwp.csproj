@@ -49,46 +49,46 @@
     <Compile Include="..\common\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\Constants.cs">
+    <Compile Include="..\xunit.runner.visualstudio.desktop\Constants.cs">
       <Link>Constants.cs</Link>
     </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\Sinks\DiagnosticMessageSink.cs">
+    <Compile Include="..\xunit.runner.visualstudio.desktop\Sinks\DiagnosticMessageSink.cs">
       <Link>Sinks\DiagnosticMessageSink.cs</Link>
     </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\Sinks\IVsDiscoverySink.cs">
+    <Compile Include="..\xunit.runner.visualstudio.desktop\Sinks\IVsDiscoverySink.cs">
       <Link>Sinks\IVsDiscoverySink.cs</Link>
     </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\Sinks\VsDiscoverySink.cs">
+    <Compile Include="..\xunit.runner.visualstudio.desktop\Sinks\VsDiscoverySink.cs">
       <Link>Sinks\VsDiscoverySink.cs</Link>
     </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\Sinks\VsExecutionDiscoverySink.cs">
+    <Compile Include="..\xunit.runner.visualstudio.desktop\Sinks\VsExecutionDiscoverySink.cs">
       <Link>Sinks\VsExecutionDiscoverySink.cs</Link>
     </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\Sinks\VsExecutionSink.cs">
+    <Compile Include="..\xunit.runner.visualstudio.desktop\Sinks\VsExecutionSink.cs">
       <Link>Sinks\VsExecutionSink.cs</Link>
     </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\Utility\AssemblyRunInfo.cs">
+    <Compile Include="..\xunit.runner.visualstudio.desktop\Utility\AssemblyRunInfo.cs">
       <Link>Utility\AssemblyRunInfo.cs</Link>
     </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\utility\ExceptionExtensions.cs">
+    <Compile Include="..\xunit.runner.visualstudio.desktop\utility\ExceptionExtensions.cs">
       <Link>Utility\ExceptionExtensions.cs</Link>
     </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\utility\Guard.cs">
+    <Compile Include="..\xunit.runner.visualstudio.desktop\utility\Guard.cs">
       <Link>Utility\Guard.cs</Link>
     </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\Utility\LoggerHelper.cs">
+    <Compile Include="..\xunit.runner.visualstudio.desktop\Utility\LoggerHelper.cs">
       <Link>Utility\LoggerHelper.cs</Link>
     </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\Utility\RunSettingsHelper.cs">
+    <Compile Include="..\xunit.runner.visualstudio.desktop\Utility\RunSettingsHelper.cs">
       <Link>Utility\RunSettingsHelper.cs</Link>
     </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\Utility\TestCaseFilterHelper.cs">
+    <Compile Include="..\xunit.runner.visualstudio.desktop\Utility\TestCaseFilterHelper.cs">
       <Link>Utility\TestCaseFilterHelper.cs</Link>
     </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\Utility\VisualStudioRunnerLogger.cs">
+    <Compile Include="..\xunit.runner.visualstudio.desktop\Utility\VisualStudioRunnerLogger.cs">
       <Link>Utility\VisualStudioRunnerLogger.cs</Link>
     </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.testadapter\VsTestRunner.cs">
+    <Compile Include="..\xunit.runner.visualstudio.desktop\VsTestRunner.cs">
       <Link>VsTestRunner.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />

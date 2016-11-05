@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>test.xunit.runner.visualstudio.testadapter</RootNamespace>
-    <AssemblyName>test.xunit.runner.visualstudio.testadapter</AssemblyName>
+    <AssemblyName>test.xunit.runner.visualstudio.desktop</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
@@ -73,7 +73,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\xunit.runner.visualstudio.testadapter\xunit.runner.visualstudio.testadapter.csproj">
+    <ProjectReference Include="..\xunit.runner.visualstudio.desktop\xunit.runner.visualstudio.desktop.csproj">
       <Project>{ebab9937-2a6a-41ea-848b-3f7ede2396cb}</Project>
       <Name>xunit.runner.visualstudio.testadapter</Name>
     </ProjectReference>
