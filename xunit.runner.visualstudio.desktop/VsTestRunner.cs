@@ -11,7 +11,9 @@ using Xunit.Abstractions;
 
 #if NETCOREAPP1_0
 using System.Text;
+using System.Reflection;
 using Microsoft.Extensions.DependencyModel;
+using Microsoft.DotNet.InternalAbstractions;
 #endif
 
 #if !PLATFORM_DOTNET
@@ -155,7 +157,15 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                 using (AssemblyHelper.SubscribeResolve())
                 {
-                    var reporterMessageHandler = new DefaultRunnerReporterWithTypes().CreateMessageHandler(new VisualStudioRunnerLogger(logger));
+
+                    IRunnerReporter reporter = null;
+#if REPORTERS
+                    if (!RunSettingsHelper.NoAutoReporters)
+                        reporter = GetAvailableRunnerReporters().FirstOrDefault(r => r.IsEnvironmentallyEnabled);
+#endif
+                    reporter = reporter ?? new DefaultRunnerReporterWithTypes();
+
+                    var reporterMessageHandler = reporter.CreateMessageHandler(new VisualStudioRunnerLogger(logger));
 
                     foreach (var assemblyFileNameCanBeWithoutAbsolutePath in sources)
                     {
@@ -371,7 +381,16 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                 var assemblies = testCaseAccessor();
                 var parallelizeAssemblies = !RunSettingsHelper.DisableParallelization && assemblies.All(runInfo => runInfo.Configuration.ParallelizeAssemblyOrDefault);
-                var reporterMessageHandler = new DefaultRunnerReporterWithTypes().CreateMessageHandler(new VisualStudioRunnerLogger(logger));
+
+                IRunnerReporter reporter = null;
+#if REPORTERS
+                if(!RunSettingsHelper.NoAutoReporters)
+                    reporter = GetAvailableRunnerReporters().FirstOrDefault(r => r.IsEnvironmentallyEnabled);
+#endif
+                reporter = reporter ?? new DefaultRunnerReporterWithTypes();
+
+                var reporterMessageHandler = reporter.CreateMessageHandler(new VisualStudioRunnerLogger(logger));
+
 
                 using (AssemblyHelper.SubscribeResolve())
                     if (parallelizeAssemblies)
@@ -472,6 +491,48 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             return @event;
         }
+
+#if REPORTERS
+#if NETCOREAPP1_0
+        static List<IRunnerReporter> GetAvailableRunnerReporters()
+        {
+            var result = new List<IRunnerReporter>();
+            var dependencyModel = DependencyContext.Load(typeof(VsTestRunner).GetTypeInfo().Assembly);
+
+            foreach (var assemblyName in dependencyModel.GetRuntimeAssemblyNames(RuntimeEnvironment.GetRuntimeIdentifier()))
+            {
+                try
+                {
+                    var assembly = Assembly.Load(assemblyName);
+                    foreach (var type in assembly.DefinedTypes)
+                    {
+#pragma warning disable CS0618
+                        if (type == null || type.IsAbstract || type == typeof(DefaultRunnerReporter).GetTypeInfo() || type == typeof(DefaultRunnerReporterWithTypes).GetTypeInfo() || type.ImplementedInterfaces.All(i => i != typeof(IRunnerReporter)))
+                            continue;
+#pragma warning restore CS0618
+
+                        var ctor = type.DeclaredConstructors.FirstOrDefault(c => c.GetParameters().Length == 0);
+                        if (ctor == null)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine($"Type {type.FullName} in assembly {assembly} appears to be a runner reporter, but does not have an empty constructor.");
+                            Console.ResetColor();
+                            continue;
+                        }
+
+                        result.Add((IRunnerReporter)ctor.Invoke(new object[0]));
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+
+            return result;
+        }
+#endif
+#endif
 
     }
 }

@@ -25,6 +25,8 @@ Supported platforms:
         <dependency id="Microsoft.TestPlatform.ObjectModel" version="11.0.0" />
         <dependency id="NETStandard.Library" version="1.6.0" />
         <dependency id="System.Threading.ThreadPool" version="4.0.10" />
+        <dependency id="xunit.runner.reporters" version="2.2.0-beta4-build3463" />
+        
       </group>
     </dependencies>
   </metadata>
