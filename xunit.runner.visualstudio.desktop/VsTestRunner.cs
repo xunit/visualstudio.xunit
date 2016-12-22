@@ -84,6 +84,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var loggerHelper = new LoggerHelper(logger, stopwatch);
 
             DiscoverTests(
+                discoveryContext?.RunSettings,
                 sources,
                 loggerHelper,
                 (source, discoverer, discoveryOptions) => new VsDiscoverySink(source, discoverer, loggerHelper, discoverySink, discoveryOptions, () => cancelled)
@@ -149,7 +150,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             }
         }
 
-        void DiscoverTests<TVisitor>(IEnumerable<string> sources,
+        void DiscoverTests<TVisitor>(IRunSettings runSettings,
+                                     IEnumerable<string> sources,
                                      LoggerHelper logger,
                                      Func<string, ITestFrameworkDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor> visitorFactory,
                                      Action<string, ITestFrameworkDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor> visitComplete = null)
@@ -162,14 +164,13 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 using (AssemblyHelper.SubscribeResolve())
                 {
 
-                    IRunnerReporter reporter = null;
-#if REPORTERS
-                    if (!RunSettingsHelper.NoAutoReporters)
-                        reporter = GetAvailableRunnerReporters().FirstOrDefault(r => r.IsEnvironmentallyEnabled);
+#if NET35 || NETCOREAPP1_0
+                    // Reads settings like disabling appdomains, parallel etc.
+                    // Do this first before invoking any thing else to ensure correct settings for the run
+                    RunSettingsHelper.ReadRunSettings(runSettings?.SettingsXml);
 #endif
-                    reporter = reporter ?? new DefaultRunnerReporterWithTypes();
 
-                    var reporterMessageHandler = reporter.CreateMessageHandler(new VisualStudioRunnerLogger(logger));
+                    var reporterMessageHandler = GetRunnerReporter().CreateMessageHandler(new VisualStudioRunnerLogger(logger));
 
                     foreach (var assemblyFileNameCanBeWithoutAbsolutePath in sources)
                     {
@@ -288,6 +289,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var knownTraitNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             DiscoverTests(
+                runContext?.RunSettings,
                 sources,
                 logger,
                 (source, discoverer, discoveryOptions) => new VsExecutionDiscoverySink(() => cancelled),
@@ -375,7 +377,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             {
                 RemotingUtility.CleanUpRegisteredChannels();
 
-#if NET35
+#if NET35 || NETCOREAPP1_0
                 // Reads settings like disabling appdomains, parallel etc.
                 // Do this first before invoking any thing else to ensure correct settings for the run
                 RunSettingsHelper.ReadRunSettings(runContext?.RunSettings?.SettingsXml);
@@ -385,15 +387,9 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                 var assemblies = testCaseAccessor();
                 var parallelizeAssemblies = !RunSettingsHelper.DisableParallelization && assemblies.All(runInfo => runInfo.Configuration.ParallelizeAssemblyOrDefault);
+                
 
-                IRunnerReporter reporter = null;
-#if REPORTERS
-                if(!RunSettingsHelper.NoAutoReporters)
-                    reporter = GetAvailableRunnerReporters().FirstOrDefault(r => r.IsEnvironmentallyEnabled);
-#endif
-                reporter = reporter ?? new DefaultRunnerReporterWithTypes();
-
-                var reporterMessageHandler = reporter.CreateMessageHandler(new VisualStudioRunnerLogger(logger));
+                var reporterMessageHandler = GetRunnerReporter().CreateMessageHandler(new VisualStudioRunnerLogger(logger));
 
 
                 using (AssemblyHelper.SubscribeResolve())
@@ -497,6 +493,24 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         }
 
 #if REPORTERS
+
+        static IRunnerReporter GetRunnerReporter()
+        {
+            var reporters = GetAvailableRunnerReporters();
+
+            if (!string.IsNullOrEmpty(RunSettingsHelper.ReporterSwitch))
+            {
+                var reporter = reporters.FirstOrDefault(r => string.Equals(r.RunnerSwitch, RunSettingsHelper.ReporterSwitch, StringComparison.OrdinalIgnoreCase));
+                if (reporter != null)
+                    return reporter;
+            }
+
+            if (!RunSettingsHelper.NoAutoReporters)
+                return GetAvailableRunnerReporters().FirstOrDefault(r => r.IsEnvironmentallyEnabled);
+
+            return new DefaultRunnerReporterWithTypes();
+        }
+
 #if NETCOREAPP1_0
         static List<IRunnerReporter> GetAvailableRunnerReporters()
         {
@@ -582,6 +596,11 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             return result;
         }
 #endif
+#else
+        static IRunnerReporter GetRunnerReporter()
+        {
+            return new DefaultRunnerReporterWithTypes();
+        }
 #endif
     }
 }
