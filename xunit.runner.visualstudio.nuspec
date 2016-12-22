@@ -34,15 +34,12 @@ Supported platforms:
   </metadata>
   <files>
     <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.abstractions.dll"                          target="build\_common\" />
-    <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.utility.desktop.dll"                target="build\_common\net35\" />
-    <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.visualstudio.testadapter.dll"       target="build\_common\net35\" />
-    <file src="xunit.runner.visualstudio.desktop.net45\bin\Release\xunit.runner.utility.desktop.dll"          target="build\_common\net45\" />
-    <file src="xunit.runner.visualstudio.desktop.net45\bin\Release\xunit.runner.visualstudio.testadapter.dll" target="build\_common\net45\" />
+    <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.utility.desktop.dll"                target="build\_common\" />
+    <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.visualstudio.testadapter.dll"       target="build\_common\" />
     
     <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.utility.dotnet.dll"             target="build\_common\" />
 
-    <file src="build\xunit.runner.visualstudio.v1.net35.props" target="build\net20\xunit.runner.visualstudio.props" />
-    <file src="build\xunit.runner.visualstudio.v1.net45.props" target="build\net45\xunit.runner.visualstudio.props" />
+    <file src="build\xunit.runner.visualstudio.v1.props" target="build\net20\xunit.runner.visualstudio.props" />
 
     <file src="build\xunit.runner.visualstudio.v2.props"                                    target="build\uap10.0\xunit.runner.visualstudio.props" />
     <file src="build\xunit.runner.visualstudio.uwp.targets"                                 target="build\uap10.0\xunit.runner.visualstudio.targets" />

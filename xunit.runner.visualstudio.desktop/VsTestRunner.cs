@@ -16,7 +16,7 @@ using Microsoft.Extensions.DependencyModel;
 using Microsoft.DotNet.InternalAbstractions;
 #endif
 
-#if NET45
+#if NET35
 using System.Reflection;
 #endif
 
@@ -535,7 +535,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             return result;
         }
-#elif NET45
+#elif NET35
 
         static List<IRunnerReporter> GetAvailableRunnerReporters()
         {
