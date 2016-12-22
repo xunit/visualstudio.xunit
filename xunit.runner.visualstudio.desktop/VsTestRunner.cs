@@ -16,6 +16,10 @@ using Microsoft.Extensions.DependencyModel;
 using Microsoft.DotNet.InternalAbstractions;
 #endif
 
+#if NET45
+using System.Reflection;
+#endif
+
 #if !PLATFORM_DOTNET
 using System.Xml;
 #endif
@@ -531,8 +535,53 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             return result;
         }
-#endif
-#endif
+#elif NET45
 
+        static List<IRunnerReporter> GetAvailableRunnerReporters()
+        {
+            var result = new List<IRunnerReporter>();
+            var runnerPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetLocalCodeBase());
+
+            foreach (var dllFile in Directory.GetFiles(runnerPath, "*.dll").Select(f => Path.Combine(runnerPath, f)))
+            {
+                Type[] types;
+
+                try
+                {
+                    var assembly = Assembly.LoadFile(dllFile);
+                    types = assembly.GetTypes();
+                }
+                catch (ReflectionTypeLoadException ex)
+                {
+                    types = ex.Types;
+                }
+                catch
+                {
+                    continue;
+                }
+
+                foreach (var type in types)
+                {
+#pragma warning disable CS0618
+                    if (type == null || type.IsAbstract || type == typeof(DefaultRunnerReporter) || type == typeof(DefaultRunnerReporterWithTypes) || !type.GetInterfaces().Any(t => t == typeof(IRunnerReporter)))
+                        continue;
+#pragma warning restore CS0618
+                    var ctor = type.GetConstructor(new Type[0]);
+                    if (ctor == null)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine($"Type {type.FullName} in assembly {dllFile} appears to be a runner reporter, but does not have an empty constructor.");
+                        Console.ResetColor();
+                        continue;
+                    }
+
+                    result.Add((IRunnerReporter)ctor.Invoke(new object[0]));
+                }
+            }
+
+            return result;
+        }
+#endif
+#endif
     }
 }
