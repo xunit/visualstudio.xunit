@@ -497,16 +497,20 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         static IRunnerReporter GetRunnerReporter()
         {
             var reporters = GetAvailableRunnerReporters();
-
+/*
             if (!string.IsNullOrEmpty(RunSettingsHelper.ReporterSwitch))
             {
                 var reporter = reporters.FirstOrDefault(r => string.Equals(r.RunnerSwitch, RunSettingsHelper.ReporterSwitch, StringComparison.OrdinalIgnoreCase));
                 if (reporter != null)
                     return reporter;
             }
-
-            if (!RunSettingsHelper.NoAutoReporters)
-                return GetAvailableRunnerReporters().FirstOrDefault(r => r.IsEnvironmentallyEnabled);
+*/
+//            if (!RunSettingsHelper.NoAutoReporters)
+//           {
+                var reporter = GetAvailableRunnerReporters().FirstOrDefault(r => r.IsEnvironmentallyEnabled);
+                if (reporter != null)
+                    return reporter;
+//            }
 
             return new DefaultRunnerReporterWithTypes();
         }
