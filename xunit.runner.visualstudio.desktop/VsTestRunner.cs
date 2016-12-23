@@ -389,7 +389,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 var parallelizeAssemblies = !RunSettingsHelper.DisableParallelization && assemblies.All(runInfo => runInfo.Configuration.ParallelizeAssemblyOrDefault);
 
 
-                var reporterMessageHandler = GetRunnerReporter(assemblies.Select(ari => ari.AssemblyFileName)).CreateMessageHandler(new VisualStudioRunnerLogger(logger));
+                var reporterMessageHandler = MessageSinkWithTypesAdapter.Wrap( GetRunnerReporter(assemblies.Select(ari => ari.AssemblyFileName))
+                                                .CreateMessageHandler(new VisualStudioRunnerLogger(logger)));
 
 
                 using (AssemblyHelper.SubscribeResolve())
@@ -411,7 +412,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         void RunTestsInAssembly(IRunContext runContext,
                                 IFrameworkHandle frameworkHandle,
                                 LoggerHelper logger,
-                                IMessageSink reporterMessageHandler,
+                                IMessageSinkWithTypes reporterMessageHandler,
                                 AssemblyRunInfo runInfo)
         {
             if (cancelled)
@@ -423,6 +424,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var shadowCopy = assembly.Configuration.ShadowCopyOrDefault;
 
             var appDomain = assembly.Configuration.AppDomain ?? AppDomainDefaultBehavior;
+            var longRunningSeconds = assembly.Configuration.LongRunningTestSecondsOrDefault;
+
             if (RunSettingsHelper.DisableAppDomain)
                 appDomain = AppDomainSupport.Denied;
 
@@ -449,12 +452,19 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                     reporterMessageHandler.OnMessage(new TestAssemblyExecutionStarting(assembly, executionOptions));
 
-                    using (var executionSink = new VsExecutionSink(frameworkHandle, logger, xunitTestCases, executionOptions, () => cancelled))
-                    {
-                        controller.RunTests(xunitTestCases.Keys.ToList(), executionSink, executionOptions);
-                        executionSink.Finished.WaitOne();
 
-                        reporterMessageHandler.OnMessage(new TestAssemblyExecutionFinished(assembly, executionOptions, executionSink.ExecutionSummary));
+
+                    using (var vsExecutionSink = new VsExecutionSink(reporterMessageHandler, frameworkHandle, logger, xunitTestCases, executionOptions, () => cancelled))
+                    {
+
+                        IExecutionSink resultsSink = vsExecutionSink;
+                        if (longRunningSeconds > 0)
+                            resultsSink = new DelegatingLongRunningTestDetectionSink(resultsSink, TimeSpan.FromSeconds(longRunningSeconds), diagnosticSink);
+
+                        controller.RunTests(xunitTestCases.Keys.ToList(), resultsSink, executionOptions);
+                        resultsSink.Finished.WaitOne();
+
+                        reporterMessageHandler.OnMessage(new TestAssemblyExecutionFinished(assembly, executionOptions, resultsSink.ExecutionSummary));
                     }
                 }
             }
@@ -467,7 +477,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         ManualResetEvent RunTestsInAssemblyAsync(IRunContext runContext,
                                                  IFrameworkHandle frameworkHandle,
                                                  LoggerHelper logger,
-                                                 IMessageSink reporterMessageHandler,
+                                                 IMessageSinkWithTypes reporterMessageHandler,
                                                  AssemblyRunInfo runInfo)
         {
             var @event = new ManualResetEvent(initialState: false);
