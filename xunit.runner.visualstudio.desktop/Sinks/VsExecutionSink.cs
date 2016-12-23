@@ -15,15 +15,18 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         readonly Func<bool> cancelledThunk;
         readonly ITestFrameworkExecutionOptions executionOptions;
         readonly LoggerHelper logger;
+        readonly IMessageSinkWithTypes innerSink;
         readonly ITestExecutionRecorder recorder;
         readonly Dictionary<ITestCase, TestCase> testCases;
 
-        public VsExecutionSink(ITestExecutionRecorder recorder,
+        public VsExecutionSink(IMessageSinkWithTypes innerSink,
+                               ITestExecutionRecorder recorder,
                                LoggerHelper logger,
                                Dictionary<ITestCase, TestCase> testCases,
                                ITestFrameworkExecutionOptions executionOptions,
                                Func<bool> cancelledThunk)
         {
+            this.innerSink = innerSink;
             this.recorder = recorder;
             this.logger = logger;
             this.testCases = testCases;
@@ -296,6 +299,13 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 return TestOutcome.Skipped;
             else
                 return TestOutcome.Passed;
+        }
+
+        public override bool OnMessageWithTypes(IMessageSinkMessage message, HashSet<string> messageTypes)
+        {
+            var result = innerSink.OnMessageWithTypes(message, messageTypes);
+            return base.OnMessageWithTypes(message, messageTypes) && result;
+
         }
     }
 }
