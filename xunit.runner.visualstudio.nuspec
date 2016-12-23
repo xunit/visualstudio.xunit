@@ -25,13 +25,18 @@ Supported platforms:
         <dependency id="Microsoft.TestPlatform.ObjectModel" version="11.0.0" />
         <dependency id="NETStandard.Library" version="1.6.0" />
         <dependency id="System.Threading.ThreadPool" version="4.0.10" />
+        <dependency id="xunit.runner.reporters" version="2.2.0-beta4-build3465" />
+      </group>
+      <group targetFramework="net45">
+        <dependency id="xunit.runner.reporters" version="2.2.0-beta4-build3465" />
       </group>
     </dependencies>
   </metadata>
   <files>
-    <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.abstractions.dll"                    target="build\_common\" />
-    <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.utility.desktop.dll"          target="build\_common\" />
-    <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.visualstudio.testadapter.dll" target="build\_common\" />
+    <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.abstractions.dll"                          target="build\_common\" />
+    <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.utility.desktop.dll"                target="build\_common\" />
+    <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.visualstudio.testadapter.dll"       target="build\_common\" />
+    
     <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.utility.dotnet.dll"             target="build\_common\" />
 
     <file src="build\xunit.runner.visualstudio.v1.props" target="build\net20\xunit.runner.visualstudio.props" />

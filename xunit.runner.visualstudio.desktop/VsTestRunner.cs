@@ -11,7 +11,13 @@ using Xunit.Abstractions;
 
 #if NETCOREAPP1_0
 using System.Text;
+using System.Reflection;
 using Microsoft.Extensions.DependencyModel;
+using Microsoft.DotNet.InternalAbstractions;
+#endif
+
+#if NET35
+using System.Reflection;
 #endif
 
 #if !PLATFORM_DOTNET
@@ -78,6 +84,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var loggerHelper = new LoggerHelper(logger, stopwatch);
 
             DiscoverTests(
+                discoveryContext?.RunSettings,
                 sources,
                 loggerHelper,
                 (source, discoverer, discoveryOptions) => new VsDiscoverySink(source, discoverer, loggerHelper, discoverySink, discoveryOptions, () => cancelled)
@@ -143,7 +150,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             }
         }
 
-        void DiscoverTests<TVisitor>(IEnumerable<string> sources,
+        void DiscoverTests<TVisitor>(IRunSettings runSettings,
+                                     IEnumerable<string> sources,
                                      LoggerHelper logger,
                                      Func<string, ITestFrameworkDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor> visitorFactory,
                                      Action<string, ITestFrameworkDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor> visitComplete = null)
@@ -155,7 +163,14 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                 using (AssemblyHelper.SubscribeResolve())
                 {
-                    var reporterMessageHandler = new DefaultRunnerReporterWithTypes().CreateMessageHandler(new VisualStudioRunnerLogger(logger));
+
+#if NET35 || NETCOREAPP1_0
+                    // Reads settings like disabling appdomains, parallel etc.
+                    // Do this first before invoking any thing else to ensure correct settings for the run
+                    RunSettingsHelper.ReadRunSettings(runSettings?.SettingsXml);
+#endif
+
+                    var reporterMessageHandler = GetRunnerReporter().CreateMessageHandler(new VisualStudioRunnerLogger(logger));
 
                     foreach (var assemblyFileNameCanBeWithoutAbsolutePath in sources)
                     {
@@ -274,6 +289,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var knownTraitNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             DiscoverTests(
+                runContext?.RunSettings,
                 sources,
                 logger,
                 (source, discoverer, discoveryOptions) => new VsExecutionDiscoverySink(() => cancelled),
@@ -361,7 +377,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             {
                 RemotingUtility.CleanUpRegisteredChannels();
 
-#if NET35
+#if NET35 || NETCOREAPP1_0
                 // Reads settings like disabling appdomains, parallel etc.
                 // Do this first before invoking any thing else to ensure correct settings for the run
                 RunSettingsHelper.ReadRunSettings(runContext?.RunSettings?.SettingsXml);
@@ -371,7 +387,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                 var assemblies = testCaseAccessor();
                 var parallelizeAssemblies = !RunSettingsHelper.DisableParallelization && assemblies.All(runInfo => runInfo.Configuration.ParallelizeAssemblyOrDefault);
-                var reporterMessageHandler = new DefaultRunnerReporterWithTypes().CreateMessageHandler(new VisualStudioRunnerLogger(logger));
+                
+
+                var reporterMessageHandler = GetRunnerReporter().CreateMessageHandler(new VisualStudioRunnerLogger(logger));
+
 
                 using (AssemblyHelper.SubscribeResolve())
                     if (parallelizeAssemblies)
@@ -473,5 +492,119 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             return @event;
         }
 
+#if REPORTERS
+
+        static IRunnerReporter GetRunnerReporter()
+        {
+            var reporters = GetAvailableRunnerReporters();
+/*
+            if (!string.IsNullOrEmpty(RunSettingsHelper.ReporterSwitch))
+            {
+                var reporter = reporters.FirstOrDefault(r => string.Equals(r.RunnerSwitch, RunSettingsHelper.ReporterSwitch, StringComparison.OrdinalIgnoreCase));
+                if (reporter != null)
+                    return reporter;
+            }
+*/
+//            if (!RunSettingsHelper.NoAutoReporters)
+//           {
+                var reporter = GetAvailableRunnerReporters().FirstOrDefault(r => r.IsEnvironmentallyEnabled);
+                if (reporter != null)
+                    return reporter;
+//            }
+
+            return new DefaultRunnerReporterWithTypes();
+        }
+
+#if NETCOREAPP1_0
+        static List<IRunnerReporter> GetAvailableRunnerReporters()
+        {
+            var result = new List<IRunnerReporter>();
+            var dependencyModel = DependencyContext.Load(typeof(VsTestRunner).GetTypeInfo().Assembly);
+
+            foreach (var assemblyName in dependencyModel.GetRuntimeAssemblyNames(RuntimeEnvironment.GetRuntimeIdentifier()))
+            {
+                try
+                {
+                    var assembly = Assembly.Load(assemblyName);
+                    foreach (var type in assembly.DefinedTypes)
+                    {
+#pragma warning disable CS0618
+                        if (type == null || type.IsAbstract || type == typeof(DefaultRunnerReporter).GetTypeInfo() || type == typeof(DefaultRunnerReporterWithTypes).GetTypeInfo() || type.ImplementedInterfaces.All(i => i != typeof(IRunnerReporter)))
+                            continue;
+#pragma warning restore CS0618
+
+                        var ctor = type.DeclaredConstructors.FirstOrDefault(c => c.GetParameters().Length == 0);
+                        if (ctor == null)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine($"Type {type.FullName} in assembly {assembly} appears to be a runner reporter, but does not have an empty constructor.");
+                            Console.ResetColor();
+                            continue;
+                        }
+
+                        result.Add((IRunnerReporter)ctor.Invoke(new object[0]));
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+
+            return result;
+        }
+#elif NET35
+
+        static List<IRunnerReporter> GetAvailableRunnerReporters()
+        {
+            var result = new List<IRunnerReporter>();
+            var runnerPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetLocalCodeBase());
+
+            foreach (var dllFile in Directory.GetFiles(runnerPath, "*.dll").Select(f => Path.Combine(runnerPath, f)))
+            {
+                Type[] types;
+
+                try
+                {
+                    var assembly = Assembly.LoadFile(dllFile);
+                    types = assembly.GetTypes();
+                }
+                catch (ReflectionTypeLoadException ex)
+                {
+                    types = ex.Types;
+                }
+                catch
+                {
+                    continue;
+                }
+
+                foreach (var type in types)
+                {
+#pragma warning disable CS0618
+                    if (type == null || type.IsAbstract || type == typeof(DefaultRunnerReporter) || type == typeof(DefaultRunnerReporterWithTypes) || !type.GetInterfaces().Any(t => t == typeof(IRunnerReporter)))
+                        continue;
+#pragma warning restore CS0618
+                    var ctor = type.GetConstructor(new Type[0]);
+                    if (ctor == null)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine($"Type {type.FullName} in assembly {dllFile} appears to be a runner reporter, but does not have an empty constructor.");
+                        Console.ResetColor();
+                        continue;
+                    }
+
+                    result.Add((IRunnerReporter)ctor.Invoke(new object[0]));
+                }
+            }
+
+            return result;
+        }
+#endif
+#else
+        static IRunnerReporter GetRunnerReporter()
+        {
+            return new DefaultRunnerReporterWithTypes();
+        }
+#endif
     }
 }

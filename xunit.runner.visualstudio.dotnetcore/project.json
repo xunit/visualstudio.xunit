@@ -20,7 +20,8 @@
       "../common/GlobalAssemblyInfo.cs"
     ],
     "outputName": "xunit.runner.visualstudio.dotnetcore.testadapter",
-    "warningsAsErrors": true
+    "warningsAsErrors": true,
+    "define": ["REPORTERS"]
   },
   "frameworks": {
     "netcoreapp1.0": {
@@ -39,6 +40,7 @@
       "type": "platform"
     },
     "System.Threading.ThreadPool": "4.0.10",
-    "xunit.runner.utility": "2.2.0-beta4-build3444"
+    "xunit.runner.utility": "2.2.0-beta4-build3465",
+    "xunit.runner.reporters": "2.2.0-beta4-build3465"
   }
 }

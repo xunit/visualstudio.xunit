@@ -9,7 +9,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         public static bool DisableAppDomain { get; private set; }
 
         public static bool DisableParallelization { get; private set; }
-
+/*
+        public static bool NoAutoReporters { get; private set; }
+        public static string ReporterSwitch { get; private set; }
+*/
         /// <summary>
         /// Reads settings for the current run from run settings xml
         /// </summary>
@@ -19,6 +22,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             // reset first, do not want to propagate earlier settings in cases where execution host is kept alive
             DisableAppDomain = false;
             DisableParallelization = false;
+            //NoAutoReporters = false;
+
 
 #if !PLATFORM_DOTNET
             if (!string.IsNullOrEmpty(runSettingsXml))
@@ -37,6 +42,14 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                         bool disableParallelization;
                         if (bool.TryParse(disableParallelizationString, out disableParallelization))
                             DisableParallelization = disableParallelization;
+/*
+                        var noAutoReportersString = element.Element("NoAutoReporters")?.Value;
+                        bool noAutoReporters;
+                        if (bool.TryParse(noAutoReportersString, out noAutoReporters))
+                            NoAutoReporters = noAutoReporters;
+
+                        ReporterSwitch = element.Element("ReporterSwitch")?.Value;
+*/
                     }
                 }
                 catch { }
