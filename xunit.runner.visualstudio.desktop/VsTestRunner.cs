@@ -170,7 +170,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                     RunSettingsHelper.ReadRunSettings(runSettings?.SettingsXml);
 #endif
 
-                    var reporterMessageHandler = GetRunnerReporter().CreateMessageHandler(new VisualStudioRunnerLogger(logger));
+                    var reporterMessageHandler = GetRunnerReporter(sources).CreateMessageHandler(new VisualStudioRunnerLogger(logger));
 
                     foreach (var assemblyFileNameCanBeWithoutAbsolutePath in sources)
                     {
@@ -387,9 +387,9 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                 var assemblies = testCaseAccessor();
                 var parallelizeAssemblies = !RunSettingsHelper.DisableParallelization && assemblies.All(runInfo => runInfo.Configuration.ParallelizeAssemblyOrDefault);
-                
 
-                var reporterMessageHandler = GetRunnerReporter().CreateMessageHandler(new VisualStudioRunnerLogger(logger));
+
+                var reporterMessageHandler = GetRunnerReporter(assemblies.Select(ari => ari.AssemblyFileName)).CreateMessageHandler(new VisualStudioRunnerLogger(logger));
 
 
                 using (AssemblyHelper.SubscribeResolve())
@@ -494,34 +494,44 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
 #if REPORTERS
 
-        static IRunnerReporter GetRunnerReporter()
+        static IRunnerReporter GetRunnerReporter(IEnumerable<string> assemblyFileNames)
         {
-            var reporters = GetAvailableRunnerReporters();
-/*
-            if (!string.IsNullOrEmpty(RunSettingsHelper.ReporterSwitch))
-            {
-                var reporter = reporters.FirstOrDefault(r => string.Equals(r.RunnerSwitch, RunSettingsHelper.ReporterSwitch, StringComparison.OrdinalIgnoreCase));
-                if (reporter != null)
-                    return reporter;
-            }
-*/
-//            if (!RunSettingsHelper.NoAutoReporters)
-//           {
-                var reporter = GetAvailableRunnerReporters().FirstOrDefault(r => r.IsEnvironmentallyEnabled);
-                if (reporter != null)
-                    return reporter;
-//            }
+            var reporters = GetAvailableRunnerReporters(assemblyFileNames);
+            /*
+                        if (!string.IsNullOrEmpty(RunSettingsHelper.ReporterSwitch))
+                        {
+                            var reporter = reporters.FirstOrDefault(r => string.Equals(r.RunnerSwitch, RunSettingsHelper.ReporterSwitch, StringComparison.OrdinalIgnoreCase));
+                            if (reporter != null)
+                                return reporter;
+                        }
+            */
+            //            if (!RunSettingsHelper.NoAutoReporters)
+            //           {
+            var reporter = reporters.FirstOrDefault(r => r.IsEnvironmentallyEnabled);
+            if (reporter != null)
+                return reporter;
+            //            }
 
             return new DefaultRunnerReporterWithTypes();
         }
 
 #if NETCOREAPP1_0
-        static List<IRunnerReporter> GetAvailableRunnerReporters()
+        static List<IRunnerReporter> GetAvailableRunnerReporters(IEnumerable<string> sources)
         {
+            // Combine all input libs and merge their contexts to find the potential reporters
             var result = new List<IRunnerReporter>();
-            var dependencyModel = DependencyContext.Load(typeof(VsTestRunner).GetTypeInfo().Assembly);
-
-            foreach (var assemblyName in dependencyModel.GetRuntimeAssemblyNames(RuntimeEnvironment.GetRuntimeIdentifier()))
+            var dcjr = new DependencyContextJsonReader();
+            var deps = sources
+                        .Select(Path.GetFullPath)
+                        .Select(s => s.Replace(".dll", ".deps.json"))
+                        .Where(File.Exists)
+                        .Select(f => new MemoryStream(Encoding.UTF8.GetBytes(File.ReadAllText(f))))
+                        .Select(dcjr.Read);
+            var ctx = deps.Aggregate(DependencyContext.Default, (context, dependencyContext) => context.Merge(dependencyContext));
+            dcjr.Dispose();
+            
+            
+            foreach (var assemblyName in ctx.GetRuntimeAssemblyNames(RuntimeEnvironment.GetRuntimeIdentifier()))
             {
                 try
                 {
@@ -555,7 +565,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         }
 #elif NET35
 
-        static List<IRunnerReporter> GetAvailableRunnerReporters()
+        static List<IRunnerReporter> GetAvailableRunnerReporters(IEnumerable<string> sources)
         {
             var result = new List<IRunnerReporter>();
             var runnerPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetLocalCodeBase());
@@ -601,7 +611,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         }
 #endif
 #else
-        static IRunnerReporter GetRunnerReporter()
+        static IRunnerReporter GetRunnerReporter(IEnumerable<string> sources)
         {
             return new DefaultRunnerReporterWithTypes();
         }
