@@ -63,8 +63,6 @@
   <Target Name="_BuildProject">
     <MSBuild
         Projects="xunit.runner.visualstudio.desktop\xunit.runner.visualstudio.desktop.csproj;
-                  xunit.runner.visualstudio.wpa81\xunit.runner.visualstudio.wpa81.csproj;
-                  xunit.runner.visualstudio.win81\xunit.runner.visualstudio.win81.csproj;
                   xunit.runner.visualstudio.uwp\xunit.runner.visualstudio.uwp.csproj;
                   test.harness\test.harness.csproj;
                   test.xunit.runner.visualstudio.desktop\test.xunit.runner.visualstudio.desktop.csproj"

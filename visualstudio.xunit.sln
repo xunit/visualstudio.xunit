@@ -8,20 +8,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.runner.visualstudio.d
 		{B9CC6A98-9BE1-46C7-BC8E-1D1F67335FB7} = {B9CC6A98-9BE1-46C7-BC8E-1D1F67335FB7}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.runner.visualstudio.wpa81", "xunit.runner.visualstudio.wpa81\xunit.runner.visualstudio.wpa81.csproj", "{1F759DC9-82C9-45B1-A9DA-E3A7B7386CED}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4E13DEEC-B4B3-4D16-8D20-21FE543916B0}"
 	ProjectSection(SolutionItems) = preProject
+		build\xunit.runner.visualstudio.desktop.props = build\xunit.runner.visualstudio.desktop.props
 		build\xunit.runner.visualstudio.dotnetcore.props = build\xunit.runner.visualstudio.dotnetcore.props
 		xunit.runner.visualstudio.nuspec = xunit.runner.visualstudio.nuspec
+		build\xunit.runner.visualstudio.uwp.props = build\xunit.runner.visualstudio.uwp.props
 		build\xunit.runner.visualstudio.uwp.targets = build\xunit.runner.visualstudio.uwp.targets
-		build\xunit.runner.visualstudio.v1.props = build\xunit.runner.visualstudio.v1.props
-		build\xunit.runner.visualstudio.v2.props = build\xunit.runner.visualstudio.v2.props
-		build\xunit.runner.visualstudio.win81.targets = build\xunit.runner.visualstudio.win81.targets
-		build\xunit.runner.visualstudio.wpa81.targets = build\xunit.runner.visualstudio.wpa81.targets
 	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.runner.visualstudio.win81", "xunit.runner.visualstudio.win81\xunit.runner.visualstudio.win81.csproj", "{442EF4E5-67F5-4906-B8A8-D93AB4EBAD82}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test.harness", "test.harness\test.harness.csproj", "{B9CC6A98-9BE1-46C7-BC8E-1D1F67335FB7}"
 EndProject
@@ -45,14 +39,6 @@ Global
 		{EBAB9937-2A6A-41EA-848B-3F7EDE2396CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EBAB9937-2A6A-41EA-848B-3F7EDE2396CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EBAB9937-2A6A-41EA-848B-3F7EDE2396CB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1F759DC9-82C9-45B1-A9DA-E3A7B7386CED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1F759DC9-82C9-45B1-A9DA-E3A7B7386CED}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1F759DC9-82C9-45B1-A9DA-E3A7B7386CED}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1F759DC9-82C9-45B1-A9DA-E3A7B7386CED}.Release|Any CPU.Build.0 = Release|Any CPU
-		{442EF4E5-67F5-4906-B8A8-D93AB4EBAD82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{442EF4E5-67F5-4906-B8A8-D93AB4EBAD82}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{442EF4E5-67F5-4906-B8A8-D93AB4EBAD82}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{442EF4E5-67F5-4906-B8A8-D93AB4EBAD82}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B9CC6A98-9BE1-46C7-BC8E-1D1F67335FB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B9CC6A98-9BE1-46C7-BC8E-1D1F67335FB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B9CC6A98-9BE1-46C7-BC8E-1D1F67335FB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -75,8 +61,6 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{EBAB9937-2A6A-41EA-848B-3F7EDE2396CB} = {BA799592-92C2-40AD-9FB2-623E94A427F3}
-		{1F759DC9-82C9-45B1-A9DA-E3A7B7386CED} = {BA799592-92C2-40AD-9FB2-623E94A427F3}
-		{442EF4E5-67F5-4906-B8A8-D93AB4EBAD82} = {BA799592-92C2-40AD-9FB2-623E94A427F3}
 		{B9CC6A98-9BE1-46C7-BC8E-1D1F67335FB7} = {88AA0DC3-2723-4E7D-A89E-A977F319B3AA}
 		{276BA4CF-B023-4159-85E8-B5A9A4D4493A} = {88AA0DC3-2723-4E7D-A89E-A977F319B3AA}
 		{9220495E-D0C7-4F0D-B963-A5E17FF63386} = {BA799592-92C2-40AD-9FB2-623E94A427F3}

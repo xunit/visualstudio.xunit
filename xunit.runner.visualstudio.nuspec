@@ -10,9 +10,7 @@
 Supported platforms:
 - Desktop .NET 2.0+
 - .NET Core (including ASP.NET Core) 1.0+
-- Universal Windows App 10+
-- Windows App 8.1
-- Windows Phone App 8.1</description>
+- Universal Windows App 10+</description>
     <language>en-US</language>
     <projectUrl>https://github.com/xunit/xunit</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/xunit/media/master/logo-512-transparent.png</iconUrl>
@@ -33,28 +31,16 @@ Supported platforms:
     </dependencies>
   </metadata>
   <files>
-    <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.abstractions.dll"                          target="build\_common\" />
-    <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.utility.desktop.dll"                target="build\_common\" />
-    <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.visualstudio.testadapter.dll"       target="build\_common\" />
-    
-    <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.utility.dotnet.dll"             target="build\_common\" />
+    <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.abstractions.dll"                    target="build\_common\" />
+    <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.utility.desktop.dll"          target="build\_common\" />
+    <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.visualstudio.testadapter.dll" target="build\_common\" />
 
-    <file src="build\xunit.runner.visualstudio.v1.props" target="build\net20\xunit.runner.visualstudio.props" />
+    <file src="build\xunit.runner.visualstudio.desktop.props" target="build\net20\xunit.runner.visualstudio.props" />
 
-    <file src="build\xunit.runner.visualstudio.v2.props"                                    target="build\uap10.0\xunit.runner.visualstudio.props" />
+    <file src="build\xunit.runner.visualstudio.uwp.props"                                   target="build\uap10.0\xunit.runner.visualstudio.props" />
     <file src="build\xunit.runner.visualstudio.uwp.targets"                                 target="build\uap10.0\xunit.runner.visualstudio.targets" />
     <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.visualstudio.uwp.dll" target="build\uap10.0\" />
     <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.visualstudio.uwp.pri" target="build\uap10.0\" />
-
-    <file src="build\xunit.runner.visualstudio.v2.props"                                        target="build\win81\xunit.runner.visualstudio.props" />
-    <file src="build\xunit.runner.visualstudio.win81.targets"                                   target="build\win81\xunit.runner.visualstudio.targets" />
-    <file src="xunit.runner.visualstudio.win81\bin\Release\xunit.runner.visualstudio.win81.dll" target="build\win81\" />
-    <file src="xunit.runner.visualstudio.win81\bin\Release\xunit.runner.visualstudio.win81.pri" target="build\win81\" />
-
-    <file src="build\xunit.runner.visualstudio.v2.props"                                        target="build\wpa81\xunit.runner.visualstudio.props" />
-    <file src="build\xunit.runner.visualstudio.wpa81.targets"                                   target="build\wpa81\xunit.runner.visualstudio.targets" />
-    <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.visualstudio.wpa81.dll" target="build\wpa81\" />
-    <file src="xunit.runner.visualstudio.wpa81\bin\Release\xunit.runner.visualstudio.wpa81.pri" target="build\wpa81\" />
 
     <file src="build\xunit.runner.visualstudio.dotnetcore.props"                                                                            target="build\netcoreapp1.0\xunit.runner.visualstudio.props" />
     <file src="xunit.runner.visualstudio.dotnetcore\bin\Release\netcoreapp1.0\publish\xunit.runner.visualstudio.dotnetcore.testadapter.dll" target="build\netcoreapp1.0\" />
