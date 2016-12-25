@@ -11,6 +11,11 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>False</Visible>
     </Content>
+    <Content Include="$(MSBuildThisFileDirectory)..\_common\xunit.runner.reporters.desktop.dll">
+      <Link>xunit.runner.reporters.desktop.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>False</Visible>
+    </Content>
     <Content Include="$(MSBuildThisFileDirectory)..\_common\xunit.abstractions.dll">
       <Link>xunit.abstractions.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
