@@ -11,7 +11,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>False</Visible>
     </Content>
-    <Content Include="$(MSBuildThisFileDirectory)..\_common\xunit.runner.reporters.desktop.dll">
+    <Content Include="$(MSBuildThisFileDirectory)..\_common\xunit.runner.reporters.desktop.dll"
+             Condition=" '$(TargetFrameworkVersion)' != 'v2.0' and '$(TargetFrameworkVersion)' != 'v3.0' and '$(TargetFrameworkVersion)' != 'v3.5' " 
+             >
       <Link>xunit.runner.reporters.desktop.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>False</Visible>
