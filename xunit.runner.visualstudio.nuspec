@@ -29,7 +29,7 @@ Supported platforms:
   <files>
     <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.abstractions.dll"                    target="build\_common\" />
     <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.utility.desktop.dll"          target="build\_common\" />
-    <!--<file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.reporters.desktop.dll"        target="build\_common\" />-->
+    <file src="packages\xunit.runner.reporters\lib\net45\xunit.runner.reporters.desktop.dll"            target="build\_common\" />
     <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.visualstudio.testadapter.dll" target="build\_common\" />
 
     <file src="build\xunit.runner.visualstudio.desktop.props" target="build\net20\xunit.runner.visualstudio.props" />

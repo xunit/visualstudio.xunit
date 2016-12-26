@@ -10,6 +10,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xunit.runner.visualstudio.d
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4E13DEEC-B4B3-4D16-8D20-21FE543916B0}"
 	ProjectSection(SolutionItems) = preProject
+		visualstudio.xunit.proj = visualstudio.xunit.proj
 		build\xunit.runner.visualstudio.desktop.props = build\xunit.runner.visualstudio.desktop.props
 		build\xunit.runner.visualstudio.dotnetcore.props = build\xunit.runner.visualstudio.dotnetcore.props
 		xunit.runner.visualstudio.nuspec = xunit.runner.visualstudio.nuspec
