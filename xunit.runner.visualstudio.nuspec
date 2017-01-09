@@ -38,6 +38,8 @@ Supported platforms:
 
     <file src="build\xunit.runner.visualstudio.uwp.props"                                   target="build\uap10.0\xunit.runner.visualstudio.props" />
     <file src="build\xunit.runner.visualstudio.uwp.targets"                                 target="build\uap10.0\xunit.runner.visualstudio.targets" />
+    <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.utility.dotnet.dll"   target="build\uap10.0\" />
+    <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.utility.dotnet.pdb"   target="build\uap10.0\" />
     <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.visualstudio.uwp.dll" target="build\uap10.0\" />
     <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.visualstudio.uwp.pdb" target="build\uap10.0\" />
     <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.visualstudio.uwp.pri" target="build\uap10.0\" />

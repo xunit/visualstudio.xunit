@@ -48,7 +48,8 @@
     <Exec Command="&quot;$(NuGetExePath)&quot; install xunit.buildtasks -Source @(PackageSource) -SolutionDir &quot;$(SolutionDir)&quot; -Verbosity quiet -ExcludeVersion" Condition="!Exists('$(SolutionDir)\packages\xunit.buildtasks\')" />
     <Exec Command="&quot;$(NuGetExePath)&quot; install xunit.runner.console -Source @(PackageSource) -SolutionDir &quot;$(SolutionDir)&quot; -Verbosity quiet -ExcludeVersion" Condition="!Exists('$(SolutionDir)\packages\xunit.runner.console\')" />
     <Exec Command="&quot;$(NuGetExePath)&quot; install xunit.runner.reporters -Source @(PackageSource) -SolutionDir &quot;$(SolutionDir)&quot; -Verbosity quiet -ExcludeVersion -Pre" Condition="!Exists('$(SolutionDir)\packages\xunit.runner.reporters\')" />
-    <Exec Command="&quot;$(NuGetExePath)&quot; restore &quot;$(SolutionDir)\visualstudio.xunit.sln&quot; -NonInteractive -Source @(PackageSource) -Verbosity quiet $(NuGetNoCache)" />
+    <!-- IgnoreExitCode is here because NuGet seems broken in VS2015 -->
+    <Exec Command="&quot;$(NuGetExePath)&quot; restore &quot;$(SolutionDir)\visualstudio.xunit.sln&quot; -NonInteractive -Source @(PackageSource) -Verbosity quiet $(NuGetNoCache)" IgnoreExitCode="true" />
   </Target>
 
   <Target Name="Build" DependsOnTargets="PackageRestore;_BuildProject" />
@@ -68,7 +69,7 @@
                   test.xunit.runner.visualstudio.desktop\test.xunit.runner.visualstudio.desktop.csproj"
         Targets="Build"
         Properties="Configuration=$(Configuration);TrackFileAccess=$(TrackFileAccess)"/>
-    <Exec Command="dotnet restore" />
+    <Exec Command="dotnet restore xunit.runner.visualstudio.dotnetcore" />
     <Exec Command="dotnet build --configuration $(Configuration) xunit.runner.visualstudio.dotnetcore"/>
     <Exec Command="dotnet publish --configuration $(Configuration) xunit.runner.visualstudio.dotnetcore"/>
   </Target>
