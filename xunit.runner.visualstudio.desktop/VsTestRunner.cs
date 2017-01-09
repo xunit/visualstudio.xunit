@@ -540,7 +540,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var ctx = deps.Aggregate(DependencyContext.Default, (context, dependencyContext) => context.Merge(dependencyContext));
             dcjr.Dispose();
 
-
             var depsAssms = ctx.GetRuntimeAssemblyNames(RuntimeEnvironment.GetRuntimeIdentifier())
                                .ToList();
 
@@ -552,10 +551,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                         .SelectMany(p => Directory.GetFiles(p, "*.dll").Select(f => Path.Combine(p, f)))
                         .Select(f => new AssemblyName { Name = Path.GetFileNameWithoutExtension(f) })
                         .ToList();
-
-                    
-            
-
 
             foreach (var assemblyName in depsAssms.Concat(dllsInSources))
             {
