@@ -26,9 +26,9 @@
 
   <!-- Build server targets -->
 
-  <Target Name="CI" DependsOnTargets="_NoCache;PackageRestore;Clean;SetVersionNumber;Test;PdbGit;Packages;ZipArtifacts" />
+  <Target Name="CI" DependsOnTargets="_NoCache;Clean;PackageRestore;SetVersionNumber;Test;PdbGit;Packages;ZipArtifacts" />
   <Target Name="TeamCity" DependsOnTargets="CI;PushMyGet" />
-  <Target Name="Release" DependsOnTargets="PackageRestore;Clean;Test;Packages;ZipArtifacts" />
+  <Target Name="Release" DependsOnTargets="Clean;PackageRestore;Test;Packages;ZipArtifacts" />
 
   <!-- Individiual targets -->
 
