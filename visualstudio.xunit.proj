@@ -26,7 +26,7 @@
 
   <!-- Build server targets -->
 
-  <Target Name="CI" DependsOnTargets="_NoCache;PackageRestore;Clean;SetVersionNumber;Test;Packages;ZipArtifacts" />
+  <Target Name="CI" DependsOnTargets="_NoCache;PackageRestore;Clean;SetVersionNumber;Test;PdbGit;Packages;ZipArtifacts" />
   <Target Name="TeamCity" DependsOnTargets="CI;PushMyGet" />
   <Target Name="Release" DependsOnTargets="PackageRestore;Clean;Test;Packages;ZipArtifacts" />
 
@@ -35,16 +35,21 @@
   <Target Name="Clean">
     <ItemGroup>
       <CleanFileList Include="*.html;*.xml;*.nupkg"/>
+      <CleanFolderList
+        Include="**\bin;
+                 **\obj;
+                 packages\PdbGit;
+                 packages\xunit.buildtasks;
+                 packages\xunit.console;
+                 packages\xunit.runner.reporters"/>
     </ItemGroup>
-    <MSBuild
-        Projects="visualstudio.xunit.sln"
-        Targets="Clean"
-        Properties="Configuration=$(Configuration);TrackFileAccess=$(TrackFileAccess)"/>
     <Delete Files="@(CleanFileList)"/>
+    <RemoveDir Directories="@(CleanFolderList)" ContinueOnError="true"/>
   </Target>
 
   <Target Name="PackageRestore" DependsOnTargets="_DownloadNuGet">
     <Message Text="Restoring NuGet packages..." Importance="High" />
+    <Exec Command="&quot;$(NuGetExePath)&quot; install PdbGit -SolutionDir &quot;$(SolutionDir)&quot; -Verbosity quiet -ExcludeVersion" Condition="!Exists('$(SolutionDir)\packages\PdbGit\')" />
     <Exec Command="&quot;$(NuGetExePath)&quot; install xunit.buildtasks -Source @(PackageSource) -SolutionDir &quot;$(SolutionDir)&quot; -Verbosity quiet -ExcludeVersion" Condition="!Exists('$(SolutionDir)\packages\xunit.buildtasks\')" />
     <Exec Command="&quot;$(NuGetExePath)&quot; install xunit.runner.console -Source @(PackageSource) -SolutionDir &quot;$(SolutionDir)&quot; -Verbosity quiet -ExcludeVersion" Condition="!Exists('$(SolutionDir)\packages\xunit.runner.console\')" />
     <Exec Command="&quot;$(NuGetExePath)&quot; install xunit.runner.reporters -Source @(PackageSource) -SolutionDir &quot;$(SolutionDir)&quot; -Verbosity quiet -ExcludeVersion -Pre" Condition="!Exists('$(SolutionDir)\packages\xunit.runner.reporters\')" />
@@ -89,6 +94,15 @@
         Replacement='$(BuildSemanticVersion)'
         Files='@(NuspecFiles)'
         Condition=" '$(BuildSemanticVersion)' != '' "/>
+  </Target>
+
+  <Target Name='PdbGit'>
+    <ItemGroup>
+      <PdbGitFiles Include="xunit.runner.visualstudio.desktop\bin\$(Configuration)\xunit.runner.visualstudio.*.pdb" />
+      <PdbGitFiles Include="xunit.runner.visualstudio.dotnetcore\bin\$(Configuration)\*\xunit.runner.visualstudio.*.pdb" />
+      <PdbGitFiles Include="xunit.runner.visualstudio.uwp\bin\$(Configuration)\xunit.runner.visualstudio.*.pdb" />
+    </ItemGroup>
+    <Exec Command='packages\PdbGit\tools\PdbGit.exe "%(PdbGitFiles.Identity)"' />
   </Target>
 
   <Target Name='Packages' DependsOnTargets="_DownloadNuGet">

@@ -2,7 +2,6 @@
   "dependencies": {
     "Microsoft.NETCore.UniversalWindowsPlatform": "5.0.0",
     "Microsoft.VisualStudio.TestPlatform.ObjectModel": "0.0.6",
-    "PdbGit": "3.0.38",
     "xunit.runner.utility": "2.2.0-beta5-build3474"
   },
   "frameworks": {

@@ -40,7 +40,6 @@
       "type": "platform"
     },
     "System.Threading.ThreadPool": "4.0.10",
-    "PdbGit": "3.0.38",
     "xunit.runner.reporters": "2.2.0-beta5-build3474"
   }
 }
