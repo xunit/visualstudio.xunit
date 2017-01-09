@@ -41,6 +41,7 @@
     },
     "System.Threading.ThreadPool": "4.0.10",
     "xunit.runner.reporters": "2.2.0-beta5-build3469",
-    "xunit.runner.utility": "2.2.0-beta5-build3469"
+    "xunit.runner.utility": "2.2.0-beta5-build3469",
+    "PdbGit": "3.0.38"
   }
 }

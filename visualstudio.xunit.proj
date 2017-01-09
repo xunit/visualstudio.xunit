@@ -26,7 +26,7 @@
 
   <!-- Build server targets -->
 
-  <Target Name="CI" DependsOnTargets="_NoCache;PackageRestore;Clean;SetVersionNumber;Test;GitLink;Packages;ZipArtifacts" />
+  <Target Name="CI" DependsOnTargets="_NoCache;PackageRestore;Clean;SetVersionNumber;Test;Packages;ZipArtifacts" />
   <Target Name="TeamCity" DependsOnTargets="CI;PushMyGet" />
   <Target Name="Release" DependsOnTargets="PackageRestore;Clean;Test;Packages;ZipArtifacts" />
 
@@ -48,7 +48,6 @@
     <Exec Command="&quot;$(NuGetExePath)&quot; install xunit.buildtasks -Source @(PackageSource) -SolutionDir &quot;$(SolutionDir)&quot; -Verbosity quiet -ExcludeVersion" Condition="!Exists('$(SolutionDir)\packages\xunit.buildtasks\')" />
     <Exec Command="&quot;$(NuGetExePath)&quot; install xunit.runner.console -Source @(PackageSource) -SolutionDir &quot;$(SolutionDir)&quot; -Verbosity quiet -ExcludeVersion" Condition="!Exists('$(SolutionDir)\packages\xunit.runner.console\')" />
     <Exec Command="&quot;$(NuGetExePath)&quot; install xunit.runner.reporters -Source @(PackageSource) -SolutionDir &quot;$(SolutionDir)&quot; -Verbosity quiet -ExcludeVersion -Pre" Condition="!Exists('$(SolutionDir)\packages\xunit.runner.reporters\')" />
-    <Exec Command="&quot;$(NuGetExePath)&quot; install gitlink -SolutionDir &quot;$(SolutionDir)&quot; -Verbosity quiet -ExcludeVersion" Condition="!Exists('$(SolutionDir)\packages\gitlink\')" />
     <Exec Command="&quot;$(NuGetExePath)&quot; restore &quot;$(SolutionDir)\visualstudio.xunit.sln&quot; -NonInteractive -Source @(PackageSource) -Verbosity quiet $(NuGetNoCache)" />
   </Target>
 
@@ -89,13 +88,6 @@
         Replacement='$(BuildSemanticVersion)'
         Files='@(NuspecFiles)'
         Condition=" '$(BuildSemanticVersion)' != '' "/>
-  </Target>
-
-  <Target Name='GitLink'>
-    <Warning Condition=" '$(CommitHash)' == '' "
-        Text="Skipping GitLink because CommitHash was not specified." />
-    <Exec Condition=" '$(CommitHash)' != '' "
-        Command='packages\gitlink\lib\net45\GitLink.exe $(MSBuildThisFileDirectory) -f visualstudio.xunit.sln -u https://github.com/xunit/visualstudio.xunit -s $(CommitHash)' IgnoreExitCode='true' />
   </Target>
 
   <Target Name='Packages' DependsOnTargets="_DownloadNuGet">
