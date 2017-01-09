@@ -8,7 +8,7 @@
       <xUnitVsLibs Include="$(MSBuildThisFileDirectory)xunit.runner.visualstudio.uwp.pri">
         <TargetPath>xunit.runner.visualstudio.uwp.pri</TargetPath>
       </xUnitVsLibs>
-      <xUnitVsLibs Include="$(MSBuildThisFileDirectory)..\netcoreapp1.0\xunit.runner.utility.dotnet.dll">
+      <xUnitVsLibs Include="$(MSBuildThisFileDirectory)xunit.runner.utility.dotnet.dll">
         <TargetPath>xunit.runner.utility.dotnet.dll</TargetPath>
       </xUnitVsLibs>
       <xUnitVsLibsToRemove Include="@(AppxPackagePayload)" Condition="'%(TargetPath)' == 'xunit.runner.visualstudio.testadapter.dll'"/>
