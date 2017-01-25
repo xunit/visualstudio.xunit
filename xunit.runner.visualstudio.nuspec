@@ -20,6 +20,7 @@ Supported platforms:
     <dependencies>
       <group targetFramework="netcoreapp1.0">
         <dependency id="Microsoft.Extensions.DependencyModel" version="1.0.0" />
+        <dependency id="Microsoft.DotNet.PlatformAbstractions" version="1.1.0" />
         <dependency id="Microsoft.TestPlatform.ObjectModel" version="11.0.0" />
         <dependency id="NETStandard.Library" version="1.6.0" />
         <dependency id="System.Threading.ThreadPool" version="4.0.10" />
@@ -30,7 +31,7 @@ Supported platforms:
     <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.abstractions.dll"                    target="build\_common\" />
     <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.utility.desktop.dll"          target="build\_common\" />
     <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.utility.desktop.pdb"          target="build\_common\" />
-    <file src="packages\xunit.runner.reporters\lib\net45\xunit.runner.reporters.desktop.dll"            target="build\_common\" />
+    <file src="packages\xunit.runner.reporters\lib\net452\xunit.runner.reporters.desktop.dll"           target="build\_common\" />
     <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.visualstudio.testadapter.dll" target="build\_common\" />
     <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.visualstudio.testadapter.pdb" target="build\_common\" />
 

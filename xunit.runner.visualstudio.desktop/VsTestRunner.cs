@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 using System.Text;
 using System.Reflection;
 using Microsoft.Extensions.DependencyModel;
-using Microsoft.DotNet.InternalAbstractions;
+using Microsoft.DotNet.PlatformAbstractions;
 #endif
 
 #if NET35
