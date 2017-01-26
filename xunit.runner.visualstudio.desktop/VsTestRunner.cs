@@ -111,6 +111,9 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 sources = Directory.GetFiles(sourcePath, "*.dll")
                                    .Where(file => !platformAssemblies.Contains(Path.GetFileName(file)))
                                    .ToList();
+
+                ((List<string>)sources).AddRange(Directory.GetFiles(sourcePath, "*.exe")
+                                   .Where(file => !platformAssemblies.Contains(Path.GetFileName(file))));
             }
 
             RunTests(runContext, frameworkHandle, logger, () => GetTests(sources, logger, runContext));
