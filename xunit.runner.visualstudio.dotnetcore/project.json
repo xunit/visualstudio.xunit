@@ -21,7 +21,8 @@
     ],
     "outputName": "xunit.runner.visualstudio.dotnetcore.testadapter",
     "warningsAsErrors": true,
-    "define": ["REPORTERS"]
+    "define": [ "REPORTERS" ],
+    "keyFile": "../signing.snk"
   },
   "frameworks": {
     "netcoreapp1.0": {
