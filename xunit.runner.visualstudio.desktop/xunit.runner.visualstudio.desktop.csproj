@@ -69,7 +69,7 @@
     </Compile>
     <Compile Include="Utility\RunSettingsHelper.cs" />
     <Compile Include="Utility\VisualStudioRunnerLogger.cs" />
-    <Compile Include="Utility\TestCaseFilterHelper.cs" />
+    <Compile Include="Utility\TestCaseFilter.cs" />
     <Compile Include="Utility\AssemblyExtensions.cs" />
     <Compile Include="Utility\AssemblyRunInfo.cs" />
     <Compile Include="Utility\ExceptionExtensions.cs" />

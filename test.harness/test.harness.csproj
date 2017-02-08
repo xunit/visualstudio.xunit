@@ -69,13 +69,19 @@
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\test.testcasefilter\test.testcasefilter.csproj">
+      <Project>{e31c01f0-1c54-4c26-8c4c-3ee31dfd03ea}</Project>
+      <Name>test.testcasefilter</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <!-- Common debugging support -->
     <StartAction>Program</StartAction>
     <StartProgram>$(DevEnvDir)CommonExtensions\Microsoft\TestWindow\vstest.console.exe</StartProgram>
     <StartWorkingDirectory>$(TargetDir)</StartWorkingDirectory>
-    <StartArguments>test.harness.dll /testadapterpath:$(SolutionDir)xunit.runner.visualstudio.desktop\bin\$(Configuration)</StartArguments>
+    <StartArguments>test.harness.dll test.testcasefilter.dll /TestCaseFilter:"FilterCategory!=Exclude" /testadapterpath:$(SolutionDir)xunit.runner.visualstudio.desktop\bin\$(Configuration)</StartArguments>
     <EnableUnmanagedDebugging>true</EnableUnmanagedDebugging>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

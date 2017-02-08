@@ -9,7 +9,7 @@ using NSubstitute;
 
 namespace Xunit.Runner.VisualStudio.TestAdapter
 {
-    public class TestCaseFilterHelperTests
+    public class TestCaseFilterTests
     {
         readonly HashSet<string> dummyKnownTraits = new HashSet<string>(new string[2] { "Platform", "Product" });
 
@@ -31,7 +31,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         [Fact]
         public void TestCaseFilter_SingleMatch()
         {
-            var filterHelper = new TestCaseFilterHelper(dummyKnownTraits);
             var dummyTestCaseList = GetDummyTestCases();
             var dummyTestCaseDisplayNamefilterString = "Test4";
             var context = Substitute.For<IRunContext>();
@@ -39,8 +38,9 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             // The matching should return a single testcase
             filterExpression.MatchTestCase(null, null).ReturnsForAnyArgs(x => ((TestCase)x[0]).FullyQualifiedName.Equals(dummyTestCaseDisplayNamefilterString));
             context.GetTestCaseFilter(null, null).ReturnsForAnyArgs(filterExpression);
+            var filter = new TestCaseFilter(context, GetLoggerHelper(), "dummyTestAssembly", dummyKnownTraits);
 
-            var results = filterHelper.GetFilteredTestList(dummyTestCaseList, context, GetLoggerHelper(), "dummyTestAssembly");
+            var results = dummyTestCaseList.Where(testCase => filter.MatchTestCase(testCase));
 
             var result = Assert.Single(results);
             Assert.Equal("Test4", result.FullyQualifiedName);
@@ -49,12 +49,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         [Fact]
         public void TestCaseFilter_NoFilterString()
         {
-            var filterHelper = new TestCaseFilterHelper(dummyKnownTraits);
             var dummyTestCaseList = GetDummyTestCases();
             var context = Substitute.For<IRunContext>();
             context.GetTestCaseFilter(null, null).ReturnsForAnyArgs((ITestCaseFilterExpression)null);
+            var filter = new TestCaseFilter(context, GetLoggerHelper(), "dummyTestAssembly", dummyKnownTraits);
 
-            var results = filterHelper.GetFilteredTestList(dummyTestCaseList, context, GetLoggerHelper(), "dummyTestAssembly");
+            var results = dummyTestCaseList.Where(testCase => filter.MatchTestCase(testCase));
 
             // Make sure we run the whole set since there is not filtering string specified
             Assert.Equal(dummyTestCaseList.Count(), results.Count());
@@ -64,12 +64,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         public void TestCaseFilter_ErrorParsingFilterString()
         {
             var messageLogger = Substitute.For<IMessageLogger>();
-            var filterHelper = new TestCaseFilterHelper(dummyKnownTraits);
             var dummyTestCaseList = GetDummyTestCases();
             var context = Substitute.For<IRunContext>();
             context.GetTestCaseFilter(null, null).ReturnsForAnyArgs(x => { throw new TestPlatformFormatException("Hello from the exception"); });
+            var filter = new TestCaseFilter(context, GetLoggerHelper(messageLogger), "dummyTestAssembly", dummyKnownTraits);
 
-            var results = filterHelper.GetFilteredTestList(dummyTestCaseList, context, GetLoggerHelper(messageLogger), "dummyTestAssembly");
+            var results = dummyTestCaseList.Where(testCase => filter.MatchTestCase(testCase));
 
             // Make sure we don't run anything due to the filtering string parse error
             Assert.Empty(results);

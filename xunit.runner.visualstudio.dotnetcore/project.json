@@ -13,7 +13,7 @@
       "../xunit.runner.visualstudio.desktop/Utility/Guard.cs",
       "../xunit.runner.visualstudio.desktop/Utility/LoggerHelper.cs",
       "../xunit.runner.visualstudio.desktop/Utility/RunSettingsHelper.cs",
-      "../xunit.runner.visualstudio.desktop/Utility/TestCaseFilterHelper.cs",
+      "../xunit.runner.visualstudio.desktop/Utility/TestCaseFilter.cs",
       "../xunit.runner.visualstudio.desktop/Utility/VisualStudioRunnerLogger.cs",
       "../xunit.runner.visualstudio.desktop/Constants.cs",
       "../xunit.runner.visualstudio.desktop/VsTestRunner.cs",

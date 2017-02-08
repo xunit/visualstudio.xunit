@@ -7,41 +7,38 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 
 namespace Xunit.Runner.VisualStudio.TestAdapter
 {
-    public class TestCaseFilterHelper
+    public class TestCaseFilter
     {
         const string DisplayNameString = "DisplayName";
         const string FullyQualifiedNameString = "FullyQualifiedName";
 
         readonly HashSet<string> knownTraits;
         List<string> supportedPropertyNames;
+        ITestCaseFilterExpression filterExpression;
+        bool successfullyGotFilter;
 
-        public TestCaseFilterHelper(HashSet<string> knownTraits)
+        public TestCaseFilter(IRunContext runContext, LoggerHelper logger, string assemblyFileName, HashSet<string> knownTraits)
         {
             this.knownTraits = knownTraits;
-
             supportedPropertyNames = GetSupportedPropertyNames();
+
+            successfullyGotFilter = GetTestCaseFilterExpression(runContext, logger, assemblyFileName, out filterExpression);
         }
 
-        public IEnumerable<TestCase> GetFilteredTestList(IEnumerable<TestCase> testCases, IRunContext runContext, LoggerHelper logger, string assemblyFileName)
+        public bool MatchTestCase(TestCase testCase)
         {
-            ITestCaseFilterExpression filter = null;
-
-            if (GetTestCaseFilterExpression(runContext, logger, assemblyFileName, out filter))
+            if (!successfullyGotFilter)
             {
-                if (filter != null)
-                {
-                    var result = testCases.Where(testCase => filter.MatchTestCase(testCase, (p) => PropertyProvider(testCase, p))).ToArray();
-                    return result;
-                }
+                // Had an error while getting filter, match no testcase to ensure discovered test list is empty
+                return false;
             }
-            else
+            else if (filterExpression == null)
             {
-                // Error while filtering, ensure discovered test list is empty
-                return Enumerable.Empty<TestCase>();
+                // No filter specified, keep every testcase
+                return true;
             }
 
-            // No filter is specified return the original list
-            return testCases;
+            return filterExpression.MatchTestCase(testCase, (p) => PropertyProvider(testCase, p));
         }
 
         public object PropertyProvider(TestCase testCase, string name)
