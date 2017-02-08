@@ -68,25 +68,25 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             discoveryEventSink.Dispose();
         }
 
-        public static TestCase CreateVsTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase xunitTestCase, bool forceUniqueNames, LoggerHelper logger, HashSet<string> knownTraitNames = null)
+        public static TestCase CreateVsTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase xunitTestCase, bool forceUniqueName, LoggerHelper logger)
         {
             try
             {
                 var serializedTestCase = discoverer.Serialize(xunitTestCase);
                 var fqTestMethodName = $"{xunitTestCase.TestMethod.TestClass.Class.Name}.{xunitTestCase.TestMethod.Method.Name}";
-                var uniqueName = forceUniqueNames ? $"{fqTestMethodName} ({xunitTestCase.UniqueID})" : fqTestMethodName;
-
-                var result = new TestCase(uniqueName, uri, source) { DisplayName = Escape(xunitTestCase.DisplayName) };
+                var result = new TestCase(fqTestMethodName, uri, source) { DisplayName = Escape(xunitTestCase.DisplayName) };
                 result.SetPropertyValue(VsTestRunner.SerializedTestCaseProperty, serializedTestCase);
                 result.Id = GuidFromString(uri + xunitTestCase.UniqueID);
+
+                if (forceUniqueName)
+                {
+                    ForceUniqueName(result, xunitTestCase.UniqueID);
+                }
 
                 if (addTraitThunk != null)
                 {
                     foreach (var key in xunitTestCase.Traits.Keys)
                     {
-                        if (knownTraitNames != null)
-                            knownTraitNames.Add(key);
-
                         foreach (var value in xunitTestCase.Traits[key])
                             addTraitThunk(result, key, value);
                     }
@@ -102,6 +102,11 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 logger.LogError(xunitTestCase, "Error creating Visual Studio test case for {0}: {1}", xunitTestCase.DisplayName, ex);
                 return null;
             }
+        }
+
+        public static void ForceUniqueName(TestCase testCase, string uniqueID)
+        {
+            testCase.FullyQualifiedName = $"{testCase.FullyQualifiedName} ({uniqueID})";
         }
 
         static string Escape(string value)

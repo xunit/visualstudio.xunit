@@ -87,8 +87,8 @@
     <Compile Include="..\xunit.runner.visualstudio.desktop\Utility\RunSettingsHelper.cs">
       <Link>Utility\RunSettingsHelper.cs</Link>
     </Compile>
-    <Compile Include="..\xunit.runner.visualstudio.desktop\Utility\TestCaseFilterHelper.cs">
-      <Link>Utility\TestCaseFilterHelper.cs</Link>
+    <Compile Include="..\xunit.runner.visualstudio.desktop\Utility\TestCaseFilter.cs">
+      <Link>Utility\TestCaseFilter.cs</Link>
     </Compile>
     <Compile Include="..\xunit.runner.visualstudio.desktop\Utility\VisualStudioRunnerLogger.cs">
       <Link>Utility\VisualStudioRunnerLogger.cs</Link>

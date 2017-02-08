@@ -288,8 +288,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             sources = sources.Select(s => Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, Path.GetFileName(s)));
 #endif
 
-            var result = new List<AssemblyRunInfo>();
-            var knownTraitNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var assemblyDiscoveredInfos = new List<AssemblyDiscoveredInfo>();
 
             DiscoverTests(
                 runContext?.RunSettings,
@@ -298,29 +297,36 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 (source, discoverer, discoveryOptions) => new VsExecutionDiscoverySink(() => cancelled),
                 (source, discoverer, discoveryOptions, visitor) =>
                 {
-                    var vsFilteredTestCases = visitor.TestCases.Select(testCase => VsDiscoverySink.CreateVsTestCase(source, discoverer, testCase, false, logger: logger, knownTraitNames: knownTraitNames)).ToList();
-
-                    // Apply any filtering
-                    var filterHelper = new TestCaseFilterHelper(knownTraitNames);
-                    vsFilteredTestCases = filterHelper.GetFilteredTestList(vsFilteredTestCases, runContext, logger, source).ToList();
-
-                    // Re-create testcases with unique names if there is more than 1
-                    var testCases = visitor.TestCases.Where(tc => vsFilteredTestCases.Any(vsTc => vsTc.DisplayName == tc.DisplayName))
-                                                     .GroupBy(tc => $"{tc.TestMethod.TestClass.Class.Name}.{tc.TestMethod.Method.Name}")
-                                                     .SelectMany(group => group.Select(testCase => VsDiscoverySink.CreateVsTestCase(source, discoverer, testCase, forceUniqueNames: group.Count() > 1, logger: logger, knownTraitNames: knownTraitNames))
-                                                     .Where(vsTestCase => vsTestCase != null)).ToList(); // pre-enumerate these as it populates the known trait names collection
-
-                    var runInfo = new AssemblyRunInfo
+                    assemblyDiscoveredInfos.Add(new AssemblyDiscoveredInfo
                     {
                         AssemblyFileName = source,
-                        Configuration = LoadConfiguration(source),
-                        TestCases = testCases
-                    };
-                    result.Add(runInfo);
+                        DiscoveredTestCases = visitor.TestCases.Select(testCase => new DiscoveredTestCase(source, discoverer, testCase, logger)).ToList()
+                    });
                 }
             );
 
-            return result;
+            var traitNames = new HashSet<string>(assemblyDiscoveredInfos.SelectMany(assemblyInfo => assemblyInfo.DiscoveredTestCases.SelectMany(testCase => testCase.TraitNames)));
+
+            return assemblyDiscoveredInfos.Select(assemblyInfo =>
+            {
+                // Apply any filtering
+                var filter = new TestCaseFilter(runContext, logger, assemblyInfo.AssemblyFileName, traitNames);
+                var filteredTestCases = assemblyInfo.DiscoveredTestCases.Where(dtc => filter.MatchTestCase(dtc.VSTestCase)).ToList();
+                
+                // Force unique names if there is more than 1 testcase with the same name
+                foreach (var groupWithDuplicateNames in filteredTestCases.GroupBy(dtc => dtc.Name).Where(group => group.Count() > 1))
+                {
+                    foreach (var discoveredTestCaseWithDuplicateName in groupWithDuplicateNames)
+                        discoveredTestCaseWithDuplicateName.ForceUniqueName();
+                }
+
+                return new AssemblyRunInfo
+                {
+                    AssemblyFileName = assemblyInfo.AssemblyFileName,
+                    Configuration = LoadConfiguration(assemblyInfo.AssemblyFileName),
+                    TestCases = filteredTestCases.Select(dtc => dtc.VSTestCase).ToList(),
+                };
+            }).ToList();
         }
 
         static bool IsXunitTestAssembly(string assemblyFileName)
@@ -640,5 +646,35 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             return new DefaultRunnerReporterWithTypes();
         }
 #endif
+
+        class AssemblyDiscoveredInfo
+        {
+            public string AssemblyFileName;
+            public IList<DiscoveredTestCase> DiscoveredTestCases;
+        }
+
+        class DiscoveredTestCase
+        {
+            public string Name { get; }
+
+            public IEnumerable<string> TraitNames { get; }
+
+            public TestCase VSTestCase { get; }
+
+            string uniqueID;
+
+            public DiscoveredTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase testCase, LoggerHelper logger)
+            {
+                Name = $"{testCase.TestMethod.TestClass.Class.Name}.{testCase.TestMethod.Method.Name}";
+                TraitNames = testCase.Traits.Keys;
+                VSTestCase = VsDiscoverySink.CreateVsTestCase(source, discoverer, testCase, forceUniqueName: false, logger: logger);
+                uniqueID = testCase.UniqueID;
+            }
+
+            public void ForceUniqueName()
+            {
+                VsDiscoverySink.ForceUniqueName(VSTestCase, uniqueID);
+            }
+        }
     }
 }
