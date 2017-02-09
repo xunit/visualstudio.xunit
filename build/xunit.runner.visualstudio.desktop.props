@@ -6,15 +6,14 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>False</Visible>
     </Content>
-    <Content Include="$(MSBuildThisFileDirectory)..\_common\xunit.runner.utility.desktop.dll">
-      <Link>xunit.runner.utility.desktop.dll</Link>
+    <Content Include="$(MSBuildThisFileDirectory)..\_common\xunit.runner.utility.net35.dll">
+      <Link>xunit.runner.utility.net35.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>False</Visible>
     </Content>
-    <Content Include="$(MSBuildThisFileDirectory)..\_common\xunit.runner.reporters.desktop.dll"
-             Condition=" '$(TargetFrameworkVersion)' != 'v2.0' and '$(TargetFrameworkVersion)' != 'v3.0' and '$(TargetFrameworkVersion)' != 'v3.5' " 
-             >
-      <Link>xunit.runner.reporters.desktop.dll</Link>
+    <Content Include="$(MSBuildThisFileDirectory)..\_common\xunit.runner.reporters.net452.dll"
+             Condition=" '$(TargetFrameworkVersion)' != 'v2.0' and '$(TargetFrameworkVersion)' != 'v3.0' and '$(TargetFrameworkVersion)' != 'v3.5' ">
+      <Link>xunit.runner.reporters.net452.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>False</Visible>
     </Content>

@@ -6,13 +6,13 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>False</Visible>
     </Content>
-    <Content Include="$(MSBuildThisFileDirectory)xunit.runner.utility.dotnet.dll">
-      <Link>xunit.runner.utility.dotnet.dll</Link>
+    <Content Include="$(MSBuildThisFileDirectory)xunit.runner.utility.netstandard15.dll">
+      <Link>xunit.runner.utility.netstandard15.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>False</Visible>
     </Content>
-    <Content Include="$(MSBuildThisFileDirectory)xunit.runner.reporters.dotnet.dll">
-      <Link>xunit.runner.reporters.dotnet.dll</Link>
+    <Content Include="$(MSBuildThisFileDirectory)xunit.runner.reporters.netstandard11.dll">
+      <Link>xunit.runner.reporters.netstandard11.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>False</Visible>
     </Content>

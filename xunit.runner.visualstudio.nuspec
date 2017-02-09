@@ -29,26 +29,24 @@ Supported platforms:
   </metadata>
   <files>
     <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.abstractions.dll"                    target="build\_common\" />
-    <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.utility.desktop.dll"          target="build\_common\" />
-    <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.utility.desktop.pdb"          target="build\_common\" />
-    <file src="packages\xunit.runner.reporters\lib\net452\xunit.runner.reporters.desktop.dll"           target="build\_common\" />
+    <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.utility.net35.dll"            target="build\_common\" />
+    <file src="packages\xunit.runner.reporters\lib\net452\xunit.runner.reporters.net452.dll"            target="build\_common\" />
     <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.visualstudio.testadapter.dll" target="build\_common\" />
     <file src="xunit.runner.visualstudio.desktop\bin\Release\xunit.runner.visualstudio.testadapter.pdb" target="build\_common\" />
 
     <file src="build\xunit.runner.visualstudio.desktop.props" target="build\net20\xunit.runner.visualstudio.props" />
 
-    <file src="build\xunit.runner.visualstudio.uwp.props"                                   target="build\uap10.0\xunit.runner.visualstudio.props" />
-    <file src="build\xunit.runner.visualstudio.uwp.targets"                                 target="build\uap10.0\xunit.runner.visualstudio.targets" />
-    <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.utility.dotnet.dll"   target="build\uap10.0\" />
-    <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.utility.dotnet.pdb"   target="build\uap10.0\" />
-    <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.visualstudio.uwp.dll" target="build\uap10.0\" />
-    <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.visualstudio.uwp.pdb" target="build\uap10.0\" />
-    <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.visualstudio.uwp.pri" target="build\uap10.0\" />
+    <file src="build\xunit.runner.visualstudio.uwp.props"                                        target="build\uap10.0\xunit.runner.visualstudio.props" />
+    <file src="build\xunit.runner.visualstudio.uwp.targets"                                      target="build\uap10.0\xunit.runner.visualstudio.targets" />
+    <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.utility.netstandard11.dll" target="build\uap10.0\" />
+    <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.visualstudio.uwp.dll"      target="build\uap10.0\" />
+    <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.visualstudio.uwp.pdb"      target="build\uap10.0\" />
+    <file src="xunit.runner.visualstudio.uwp\bin\Release\xunit.runner.visualstudio.uwp.pri"      target="build\uap10.0\" />
 
     <file src="build\xunit.runner.visualstudio.dotnetcore.props"                                                                            target="build\netcoreapp1.0\xunit.runner.visualstudio.props" />
     <file src="xunit.runner.visualstudio.dotnetcore\bin\Release\netcoreapp1.0\publish\xunit.runner.visualstudio.dotnetcore.testadapter.dll" target="build\netcoreapp1.0\" />
     <file src="xunit.runner.visualstudio.dotnetcore\bin\Release\netcoreapp1.0\publish\xunit.runner.visualstudio.dotnetcore.testadapter.pdb" target="build\netcoreapp1.0\" />
-    <file src="xunit.runner.visualstudio.dotnetcore\bin\Release\netcoreapp1.0\publish\xunit.runner.utility.dotnet.dll"                      target="build\netcoreapp1.0\" />
-    <file src="xunit.runner.visualstudio.dotnetcore\bin\Release\netcoreapp1.0\publish\xunit.runner.reporters.dotnet.dll"                    target="build\netcoreapp1.0\" />
+    <file src="xunit.runner.visualstudio.dotnetcore\bin\Release\netcoreapp1.0\publish\xunit.runner.utility.netstandard15.dll"               target="build\netcoreapp1.0\" />
+    <file src="xunit.runner.visualstudio.dotnetcore\bin\Release\netcoreapp1.0\publish\xunit.runner.reporters.netstandard11.dll"             target="build\netcoreapp1.0\" />
   </files>
 </package>

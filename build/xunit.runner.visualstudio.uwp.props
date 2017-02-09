@@ -6,8 +6,8 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>False</Visible>
     </Content>
-    <Content Include="$(MSBuildThisFileDirectory)..\_common\xunit.runner.utility.desktop.dll">
-      <Link>xunit.runner.utility.desktop.dll</Link>
+    <Content Include="$(MSBuildThisFileDirectory)..\_common\xunit.runner.utility.net35.dll">
+      <Link>xunit.runner.utility.net35.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>False</Visible>
     </Content>
