@@ -42,6 +42,6 @@
       "type": "platform"
     },
     "System.Threading.ThreadPool": "4.0.10",
-    "xunit.runner.reporters": "2.2.0-beta5-build3474"
+    "xunit.runner.reporters": "2.2.0-beta6-build3490"
   }
 }
