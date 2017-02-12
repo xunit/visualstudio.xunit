@@ -34,8 +34,7 @@
     }
   },
   "dependencies": {
-    "Microsoft.Extensions.DependencyModel": "1.0.0",
-    "Microsoft.DotNet.PlatformAbstractions": "1.1.0",
+    "Microsoft.Extensions.DependencyModel": "1.1.0",
     "Microsoft.TestPlatform.ObjectModel": "11.0.0",
     "Microsoft.NETCore.App": {
       "version": "1.0.0",
