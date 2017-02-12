@@ -120,7 +120,7 @@
       <NupkgSymbolFiles Include="*.symbols.nupkg" />
     </ItemGroup>
     <Exec Command=".nuget\NuGet.exe push %(NupkgFiles.Identity) -NonInteractive -Source https://www.myget.org/F/xunit/api/v2/package" />
-    <Exec Command=".nuget\NuGet.exe push %(NupkgSymbolsFiles.Identity) -NonInteractive -Source https://www.myget.org/F/xunit/symbols/api/v2/package" />
+    <Exec Command=".nuget\NuGet.exe push %(NupkgSymbolFiles.Identity) -NonInteractive -Source https://www.myget.org/F/xunit/symbols/api/v2/package" />
   </Target>
 
   <Target Name="PushNuGet">
