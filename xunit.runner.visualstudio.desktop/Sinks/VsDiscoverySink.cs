@@ -177,7 +177,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         void HandleTestCaseDiscoveryMessage(MessageHandlerArgs<ITestCaseDiscoveryMessage> args)
         {
             var testCase = args.Message.TestCase;
-            var testClass = $"{testCase.TestMethod.TestClass.Class.Name}.{testCase.TestMethod.Method.Name}";
+            var testClass = testCase.TestMethod.TestClass.Class.Name;
             if (lastTestClass != testClass)
                 SendExistingTestCases();
 
