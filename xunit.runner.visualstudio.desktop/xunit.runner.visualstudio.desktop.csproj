@@ -56,8 +56,8 @@
       <HintPath>..\packages\xunit.abstractions.2.0.1\lib\net35\xunit.abstractions.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="xunit.runner.utility.net35, Version=2.2.0.3507, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <HintPath>..\packages\xunit.runner.utility.2.2.0-rc1-build3507\lib\net35\xunit.runner.utility.net35.dll</HintPath>
+    <Reference Include="xunit.runner.utility.net35, Version=2.2.0.3523, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <HintPath>..\packages\xunit.runner.utility.2.2.0-rc2-build3523\lib\net35\xunit.runner.utility.net35.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
