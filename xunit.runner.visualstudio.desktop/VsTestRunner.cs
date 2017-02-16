@@ -519,21 +519,18 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         static IRunnerReporter GetRunnerReporter(IEnumerable<string> assemblyFileNames)
         {
-            var reporters = GetAvailableRunnerReporters(assemblyFileNames);
-            /*
-                        if (!string.IsNullOrEmpty(RunSettingsHelper.ReporterSwitch))
-                        {
-                            var reporter = reporters.FirstOrDefault(r => string.Equals(r.RunnerSwitch, RunSettingsHelper.ReporterSwitch, StringComparison.OrdinalIgnoreCase));
-                            if (reporter != null)
-                                return reporter;
-                        }
-            */
-            //            if (!RunSettingsHelper.NoAutoReporters)
-            //           {
-            var reporter = reporters.FirstOrDefault(r => r.IsEnvironmentallyEnabled);
-            if (reporter != null)
-                return reporter;
-            //            }
+            try
+            {
+                var reporters = GetAvailableRunnerReporters(assemblyFileNames);
+
+                var reporter = reporters.FirstOrDefault(r => r.IsEnvironmentallyEnabled);
+                if (reporter != null)
+                    return reporter;
+            }
+            catch
+            {
+              // eat this and return the default    
+            }
 
             return new DefaultRunnerReporterWithTypes();
         }
@@ -546,7 +543,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var dcjr = new DependencyContextJsonReader();
             var deps = sources
                         .Select(Path.GetFullPath)
-                        .Where(IsXunitTestAssembly)
                         .Select(s => s.Replace(".dll", ".deps.json"))
                         .Where(File.Exists)
                         .Select(f => new MemoryStream(Encoding.UTF8.GetBytes(File.ReadAllText(f))))
@@ -560,7 +556,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             // Make sure to also check assemblies within the directory of the sources
             var dllsInSources = sources
                         .Select(Path.GetFullPath)
-                        .Where(IsXunitTestAssembly)
                         .Select(Path.GetDirectoryName)
                         .Distinct(StringComparer.OrdinalIgnoreCase)
                         .SelectMany(p => Directory.GetFiles(p, "*.dll").Select(f => Path.Combine(p, f)))
