@@ -299,7 +299,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 {
                     if (discoveryOptions.GetDiagnosticMessagesOrDefault())
                         foreach (var testCase in visitor.TestCases)
-                            logger.Log(testCase, $"Discovered [execution] test case '{testCase.DisplayName}' (ID = '{testCase.UniqueID}')");
+                            logger.Log(testCase, "Discovered [execution] test case '{0}' (ID = '{1}')", testCase.DisplayName, testCase.UniqueID);
 
                     assemblyDiscoveredInfos.Add(new AssemblyDiscoveredInfo
                     {
