@@ -37,6 +37,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         readonly List<ITestCase> lastTestClassTestCases = new List<ITestCase>();
         readonly LoggerHelper logger;
         readonly string source;
+        readonly bool designMode;
 
         string lastTestClass;
 
@@ -45,6 +46,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                LoggerHelper logger,
                                ITestCaseDiscoverySink discoverySink,
                                ITestFrameworkDiscoveryOptions discoveryOptions,
+                               bool designMode,
                                Func<bool> cancelThunk)
         {
             this.source = source;
@@ -52,6 +54,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             this.logger = logger;
             this.discoverySink = discoverySink;
             this.discoveryOptions = discoveryOptions;
+            this.designMode = designMode;
             this.cancelThunk = cancelThunk;
 
             discoveryEventSink.TestCaseDiscoveryMessageEvent += HandleTestCaseDiscoveryMessage;
@@ -68,7 +71,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             discoveryEventSink.Dispose();
         }
 
-        public static TestCase CreateVsTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase xunitTestCase, bool forceUniqueName, LoggerHelper logger)
+        public static TestCase CreateVsTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase xunitTestCase, bool forceUniqueName, LoggerHelper logger, bool designMode)
         {
             try
             {
@@ -92,8 +95,13 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                     }
                 }
 
-                result.CodeFilePath = xunitTestCase.SourceInformation.FileName;
-                result.LineNumber = xunitTestCase.SourceInformation.LineNumber.GetValueOrDefault();
+                if (designMode)
+                {
+                    // Source information is not required for non-design mode i.e. command line test runs.
+                    // See RunSettingsHelper.DesignMode for more details.
+                    result.CodeFilePath = xunitTestCase.SourceInformation.FileName;
+                    result.LineNumber = xunitTestCase.SourceInformation.LineNumber.GetValueOrDefault();
+                }
 
                 return result;
             }
@@ -206,7 +214,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             foreach (var testCase in lastTestClassTestCases)
             {
-                var vsTestCase = CreateVsTestCase(source, discoverer, testCase, forceUniqueNames, logger);
+                var vsTestCase = CreateVsTestCase(source, discoverer, testCase, forceUniqueNames, logger, designMode);
                 if (vsTestCase != null)
                 {
                     if (discoveryOptions.GetDiagnosticMessagesOrDefault())

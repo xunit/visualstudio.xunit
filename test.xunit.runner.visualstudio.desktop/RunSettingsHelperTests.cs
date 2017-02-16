@@ -26,6 +26,7 @@ public class RunSettingsHelperTests
                     <RunConfiguration>
                         <DisableAppDomain>1234</DisableAppDomain>
                         <DisableParallelization>smfhekhgekr</DisableParallelization>
+                        <DesignMode>3245sax</DesignMode>
                     </RunConfiguration>
                 </RunSettings>";
 
@@ -55,8 +56,9 @@ public class RunSettingsHelperTests
 
         // Attribute must be ignored
         Assert.True(RunSettingsHelper.DisableAppDomain);
-        // Default value must be used for disableparallelization
+        // Default value must be used for disableparallelization, designmode
         Assert.False(RunSettingsHelper.DisableParallelization);
+        Assert.True(RunSettingsHelper.DesignMode);
     }
 
     [Fact]
@@ -73,8 +75,9 @@ public class RunSettingsHelperTests
 
         RunSettingsHelper.ReadRunSettings(settingsXml);
 
-        // Default value must be used for DisableAppDomain
+        // Default value must be used for DisableAppDomain, DesignMode
         Assert.False(RunSettingsHelper.DisableAppDomain);
+        Assert.True(RunSettingsHelper.DesignMode);
         // DisableParallelization can be set
         Assert.True(RunSettingsHelper.DisableParallelization);
     }
@@ -97,9 +100,33 @@ public class RunSettingsHelperTests
 
         RunSettingsHelper.ReadRunSettings(settingsXml);
 
-        // Correct values must be sets
+        // Correct values must be set
         Assert.Equal(disableAppDomain, RunSettingsHelper.DisableAppDomain);
         Assert.Equal(disableParallelization, RunSettingsHelper.DisableParallelization);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void RunSettingsHelperShouldReadDesignModeSettingCorrectly(bool designMode)
+    {
+        string settingsXml =
+            $@"<?xml version=""1.0"" encoding=""utf-8""?>
+                <RunSettings>
+                    <RunConfiguration>
+                        <DisableAppDomain>true</DisableAppDomain>
+                        <DisableParallelization>invalid</DisableParallelization>
+                        <DesignMode>{designMode.ToString().ToLowerInvariant()}</DesignMode>
+                    </RunConfiguration>
+                </RunSettings>";
+
+        RunSettingsHelper.ReadRunSettings(settingsXml);
+
+        // Correct values must be set
+        Assert.Equal(designMode, RunSettingsHelper.DesignMode);
+        Assert.True(RunSettingsHelper.DisableAppDomain);
+        // Default value should be set for DisableParallelization
+        Assert.False(RunSettingsHelper.DisableParallelization);
     }
 
     [Fact]
