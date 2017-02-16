@@ -297,6 +297,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 (source, discoverer, discoveryOptions) => new VsExecutionDiscoverySink(() => cancelled),
                 (source, discoverer, discoveryOptions, visitor) =>
                 {
+                    if (discoveryOptions.GetDiagnosticMessagesOrDefault())
+                        foreach (var testCase in visitor.TestCases)
+                            logger.Log(testCase, $"Discovered [execution] test case '{testCase.DisplayName}' (ID = '{testCase.UniqueID}')");
+
                     assemblyDiscoveredInfos.Add(new AssemblyDiscoveredInfo
                     {
                         AssemblyFileName = source,
