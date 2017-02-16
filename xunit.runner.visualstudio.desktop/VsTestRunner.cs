@@ -546,6 +546,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var dcjr = new DependencyContextJsonReader();
             var deps = sources
                         .Select(Path.GetFullPath)
+                        .Where(IsXunitTestAssembly)
                         .Select(s => s.Replace(".dll", ".deps.json"))
                         .Where(File.Exists)
                         .Select(f => new MemoryStream(Encoding.UTF8.GetBytes(File.ReadAllText(f))))
@@ -559,6 +560,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             // Make sure to also check assemblies within the directory of the sources
             var dllsInSources = sources
                         .Select(Path.GetFullPath)
+                        .Where(IsXunitTestAssembly)
                         .Select(Path.GetDirectoryName)
                         .Distinct(StringComparer.OrdinalIgnoreCase)
                         .SelectMany(p => Directory.GetFiles(p, "*.dll").Select(f => Path.Combine(p, f)))
