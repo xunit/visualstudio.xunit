@@ -316,7 +316,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 // Apply any filtering
                 var filter = new TestCaseFilter(runContext, logger, assemblyInfo.AssemblyFileName, traitNames);
                 var filteredTestCases = assemblyInfo.DiscoveredTestCases.Where(dtc => filter.MatchTestCase(dtc.VSTestCase)).ToList();
-                
+
                 // Force unique names if there is more than 1 testcase with the same name
                 foreach (var groupWithDuplicateNames in filteredTestCases.GroupBy(dtc => dtc.Name).Where(group => group.Count() > 1))
                 {
@@ -516,7 +516,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         }
 
 #if REPORTERS
-
         static IRunnerReporter GetRunnerReporter(IEnumerable<string> assemblyFileNames)
         {
             try
@@ -529,7 +528,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             }
             catch
             {
-              // eat this and return the default    
+                // eat this and return the default
             }
 
             return new DefaultRunnerReporterWithTypes();
@@ -595,7 +594,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             return result;
         }
 #elif NET35
-
         static List<IRunnerReporter> GetAvailableRunnerReporters(IEnumerable<string> sources)
         {
             var result = new List<IRunnerReporter>();
