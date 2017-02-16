@@ -9,6 +9,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         public static bool DisableAppDomain { get; private set; }
 
         public static bool DisableParallelization { get; private set; }
+
+        /// <summary>
+        /// Design mode indicates the context of a test run. True indicates the test run is invoked from an editor
+        /// or IDE.
+        /// </summary>
+        public static bool DesignMode { get; private set; }
 /*
         public static bool NoAutoReporters { get; private set; }
         public static string ReporterSwitch { get; private set; }
@@ -22,6 +28,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             // reset first, do not want to propagate earlier settings in cases where execution host is kept alive
             DisableAppDomain = false;
             DisableParallelization = false;
+
+            // We're keeping the default value as true since the adapter (prior to VS 2017) shouldn't
+            // differentiate between VS or vstest.console.
+            DesignMode = true;
             //NoAutoReporters = false;
 
 
@@ -42,6 +52,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                         bool disableParallelization;
                         if (bool.TryParse(disableParallelizationString, out disableParallelization))
                             DisableParallelization = disableParallelization;
+
+                        // It is set to True if test is running from an Editor/IDE context.
+                        var designModeString = element.Element("DesignMode")?.Value;
+                        bool designMode;
+                        if (bool.TryParse(designModeString, out designMode))
+                            DesignMode = designMode;
 /*
                         var noAutoReportersString = element.Element("NoAutoReporters")?.Value;
                         bool noAutoReporters;

@@ -83,11 +83,15 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var stopwatch = Stopwatch.StartNew();
             var loggerHelper = new LoggerHelper(logger, stopwatch);
 
-            DiscoverTests(
-                discoveryContext?.RunSettings,
-                sources,
+#if NET35 || NETCOREAPP1_0
+            // Reads settings like disabling appdomains, parallel etc.
+            // Do this first before invoking any thing else to ensure correct settings for the run
+            RunSettingsHelper.ReadRunSettings(discoveryContext?.RunSettings?.SettingsXml);
+#endif
+
+            DiscoverTests(sources,
                 loggerHelper,
-                (source, discoverer, discoveryOptions) => new VsDiscoverySink(source, discoverer, loggerHelper, discoverySink, discoveryOptions, () => cancelled)
+                (source, discoverer, discoveryOptions) => new VsDiscoverySink(source, discoverer, loggerHelper, discoverySink, discoveryOptions, RunSettingsHelper.DesignMode, () => cancelled)
             );
         }
 
@@ -97,6 +101,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             var stopwatch = Stopwatch.StartNew();
             var logger = new LoggerHelper(frameworkHandle, stopwatch);
+
+#if NET35 || NETCOREAPP1_0
+            // Reads settings like disabling appdomains, parallel etc.
+            // Do this first before invoking any thing else to ensure correct settings for the run
+            RunSettingsHelper.ReadRunSettings(runContext?.RunSettings?.SettingsXml);
+#endif
 
             // In this case, we need to go thru the files manually
             if (ContainsAppX(sources))
@@ -116,7 +126,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                    .Where(file => !platformAssemblies.Contains(Path.GetFileName(file))));
             }
 
-            RunTests(runContext, frameworkHandle, logger, () => GetTests(sources, logger, runContext));
+            RunTests(runContext, frameworkHandle, logger, () => GetTests(sources, logger, runContext, RunSettingsHelper.DesignMode));
         }
 
         void ITestExecutor.RunTests(IEnumerable<TestCase> tests, IRunContext runContext, IFrameworkHandle frameworkHandle)
@@ -126,6 +136,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             var stopwatch = Stopwatch.StartNew();
             var logger = new LoggerHelper(frameworkHandle, stopwatch);
+
+#if NET35 || NETCOREAPP1_0
+            // Reads settings like disabling appdomains, parallel etc.
+            // Do this first before invoking any thing else to ensure correct settings for the run
+            RunSettingsHelper.ReadRunSettings(runContext?.RunSettings?.SettingsXml);
+#endif
 
             RunTests(
                 runContext, frameworkHandle, logger,
@@ -153,10 +169,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             }
         }
 
-        void DiscoverTests<TVisitor>(IRunSettings runSettings,
-                                     IEnumerable<string> sources,
+        void DiscoverTests<TVisitor>(IEnumerable<string> sources,
                                      LoggerHelper logger,
-                                     Func<string, ITestFrameworkDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor> visitorFactory,
+                                     Func<string, ITestFrameworkDiscoverer,
+                                     ITestFrameworkDiscoveryOptions, TVisitor> visitorFactory,
                                      Action<string, ITestFrameworkDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor> visitComplete = null)
             where TVisitor : IVsDiscoverySink, IDisposable
         {
@@ -166,13 +182,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                 using (AssemblyHelper.SubscribeResolve())
                 {
-
-#if NET35 || NETCOREAPP1_0
-                    // Reads settings like disabling appdomains, parallel etc.
-                    // Do this first before invoking any thing else to ensure correct settings for the run
-                    RunSettingsHelper.ReadRunSettings(runSettings?.SettingsXml);
-#endif
-
                     var reporterMessageHandler = GetRunnerReporter(sources).CreateMessageHandler(new VisualStudioRunnerLogger(logger));
 
                     foreach (var assemblyFileNameCanBeWithoutAbsolutePath in sources)
@@ -218,7 +227,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                         {
                                             reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryStarting(assembly, framework.CanUseAppDomains && AppDomainDefaultBehavior != AppDomainSupport.Denied, shadowCopy, discoveryOptions));
 
-                                            framework.Find(includeSourceInformation: true, discoveryMessageSink: visitor, discoveryOptions: discoveryOptions);
+                                            framework.Find(includeSourceInformation: RunSettingsHelper.DesignMode, discoveryMessageSink: visitor, discoveryOptions: discoveryOptions);
                                             var totalTests = visitor.Finish();
 
                                             visitComplete?.Invoke(assemblyFileName, framework, discoveryOptions, visitor);
@@ -281,7 +290,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         static TestProperty GetTestProperty()
             => TestProperty.Register("XunitTestCase", "xUnit.net Test Case", typeof(string), typeof(VsTestRunner));
 
-        List<AssemblyRunInfo> GetTests(IEnumerable<string> sources, LoggerHelper logger, IRunContext runContext)
+        List<AssemblyRunInfo> GetTests(IEnumerable<string> sources, LoggerHelper logger, IRunContext runContext, bool designMode)
         {
             // For store apps, the files are copied to the AppX dir, we need to load it from there
 #if PLATFORM_DOTNET
@@ -290,9 +299,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             var assemblyDiscoveredInfos = new List<AssemblyDiscoveredInfo>();
 
-            DiscoverTests(
-                runContext?.RunSettings,
-                sources,
+            DiscoverTests(sources,
                 logger,
                 (source, discoverer, discoveryOptions) => new VsExecutionDiscoverySink(() => cancelled),
                 (source, discoverer, discoveryOptions, visitor) =>
@@ -304,7 +311,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                     assemblyDiscoveredInfos.Add(new AssemblyDiscoveredInfo
                     {
                         AssemblyFileName = source,
-                        DiscoveredTestCases = visitor.TestCases.Select(testCase => new DiscoveredTestCase(source, discoverer, testCase, logger)).ToList()
+                        DiscoveredTestCases = visitor.TestCases.Select(testCase => new DiscoveredTestCase(source, discoverer, testCase, logger, designMode)).ToList()
                     });
                 }
             );
@@ -390,12 +397,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             {
                 RemotingUtility.CleanUpRegisteredChannels();
 
-#if NET35 || NETCOREAPP1_0
-                // Reads settings like disabling appdomains, parallel etc.
-                // Do this first before invoking any thing else to ensure correct settings for the run
-                RunSettingsHelper.ReadRunSettings(runContext?.RunSettings?.SettingsXml);
-#endif
-
                 cancelled = false;
 
                 var assemblies = testCaseAccessor();
@@ -465,11 +466,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                     reporterMessageHandler.OnMessage(new TestAssemblyExecutionStarting(assembly, executionOptions));
 
-
-
                     using (var vsExecutionSink = new VsExecutionSink(reporterMessageHandler, frameworkHandle, logger, xunitTestCases, executionOptions, () => cancelled))
                     {
-
                         IExecutionSink resultsSink = vsExecutionSink;
                         if (longRunningSeconds > 0)
                             resultsSink = new DelegatingLongRunningTestDetectionSink(resultsSink, TimeSpan.FromSeconds(longRunningSeconds), diagnosticSink);
@@ -667,11 +665,11 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             string uniqueID;
 
-            public DiscoveredTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase testCase, LoggerHelper logger)
+            public DiscoveredTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase testCase, LoggerHelper logger, bool designMode)
             {
                 Name = $"{testCase.TestMethod.TestClass.Class.Name}.{testCase.TestMethod.Method.Name}";
                 TraitNames = testCase.Traits.Keys;
-                VSTestCase = VsDiscoverySink.CreateVsTestCase(source, discoverer, testCase, forceUniqueName: false, logger: logger);
+                VSTestCase = VsDiscoverySink.CreateVsTestCase(source, discoverer, testCase, forceUniqueName: false, logger: logger, designMode: designMode);
                 uniqueID = testCase.UniqueID;
             }
 

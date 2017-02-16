@@ -305,7 +305,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         {
             var result = innerSink.OnMessageWithTypes(message, messageTypes);
             return base.OnMessageWithTypes(message, messageTypes) && result;
-
         }
     }
 }
