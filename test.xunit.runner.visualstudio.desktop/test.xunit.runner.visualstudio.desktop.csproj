@@ -64,6 +64,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="RunnerReporterTests.cs" />
     <Compile Include="RunSettingsHelperTests.cs" />
     <Compile Include="TestCaseFilterTests.cs" />
   </ItemGroup>

@@ -507,7 +507,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             return @event;
         }
 
-        static IRunnerReporter GetRunnerReporter(IEnumerable<string> assemblyFileNames)
+        public static IRunnerReporter GetRunnerReporter(IEnumerable<string> assemblyFileNames)
         {
             var reporter = default(IRunnerReporter);
             try
@@ -581,7 +581,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 #elif NET35
             var result = new List<IRunnerReporter>();
             var runnerPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetLocalCodeBase());
-            var runnerReporterInterfaceAssemblyName = typeof(IRunnerReporter).Assembly.GetName();
+            var runnerReporterInterfaceAssemblyFullName = typeof(IRunnerReporter).Assembly.GetName().FullName;
 
             foreach (var dllFile in Directory.GetFiles(runnerPath, "*.dll").Select(f => Path.Combine(runnerPath, f)))
             {
@@ -594,7 +594,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                     // Calling Assembly.GetTypes can be very expensive, while Assembly.GetReferencedAssemblies
                     // is relatively cheap.  We can avoid loading types for assemblies that couldn't possibly
                     // reference IRunnerReporter.
-                    if (!assembly.GetReferencedAssemblies().Where(name => name == runnerReporterInterfaceAssemblyName).Any())
+                    if (!assembly.GetReferencedAssemblies().Where(name => name.FullName == runnerReporterInterfaceAssemblyFullName).Any())
                         continue;
 
                     types = assembly.GetTypes();
