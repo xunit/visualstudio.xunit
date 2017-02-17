@@ -10,18 +10,14 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using Xunit.Abstractions;
 
 #if NETCOREAPP1_0
-using System.Text;
 using System.Reflection;
-using Microsoft.Extensions.DependencyModel;
+using System.Text;
 using Microsoft.DotNet.PlatformAbstractions;
+using Microsoft.Extensions.DependencyModel;
 #endif
 
 #if NET35
 using System.Reflection;
-#endif
-
-#if !PLATFORM_DOTNET
-using System.Xml;
 #endif
 
 namespace Xunit.Runner.VisualStudio.TestAdapter
@@ -35,7 +31,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
     {
         public static TestProperty SerializedTestCaseProperty = GetTestProperty();
 
-#if PLATFORM_DOTNET || NETCOREAPP1_0
+#if WINDOWS_UAP || NETCOREAPP1_0
         static readonly AppDomainSupport AppDomainDefaultBehavior = AppDomainSupport.Denied;
 #else
         static readonly AppDomainSupport AppDomainDefaultBehavior = AppDomainSupport.Required;
@@ -101,7 +97,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             // In this case, we need to go thru the files manually
             if (ContainsAppX(sources))
             {
-#if PLATFORM_DOTNET
+#if WINDOWS_UAP
                 var sourcePath = Windows.ApplicationModel.Package.Current.InstalledLocation.Path;
 #elif NETCOREAPP1_0
                 var sourcePath = Directory.GetCurrentDirectory();
@@ -113,7 +109,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                    .ToList();
 
                 ((List<string>)sources).AddRange(Directory.GetFiles(sourcePath, "*.exe")
-                                   .Where(file => !platformAssemblies.Contains(Path.GetFileName(file))));
+                                       .Where(file => !platformAssemblies.Contains(Path.GetFileName(file))));
             }
 
             RunTests(runContext, frameworkHandle, logger, () => GetTests(sources, logger, runContext));
@@ -178,7 +174,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                     foreach (var assemblyFileNameCanBeWithoutAbsolutePath in sources)
                     {
                         var assemblyFileName = assemblyFileNameCanBeWithoutAbsolutePath;
-#if !PLATFORM_DOTNET
+#if !WINDOWS_UAP
                         assemblyFileName = Path.GetFullPath(assemblyFileNameCanBeWithoutAbsolutePath);
 #endif
                         var assembly = new XunitProjectAssembly { AssemblyFilename = assemblyFileName };
@@ -233,14 +229,14 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                         {
                             var ex = e.Unwrap();
                             var fileNotFound = ex as FileNotFoundException;
-#if !PLATFORM_DOTNET
+#if !WINDOWS_UAP
                             var fileLoad = ex as FileLoadException;
 #endif
                             if (ex is InvalidOperationException)
                                 logger.LogWarning("Skipping: {0} ({1})", fileName, ex.Message);
                             else if (fileNotFound != null)
                                 logger.LogWarning("Skipping: {0} (could not find dependent assembly '{1}')", fileName, Path.GetFileNameWithoutExtension(fileNotFound.FileName));
-#if !PLATFORM_DOTNET
+#if !WINDOWS_UAP
                             else if (fileLoad != null)
                                 logger.LogWarning("Skipping: {0} (could not find dependent assembly '{1}')", fileName, Path.GetFileNameWithoutExtension(fileLoad.FileName));
 #endif
@@ -284,7 +280,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         List<AssemblyRunInfo> GetTests(IEnumerable<string> sources, LoggerHelper logger, IRunContext runContext)
         {
             // For store apps, the files are copied to the AppX dir, we need to load it from there
-#if PLATFORM_DOTNET
+#if WINDOWS_UAP
             sources = sources.Select(s => Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, Path.GetFileName(s)));
 #endif
 
@@ -319,10 +315,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                 // Force unique names if there is more than 1 testcase with the same name
                 foreach (var groupWithDuplicateNames in filteredTestCases.GroupBy(dtc => dtc.Name).Where(group => group.Count() > 1))
-                {
                     foreach (var discoveredTestCaseWithDuplicateName in groupWithDuplicateNames)
                         discoveredTestCaseWithDuplicateName.ForceUniqueName();
-                }
 
                 return new AssemblyRunInfo
                 {
@@ -373,7 +367,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         static TestAssemblyConfiguration LoadConfiguration(string assemblyName)
         {
-#if PLATFORM_DOTNET
+#if WINDOWS_UAP
             var stream = GetConfigurationStreamForAssembly(assemblyName);
             return stream == null ? new TestAssemblyConfiguration() : ConfigReader.Load(stream);
 #else
@@ -403,7 +397,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
 
                 var reporterMessageHandler = MessageSinkWithTypesAdapter.Wrap(GetRunnerReporter(assemblies.Select(ari => ari.AssemblyFileName))
-                                                .CreateMessageHandler(new VisualStudioRunnerLogger(logger)));
+                                                                        .CreateMessageHandler(new VisualStudioRunnerLogger(logger)));
 
 
                 using (AssemblyHelper.SubscribeResolve())
@@ -444,7 +438,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             try
             {
-#if PLATFORM_DOTNET
+#if WINDOWS_UAP
                 // For AppX Apps, use the package location
                 assemblyFileName = Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, Path.GetFileName(assemblyFileName));
 #endif
@@ -506,7 +500,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 }
             };
 
-#if PLATFORM_DOTNET
+#if WINDOWS_UAP
             var fireAndForget = Windows.System.Threading.ThreadPool.RunAsync(_ => handler());
 #else
             ThreadPool.QueueUserWorkItem(_ => handler());
@@ -515,37 +509,34 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             return @event;
         }
 
-#if REPORTERS
         static IRunnerReporter GetRunnerReporter(IEnumerable<string> assemblyFileNames)
         {
             try
             {
                 var reporters = GetAvailableRunnerReporters(assemblyFileNames);
-
                 var reporter = reporters.FirstOrDefault(r => r.IsEnvironmentallyEnabled);
                 if (reporter != null)
                     return reporter;
             }
-            catch
-            {
-                // eat this and return the default
-            }
+            catch { }
 
             return new DefaultRunnerReporterWithTypes();
         }
 
-#if NETCOREAPP1_0
-        static List<IRunnerReporter> GetAvailableRunnerReporters(IEnumerable<string> sources)
+        static IEnumerable<IRunnerReporter> GetAvailableRunnerReporters(IEnumerable<string> sources)
         {
+#if WINDOWS_UAP
+            // No reporters on UWP
+            return Enumerable.Empty<IRunnerReporter>();
+#elif NETCOREAPP1_0
             // Combine all input libs and merge their contexts to find the potential reporters
             var result = new List<IRunnerReporter>();
             var dcjr = new DependencyContextJsonReader();
-            var deps = sources
-                        .Select(Path.GetFullPath)
-                        .Select(s => s.Replace(".dll", ".deps.json"))
-                        .Where(File.Exists)
-                        .Select(f => new MemoryStream(Encoding.UTF8.GetBytes(File.ReadAllText(f))))
-                        .Select(dcjr.Read);
+            var deps = sources.Select(Path.GetFullPath)
+                              .Select(s => s.Replace(".dll", ".deps.json"))
+                              .Where(File.Exists)
+                              .Select(f => new MemoryStream(Encoding.UTF8.GetBytes(File.ReadAllText(f))))
+                              .Select(dcjr.Read);
             var ctx = deps.Aggregate(DependencyContext.Default, (context, dependencyContext) => context.Merge(dependencyContext));
             dcjr.Dispose();
 
@@ -553,13 +544,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                .ToList();
 
             // Make sure to also check assemblies within the directory of the sources
-            var dllsInSources = sources
-                        .Select(Path.GetFullPath)
-                        .Select(Path.GetDirectoryName)
-                        .Distinct(StringComparer.OrdinalIgnoreCase)
-                        .SelectMany(p => Directory.GetFiles(p, "*.dll").Select(f => Path.Combine(p, f)))
-                        .Select(f => new AssemblyName { Name = Path.GetFileNameWithoutExtension(f) })
-                        .ToList();
+            var dllsInSources = sources.Select(Path.GetFullPath)
+                                       .Select(Path.GetDirectoryName)
+                                       .Distinct(StringComparer.OrdinalIgnoreCase)
+                                       .SelectMany(p => Directory.GetFiles(p, "*.dll").Select(f => Path.Combine(p, f)))
+                                       .Select(f => new AssemblyName { Name = Path.GetFileNameWithoutExtension(f) })
+                                       .ToList();
 
             foreach (var assemblyName in depsAssms.Concat(dllsInSources))
             {
@@ -592,10 +582,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             }
 
             return result;
-        }
 #elif NET35
-        static List<IRunnerReporter> GetAvailableRunnerReporters(IEnumerable<string> sources)
-        {
             var result = new List<IRunnerReporter>();
             var runnerPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetLocalCodeBase());
 
@@ -623,6 +610,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                     if (type == null || type.IsAbstract || type == typeof(DefaultRunnerReporter) || type == typeof(DefaultRunnerReporterWithTypes) || !type.GetInterfaces().Any(t => t == typeof(IRunnerReporter)))
                         continue;
 #pragma warning restore CS0618
+
                     var ctor = type.GetConstructor(new Type[0]);
                     if (ctor == null)
                     {
@@ -637,14 +625,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             }
 
             return result;
-        }
 #endif
-#else
-        static IRunnerReporter GetRunnerReporter(IEnumerable<string> sources)
-        {
-            return new DefaultRunnerReporterWithTypes();
         }
-#endif
 
         class AssemblyDiscoveredInfo
         {

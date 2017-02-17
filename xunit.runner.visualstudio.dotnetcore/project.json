@@ -21,7 +21,6 @@
     ],
     "outputName": "xunit.runner.visualstudio.dotnetcore.testadapter",
     "warningsAsErrors": true,
-    "define": [ "REPORTERS" ],
     "keyFile": "../signing.snk"
   },
   "frameworks": {

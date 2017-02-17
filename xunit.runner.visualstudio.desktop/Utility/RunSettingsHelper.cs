@@ -1,4 +1,4 @@
-﻿#if !PLATFORM_DOTNET
+﻿#if !WINDOWS_UAP
 using System.Xml.Linq;
 #endif
 
@@ -25,7 +25,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             //NoAutoReporters = false;
 
 
-#if !PLATFORM_DOTNET
+#if !WINDOWS_UAP
             if (!string.IsNullOrEmpty(runSettingsXml))
             {
                 try

@@ -271,7 +271,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             var result = new VsTestResult(vsTestCase)
             {
-#if !PLATFORM_DOTNET
+#if !WINDOWS_UAP
                 ComputerName = Environment.MachineName,
 #endif
                 DisplayName = displayName,
