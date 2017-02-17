@@ -14,7 +14,10 @@ public class RunnerReporterTests
 
         string IRunnerReporter.RunnerSwitch => throw new NotImplementedException();
 
-        IMessageSink IRunnerReporter.CreateMessageHandler(IRunnerLogger logger) => throw new NotImplementedException();
+        IMessageSink IRunnerReporter.CreateMessageHandler(IRunnerLogger logger)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class TestRunnerReporter : TestRunnerReporterNotEnabled, IRunnerReporter
