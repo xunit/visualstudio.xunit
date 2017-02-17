@@ -511,16 +511,14 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         static IRunnerReporter GetRunnerReporter(IEnumerable<string> assemblyFileNames)
         {
+            var reporter = default(IRunnerReporter);
             try
             {
-                var reporters = GetAvailableRunnerReporters(assemblyFileNames);
-                var reporter = reporters.FirstOrDefault(r => r.IsEnvironmentallyEnabled);
-                if (reporter != null)
-                    return reporter;
+                reporter = GetAvailableRunnerReporters(assemblyFileNames).FirstOrDefault(r => r.IsEnvironmentallyEnabled);
             }
             catch { }
 
-            return new DefaultRunnerReporterWithTypes();
+            return reporter ?? new DefaultRunnerReporterWithTypes();
         }
 
         static IEnumerable<IRunnerReporter> GetAvailableRunnerReporters(IEnumerable<string> sources)
