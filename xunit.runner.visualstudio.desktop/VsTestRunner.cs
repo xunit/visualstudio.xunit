@@ -361,7 +361,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(File.ReadAllText(depsFile))))
                 {
                     var context = new DependencyContextJsonReader().Read(stream);
-                    var xunitLibrary = context.RuntimeLibraries.Where(lib => lib.Name.Equals("xunit")).FirstOrDefault();
+                    var xunitLibrary = context.RuntimeLibraries.Where(lib => lib.Name.Equals("xunit") || lib.Name.Equals("xunit.core")).FirstOrDefault();
                     return xunitLibrary != null;
                 }
             }
