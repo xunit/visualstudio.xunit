@@ -2,7 +2,7 @@
   "dependencies": {
     "Microsoft.NETCore.UniversalWindowsPlatform": "5.2.2",
     "Microsoft.VisualStudio.TestPlatform.ObjectModel": "0.0.6",
-    "xunit.runner.utility": "2.2.0-rc4-build3536"
+    "xunit.runner.utility": "2.2.0-rc5-build3544"
   },
   "frameworks": {
     "uap10.0": {}
