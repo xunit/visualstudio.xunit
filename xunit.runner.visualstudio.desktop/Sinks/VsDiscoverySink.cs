@@ -37,7 +37,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         readonly List<ITestCase> lastTestClassTestCases = new List<ITestCase>();
         readonly LoggerHelper logger;
         readonly string source;
-        readonly bool designMode;
+        readonly TestPlatformContext testPlatformContext;
 
         string lastTestClass;
 
@@ -46,7 +46,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                LoggerHelper logger,
                                ITestCaseDiscoverySink discoverySink,
                                ITestFrameworkDiscoveryOptions discoveryOptions,
-                               bool designMode,
+                               TestPlatformContext testPlatformContext,
                                Func<bool> cancelThunk)
         {
             this.source = source;
@@ -54,7 +54,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             this.logger = logger;
             this.discoverySink = discoverySink;
             this.discoveryOptions = discoveryOptions;
-            this.designMode = designMode;
+            this.testPlatformContext = testPlatformContext;
             this.cancelThunk = cancelThunk;
 
             discoveryEventSink.TestCaseDiscoveryMessageEvent += HandleTestCaseDiscoveryMessage;
@@ -71,14 +71,18 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             discoveryEventSink.Dispose();
         }
 
-        public static TestCase CreateVsTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase xunitTestCase, bool forceUniqueName, LoggerHelper logger, bool designMode)
+        public static TestCase CreateVsTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase xunitTestCase, bool forceUniqueName, LoggerHelper logger, TestPlatformContext testPlatformContext)
         {
             try
             {
-                var serializedTestCase = discoverer.Serialize(xunitTestCase);
                 var fqTestMethodName = $"{xunitTestCase.TestMethod.TestClass.Class.Name}.{xunitTestCase.TestMethod.Method.Name}";
                 var result = new TestCase(fqTestMethodName, uri, source) { DisplayName = Escape(xunitTestCase.DisplayName) };
-                result.SetPropertyValue(VsTestRunner.SerializedTestCaseProperty, serializedTestCase);
+
+                if (testPlatformContext.RequireXunitTestProperty)
+                {
+                    var serializedTestCase = discoverer.Serialize(xunitTestCase);
+                    result.SetPropertyValue(VsTestRunner.SerializedTestCaseProperty, serializedTestCase);
+                }
                 result.Id = GuidFromString(uri + xunitTestCase.UniqueID);
 
                 if (forceUniqueName)
@@ -95,10 +99,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                     }
                 }
 
-                if (designMode)
+                if (testPlatformContext.RequireSourceInformation)
                 {
-                    // Source information is not required for non-design mode i.e. command line test runs.
-                    // See RunSettingsHelper.DesignMode for more details.
                     result.CodeFilePath = xunitTestCase.SourceInformation.FileName;
                     result.LineNumber = xunitTestCase.SourceInformation.LineNumber.GetValueOrDefault();
                 }
@@ -214,7 +216,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             foreach (var testCase in lastTestClassTestCases)
             {
-                var vsTestCase = CreateVsTestCase(source, discoverer, testCase, forceUniqueNames, logger, designMode);
+                var vsTestCase = CreateVsTestCase(source, discoverer, testCase, forceUniqueNames, logger, testPlatformContext);
                 if (vsTestCase != null)
                 {
                     if (discoveryOptions.GetDiagnosticMessagesOrDefault())

@@ -96,6 +96,9 @@
     <Compile Include="..\xunit.runner.visualstudio.desktop\VsTestRunner.cs">
       <Link>VsTestRunner.cs</Link>
     </Compile>
+    <Compile Include="..\xunit.runner.visualstudio.desktop\TestPlatformContext.cs">
+      <Link>TestPlatformContext.cs</Link>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">

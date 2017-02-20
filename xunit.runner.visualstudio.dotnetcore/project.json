@@ -17,6 +17,7 @@
       "../xunit.runner.visualstudio.desktop/Utility/VisualStudioRunnerLogger.cs",
       "../xunit.runner.visualstudio.desktop/Constants.cs",
       "../xunit.runner.visualstudio.desktop/VsTestRunner.cs",
+      "../xunit.runner.visualstudio.desktop/TestPlatformContext.cs",
       "../common/GlobalAssemblyInfo.cs"
     ],
     "outputName": "xunit.runner.visualstudio.dotnetcore.testadapter",

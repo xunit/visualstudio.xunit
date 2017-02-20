@@ -85,9 +85,22 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             RunSettingsHelper.ReadRunSettings(discoveryContext?.RunSettings?.SettingsXml);
 #endif
 
+            var testPlatformContext = new TestPlatformContext
+            {
+                // Discovery from command line (non designmode) never requires source information
+                // since there is no session or command line runner doesn't send back VSTestCase objects
+                // back to adapter.
+                RequireSourceInformation = RunSettingsHelper.DesignMode,
+
+                // Command line runner could request for Discovery in case of running specific tests. We need
+                // the XunitTestCase serialized in this scenario.
+                RequireXunitTestProperty = true
+            };
+
             DiscoverTests(sources,
                 loggerHelper,
-                (source, discoverer, discoveryOptions) => new VsDiscoverySink(source, discoverer, loggerHelper, discoverySink, discoveryOptions, RunSettingsHelper.DesignMode, () => cancelled)
+                testPlatformContext,
+                (source, discoverer, discoveryOptions) => new VsDiscoverySink(source, discoverer, loggerHelper, discoverySink, discoveryOptions, testPlatformContext, () => cancelled)
             );
         }
 
@@ -103,6 +116,14 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             // Do this first before invoking any thing else to ensure correct settings for the run
             RunSettingsHelper.ReadRunSettings(runContext?.RunSettings?.SettingsXml);
 #endif
+
+            // In the context of Run All tests, commandline runner doesn't require source information or
+            // serialized xunit test case property
+            var testPlatformContext = new TestPlatformContext
+            {
+                RequireSourceInformation = RunSettingsHelper.DesignMode,
+                RequireXunitTestProperty = RunSettingsHelper.DesignMode
+            };
 
             // In this case, we need to go thru the files manually
             if (ContainsAppX(sources))
@@ -122,7 +143,17 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                        .Where(file => !platformAssemblies.Contains(Path.GetFileName(file))));
             }
 
-            RunTests(runContext, frameworkHandle, logger, () => GetTests(sources, logger, runContext, RunSettingsHelper.DesignMode));
+            RunTests(runContext, frameworkHandle, logger, testPlatformContext, () =>
+                sources.Select(source =>
+                {
+                    var assemblyFileName = GetAssemblyFileName(source);
+                    return new AssemblyRunInfo
+                    {
+                        AssemblyFileName = assemblyFileName,
+                        Configuration = LoadConfiguration(assemblyFileName),
+                        TestCases = null // PERF: delay the discovery until we actually require it in RunTestsInAssembly
+                    };
+                }).ToList());
         }
 
         void ITestExecutor.RunTests(IEnumerable<TestCase> tests, IRunContext runContext, IFrameworkHandle frameworkHandle)
@@ -139,11 +170,19 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             RunSettingsHelper.ReadRunSettings(runContext?.RunSettings?.SettingsXml);
 #endif
 
+            // In the context of Run Specific tests, commandline runner doesn't require source information or
+            // serialized xunit test case property
+            var testPlatformContext = new TestPlatformContext
+            {
+                RequireSourceInformation = RunSettingsHelper.DesignMode,
+                RequireXunitTestProperty = RunSettingsHelper.DesignMode
+            };
+
             RunTests(
-                runContext, frameworkHandle, logger,
+                runContext, frameworkHandle, logger, testPlatformContext,
                 () => tests.GroupBy(testCase => testCase.Source)
-                           .Select(group => new AssemblyRunInfo { AssemblyFileName = group.Key, Configuration = LoadConfiguration(group.Key), TestCases = group.ToList() })
-                           .ToList()
+                    .Select(group => new AssemblyRunInfo { AssemblyFileName = @group.Key, Configuration = LoadConfiguration(@group.Key), TestCases = @group.ToList() })
+                    .ToList()
             );
         }
 
@@ -167,8 +206,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         void DiscoverTests<TVisitor>(IEnumerable<string> sources,
                                      LoggerHelper logger,
-                                     Func<string, ITestFrameworkDiscoverer,
-                                     ITestFrameworkDiscoveryOptions, TVisitor> visitorFactory,
+                                     TestPlatformContext testPlatformContext,
+                                     Func<string, ITestFrameworkDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor> visitorFactory,
                                      Action<string, ITestFrameworkDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor> visitComplete = null)
             where TVisitor : IVsDiscoverySink, IDisposable
         {
@@ -178,79 +217,21 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                 using (AssemblyHelper.SubscribeResolve())
                 {
-                    var reporterMessageHandler = GetRunnerReporter(sources).CreateMessageHandler(new VisualStudioRunnerLogger(logger));
-
                     foreach (var assemblyFileNameCanBeWithoutAbsolutePath in sources)
                     {
-                        var assemblyFileName = assemblyFileNameCanBeWithoutAbsolutePath;
-#if !WINDOWS_UAP
-                        assemblyFileName = Path.GetFullPath(assemblyFileNameCanBeWithoutAbsolutePath);
-#endif
-                        var assembly = new XunitProjectAssembly { AssemblyFilename = assemblyFileName };
+                        var assemblyFileName = GetAssemblyFileName(assemblyFileNameCanBeWithoutAbsolutePath);
                         var configuration = LoadConfiguration(assemblyFileName);
                         var fileName = Path.GetFileNameWithoutExtension(assemblyFileName);
                         var shadowCopy = configuration.ShadowCopyOrDefault;
 
-                        try
+                        var diagnosticSink = new DiagnosticMessageSink(logger, fileName, configuration.DiagnosticMessagesOrDefault);
+                        using (var framework = new XunitFrontController(AppDomainDefaultBehavior,
+                                assemblyFileName: assemblyFileName,
+                                configFileName: null, shadowCopy: shadowCopy,
+                                diagnosticMessageSink: MessageSinkAdapter.Wrap(diagnosticSink)))
                         {
-                            if (cancelled)
+                            if (!DiscoverTestsInSource(framework, logger, testPlatformContext, visitorFactory, visitComplete, assemblyFileName, shadowCopy, configuration))
                                 break;
-
-                            if (!IsXunitTestAssembly(assemblyFileName))
-                            {
-                                if (configuration.DiagnosticMessagesOrDefault)
-                                    logger.Log("Skipping: {0} (no reference to xUnit.net)", fileName);
-                            }
-                            else
-                            {
-                                var diagnosticSink = new DiagnosticMessageSink(logger, fileName, configuration.DiagnosticMessagesOrDefault);
-
-                                using (var framework = new XunitFrontController(AppDomainDefaultBehavior, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: shadowCopy, diagnosticMessageSink: MessageSinkAdapter.Wrap(diagnosticSink)))
-                                {
-                                    var targetFramework = framework.TargetFramework;
-                                    if (targetFramework.StartsWith("MonoTouch", StringComparison.OrdinalIgnoreCase) ||
-                                        targetFramework.StartsWith("MonoAndroid", StringComparison.OrdinalIgnoreCase) ||
-                                        targetFramework.StartsWith("Xamarin.iOS", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        if (configuration.DiagnosticMessagesOrDefault)
-                                            logger.Log("Skipping: {0} (unsupported target framework '{1}')", fileName, targetFramework);
-                                    }
-                                    else
-                                    {
-                                        var discoveryOptions = TestFrameworkOptions.ForDiscovery(configuration);
-
-                                        using (var visitor = visitorFactory(assemblyFileName, framework, discoveryOptions))
-                                        {
-                                            reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryStarting(assembly, framework.CanUseAppDomains && AppDomainDefaultBehavior != AppDomainSupport.Denied, shadowCopy, discoveryOptions));
-
-                                            framework.Find(includeSourceInformation: RunSettingsHelper.DesignMode, discoveryMessageSink: visitor, discoveryOptions: discoveryOptions);
-                                            var totalTests = visitor.Finish();
-
-                                            visitComplete?.Invoke(assemblyFileName, framework, discoveryOptions, visitor);
-
-                                            reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryFinished(assembly, discoveryOptions, totalTests, totalTests));
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            var ex = e.Unwrap();
-                            var fileNotFound = ex as FileNotFoundException;
-#if !WINDOWS_UAP
-                            var fileLoad = ex as FileLoadException;
-#endif
-                            if (ex is InvalidOperationException)
-                                logger.LogWarning("Skipping: {0} ({1})", fileName, ex.Message);
-                            else if (fileNotFound != null)
-                                logger.LogWarning("Skipping: {0} (could not find dependent assembly '{1}')", fileName, Path.GetFileNameWithoutExtension(fileNotFound.FileName));
-#if !WINDOWS_UAP
-                            else if (fileLoad != null)
-                                logger.LogWarning("Skipping: {0} (could not find dependent assembly '{1}')", fileName, Path.GetFileNameWithoutExtension(fileLoad.FileName));
-#endif
-                            else
-                                logger.LogWarning("Exception discovering tests from {0}: {1}", fileName, ex);
                         }
                     }
                 }
@@ -259,6 +240,84 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             {
                 logger.LogWarning("Exception discovering tests: {0}", e.Unwrap());
             }
+        }
+
+        private bool DiscoverTestsInSource<TVisitor>(XunitFrontController framework,
+            LoggerHelper logger,
+            TestPlatformContext testPlatformContext,
+            Func<string, ITestFrameworkDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor> visitorFactory,
+            Action<string, ITestFrameworkDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor> visitComplete,
+            string assemblyFileName,
+            bool shadowCopy,
+            TestAssemblyConfiguration configuration)
+            where TVisitor : IVsDiscoverySink, IDisposable
+        {
+            var reporterMessageHandler = GetRunnerReporter(new[] { assemblyFileName }).CreateMessageHandler(new VisualStudioRunnerLogger(logger));
+            var assembly = new XunitProjectAssembly { AssemblyFilename = assemblyFileName };
+            var fileName = Path.GetFileNameWithoutExtension(assemblyFileName);
+            try
+            {
+                if (cancelled)
+                    return false;
+
+                if (!IsXunitTestAssembly(assemblyFileName))
+                {
+                    if (configuration.DiagnosticMessagesOrDefault)
+                        logger.Log("Skipping: {0} (no reference to xUnit.net)", fileName);
+                }
+                else
+                {
+                    var targetFramework = framework.TargetFramework;
+                    if (targetFramework.StartsWith("MonoTouch", StringComparison.OrdinalIgnoreCase) ||
+                        targetFramework.StartsWith("MonoAndroid", StringComparison.OrdinalIgnoreCase) ||
+                        targetFramework.StartsWith("Xamarin.iOS", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (configuration.DiagnosticMessagesOrDefault)
+                            logger.Log("Skipping: {0} (unsupported target framework '{1}')", fileName, targetFramework);
+                    }
+                    else
+                    {
+                        var discoveryOptions = TestFrameworkOptions.ForDiscovery(configuration);
+
+                        using (var visitor = visitorFactory(assemblyFileName, framework, discoveryOptions))
+                        {
+                            reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryStarting(assembly,
+                                framework.CanUseAppDomains && AppDomainDefaultBehavior != AppDomainSupport.Denied,
+                                shadowCopy, discoveryOptions));
+
+                            framework.Find(includeSourceInformation: testPlatformContext.RequireSourceInformation,
+                                discoveryMessageSink: visitor, discoveryOptions: discoveryOptions);
+                            var totalTests = visitor.Finish();
+
+                            visitComplete?.Invoke(assemblyFileName, framework, discoveryOptions, visitor);
+
+                            reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryFinished(assembly, discoveryOptions,
+                                totalTests, totalTests));
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                var ex = e.Unwrap();
+                var fileNotFound = ex as FileNotFoundException;
+#if !WINDOWS_UAP
+                var fileLoad = ex as FileLoadException;
+#endif
+                if (ex is InvalidOperationException)
+                    logger.LogWarning("Skipping: {0} ({1})", fileName, ex.Message);
+                else if (fileNotFound != null)
+                    logger.LogWarning("Skipping: {0} (could not find dependent assembly '{1}')", fileName,
+                        Path.GetFileNameWithoutExtension(fileNotFound.FileName));
+#if !WINDOWS_UAP
+                else if (fileLoad != null)
+                    logger.LogWarning("Skipping: {0} (could not find dependent assembly '{1}')", fileName,
+                        Path.GetFileNameWithoutExtension(fileLoad.FileName));
+#endif
+                else
+                    logger.LogWarning("Exception discovering tests from {0}: {1}", fileName, ex);
+            }
+            return true;
         }
 
         static Stream GetConfigurationStreamForAssembly(string assemblyName)
@@ -285,54 +344,6 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         static TestProperty GetTestProperty()
             => TestProperty.Register("XunitTestCase", "xUnit.net Test Case", typeof(string), typeof(VsTestRunner));
-
-        List<AssemblyRunInfo> GetTests(IEnumerable<string> sources, LoggerHelper logger, IRunContext runContext, bool designMode)
-        {
-            // For store apps, the files are copied to the AppX dir, we need to load it from there
-#if WINDOWS_UAP
-            sources = sources.Select(s => Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, Path.GetFileName(s)));
-#endif
-
-            var assemblyDiscoveredInfos = new List<AssemblyDiscoveredInfo>();
-
-            DiscoverTests(sources,
-                logger,
-                (source, discoverer, discoveryOptions) => new VsExecutionDiscoverySink(() => cancelled),
-                (source, discoverer, discoveryOptions, visitor) =>
-                {
-                    if (discoveryOptions.GetDiagnosticMessagesOrDefault())
-                        foreach (var testCase in visitor.TestCases)
-                            logger.Log(testCase, "Discovered [execution] test case '{0}' (ID = '{1}')", testCase.DisplayName, testCase.UniqueID);
-
-                    assemblyDiscoveredInfos.Add(new AssemblyDiscoveredInfo
-                    {
-                        AssemblyFileName = source,
-                        DiscoveredTestCases = visitor.TestCases.Select(testCase => new DiscoveredTestCase(source, discoverer, testCase, logger, designMode)).ToList()
-                    });
-                }
-            );
-
-            var traitNames = new HashSet<string>(assemblyDiscoveredInfos.SelectMany(assemblyInfo => assemblyInfo.DiscoveredTestCases.SelectMany(testCase => testCase.TraitNames)));
-
-            return assemblyDiscoveredInfos.Select(assemblyInfo =>
-            {
-                // Apply any filtering
-                var filter = new TestCaseFilter(runContext, logger, assemblyInfo.AssemblyFileName, traitNames);
-                var filteredTestCases = assemblyInfo.DiscoveredTestCases.Where(dtc => filter.MatchTestCase(dtc.VSTestCase)).ToList();
-
-                // Force unique names if there is more than 1 testcase with the same name
-                foreach (var groupWithDuplicateNames in filteredTestCases.GroupBy(dtc => dtc.Name).Where(group => group.Count() > 1))
-                    foreach (var discoveredTestCaseWithDuplicateName in groupWithDuplicateNames)
-                        discoveredTestCaseWithDuplicateName.ForceUniqueName();
-
-                return new AssemblyRunInfo
-                {
-                    AssemblyFileName = assemblyInfo.AssemblyFileName,
-                    Configuration = LoadConfiguration(assemblyInfo.AssemblyFileName),
-                    TestCases = filteredTestCases.Select(dtc => dtc.VSTestCase).ToList(),
-                };
-            }).ToList();
-        }
 
         static bool IsXunitTestAssembly(string assemblyFileName)
         {
@@ -372,6 +383,15 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         }
 #endif
 
+        static string GetAssemblyFileName(string source)
+        {
+#if !WINDOWS_UAP
+            return Path.GetFullPath(source);
+#else
+            return source;
+#endif
+        }
+
         static TestAssemblyConfiguration LoadConfiguration(string assemblyName)
         {
 #if WINDOWS_UAP
@@ -382,7 +402,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 #endif
         }
 
-        void RunTests(IRunContext runContext, IFrameworkHandle frameworkHandle, LoggerHelper logger, Func<List<AssemblyRunInfo>> testCaseAccessor)
+        void RunTests(IRunContext runContext, IFrameworkHandle frameworkHandle, LoggerHelper logger, TestPlatformContext testPlatformContext, Func<List<AssemblyRunInfo>> getRunInfo)
         {
             Guard.ArgumentNotNull("runContext", runContext);
             Guard.ArgumentNotNull("frameworkHandle", frameworkHandle);
@@ -393,23 +413,20 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                 cancelled = false;
 
-                var assemblies = testCaseAccessor();
+                var assemblies = getRunInfo();
                 var parallelizeAssemblies = !RunSettingsHelper.DisableParallelization && assemblies.All(runInfo => runInfo.Configuration.ParallelizeAssemblyOrDefault);
-
-
                 var reporterMessageHandler = MessageSinkWithTypesAdapter.Wrap(GetRunnerReporter(assemblies.Select(ari => ari.AssemblyFileName))
                                                                         .CreateMessageHandler(new VisualStudioRunnerLogger(logger)));
-
 
                 using (AssemblyHelper.SubscribeResolve())
                     if (parallelizeAssemblies)
                         assemblies
-                            .Select(runInfo => RunTestsInAssemblyAsync(runContext, frameworkHandle, logger, reporterMessageHandler, runInfo))
+                            .Select(runInfo => RunTestsInAssemblyAsync(runContext, frameworkHandle, logger, testPlatformContext, reporterMessageHandler, runInfo))
                             .ToList()
                             .ForEach(@event => @event.WaitOne());
                     else
                         assemblies
-                            .ForEach(runInfo => RunTestsInAssembly(runContext, frameworkHandle, logger, reporterMessageHandler, runInfo));
+                            .ForEach(runInfo => RunTestsInAssembly(runContext, frameworkHandle, logger, testPlatformContext, reporterMessageHandler, runInfo));
             }
             catch (Exception ex)
             {
@@ -417,11 +434,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             }
         }
 
-        void RunTestsInAssembly(IRunContext runContext,
-                                IFrameworkHandle frameworkHandle,
-                                LoggerHelper logger,
-                                IMessageSinkWithTypes reporterMessageHandler,
-                                AssemblyRunInfo runInfo)
+        void RunTestsInAssembly(IRunContext runContext, IFrameworkHandle frameworkHandle, LoggerHelper logger, TestPlatformContext testPlatformContext, IMessageSinkWithTypes reporterMessageHandler, AssemblyRunInfo runInfo)
         {
             if (cancelled)
                 return;
@@ -429,7 +442,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var assembly = new XunitProjectAssembly { AssemblyFilename = runInfo.AssemblyFileName };
             var assemblyFileName = runInfo.AssemblyFileName;
             var assemblyDisplayName = Path.GetFileNameWithoutExtension(assemblyFileName);
-            var shadowCopy = assembly.Configuration.ShadowCopyOrDefault;
+            var configuration = runInfo.Configuration;
+            var shadowCopy = configuration.ShadowCopyOrDefault;
 
             var appDomain = assembly.Configuration.AppDomain ?? AppDomainDefaultBehavior;
             var longRunningSeconds = assembly.Configuration.LongRunningTestSecondsOrDefault;
@@ -445,12 +459,83 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 #endif
 
                 var diagnosticSink = new DiagnosticMessageSink(logger, assemblyDisplayName, runInfo.Configuration.DiagnosticMessagesOrDefault);
-                using (var controller = new XunitFrontController(appDomain, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: shadowCopy, diagnosticMessageSink: MessageSinkAdapter.Wrap(diagnosticSink)))
+                var diagnosticMessageSink = MessageSinkAdapter.Wrap(diagnosticSink);
+                using (var controller = new XunitFrontController(appDomain, assemblyFileName: assemblyFileName, configFileName: null, shadowCopy: shadowCopy, diagnosticMessageSink: diagnosticMessageSink))
                 {
-                    var xunitTestCases = runInfo.TestCases.Select(tc => new { vs = tc, xunit = Deserialize(logger, controller, tc) })
-                                                          .Where(tc => tc.xunit != null)
-                                                          .ToDictionary(tc => tc.xunit, tc => tc.vs);
+                    var testCasesMap = new Dictionary<string, TestCase>();
+                    var testCases = new List<ITestCase>();
+                    if (runInfo.TestCases == null || !runInfo.TestCases.Any())
+                    {
+                        // Discover tests
+                        AssemblyDiscoveredInfo assemblyDiscoveredInfo = new AssemblyDiscoveredInfo();
+                        DiscoverTestsInSource(controller, logger, testPlatformContext,
+                            (source, discoverer, discoveryOptions) => new VsExecutionDiscoverySink(() => cancelled),
+                            (source, discoverer, discoveryOptions, visitor) =>
+                            {
+                                if (discoveryOptions.GetDiagnosticMessagesOrDefault())
+                                    foreach (var testCase in visitor.TestCases)
+                                        logger.Log(testCase, "Discovered [execution] test case '{0}' (ID = '{1}')",
+                                            testCase.DisplayName, testCase.UniqueID);
 
+                                assemblyDiscoveredInfo = new AssemblyDiscoveredInfo
+                                {
+                                    AssemblyFileName = source,
+                                    DiscoveredTestCases = visitor.TestCases.Select(testCase => new DiscoveredTestCase(source, discoverer, testCase, logger, testPlatformContext)).ToList()
+                                };
+                            },
+                            assemblyFileName,
+                            shadowCopy,
+                            configuration
+                        );
+
+                        if (assemblyDiscoveredInfo.DiscoveredTestCases == null ||
+                            !assemblyDiscoveredInfo.DiscoveredTestCases.Any())
+                        {
+                            if (configuration.DiagnosticMessagesOrDefault)
+                            {
+                                logger.LogWarning("Skipping '{0}' since no tests were found during discovery [execution].", assemblyDiscoveredInfo.AssemblyFileName);
+                            }
+                            return;
+                        }
+
+                        // Filter tests
+                        var traitNames = new HashSet<string>(assemblyDiscoveredInfo.DiscoveredTestCases.SelectMany(testCase => testCase.TraitNames));
+
+                        // Apply any filtering
+                        var filter = new TestCaseFilter(runContext, logger, assemblyDiscoveredInfo.AssemblyFileName, traitNames);
+                        var filteredTestCases = assemblyDiscoveredInfo.DiscoveredTestCases.Where(dtc => filter.MatchTestCase(dtc.VSTestCase)).ToList();
+
+                        // Force unique names if there is more than 1 testcase with the same name
+                        foreach (var groupWithDuplicateNames in filteredTestCases.GroupBy(dtc => dtc.Name).Where(group => group.Count() > 1))
+                        {
+                            foreach (var discoveredTestCaseWithDuplicateName in groupWithDuplicateNames)
+                                discoveredTestCaseWithDuplicateName.ForceUniqueName();
+                        }
+
+                        foreach (var filteredTestCase in filteredTestCases)
+                        {
+                            // PERF: the filteredTestCase.TestCase object is proxy to ITestCase in the discovery appdomain.
+                            // We're using the UniqueId only (cached in this appdomain).
+                            testCasesMap.Add(filteredTestCase.UniqueId, filteredTestCase.VSTestCase);
+                            testCases.Add(filteredTestCase.TestCase);
+                        }
+                    }
+                    else
+                    {
+                        // We are in Run Specific tests scenario, the `TestCase` objects are available.
+                        // Query the `TestCase` objects to find XunitTestCase objects.
+                        foreach (var vstestCase in runInfo.TestCases)
+                        {
+                            var xunitTestCase = Deserialize(logger, controller, vstestCase);
+                            if (xunitTestCase != null)
+                            {
+                                testCasesMap.Add(xunitTestCase.UniqueID, vstestCase);
+                                testCases.Add(xunitTestCase);
+                            }
+                        }
+                    }
+
+                    // Execute tests
                     var executionOptions = TestFrameworkOptions.ForExecution(runInfo.Configuration);
                     if (RunSettingsHelper.DisableParallelization)
                     {
@@ -460,13 +545,13 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                     reporterMessageHandler.OnMessage(new TestAssemblyExecutionStarting(assembly, executionOptions));
 
-                    using (var vsExecutionSink = new VsExecutionSink(reporterMessageHandler, frameworkHandle, logger, xunitTestCases, executionOptions, () => cancelled))
+                    using (var vsExecutionSink = new VsExecutionSink(reporterMessageHandler, frameworkHandle, logger, testCasesMap, executionOptions, () => cancelled))
                     {
                         IExecutionSink resultsSink = vsExecutionSink;
                         if (longRunningSeconds > 0)
                             resultsSink = new DelegatingLongRunningTestDetectionSink(resultsSink, TimeSpan.FromSeconds(longRunningSeconds), diagnosticSink);
 
-                        controller.RunTests(xunitTestCases.Keys.ToList(), resultsSink, executionOptions);
+                        controller.RunTests(testCases, resultsSink, executionOptions);
                         resultsSink.Finished.WaitOne();
 
                         reporterMessageHandler.OnMessage(new TestAssemblyExecutionFinished(assembly, executionOptions, resultsSink.ExecutionSummary));
@@ -482,6 +567,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         ManualResetEvent RunTestsInAssemblyAsync(IRunContext runContext,
                                                  IFrameworkHandle frameworkHandle,
                                                  LoggerHelper logger,
+                                                 TestPlatformContext testPlatformContext,
                                                  IMessageSinkWithTypes reporterMessageHandler,
                                                  AssemblyRunInfo runInfo)
         {
@@ -490,7 +576,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             {
                 try
                 {
-                    RunTestsInAssembly(runContext, frameworkHandle, logger, reporterMessageHandler, runInfo);
+                    RunTestsInAssembly(runContext, frameworkHandle, logger, testPlatformContext, reporterMessageHandler, runInfo);
                 }
                 finally
                 {
@@ -646,19 +732,25 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             public TestCase VSTestCase { get; }
 
-            string uniqueID;
+            public ITestCase TestCase { get; }
 
-            public DiscoveredTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase testCase, LoggerHelper logger, bool designMode)
+            public string UniqueId { get; }
+
+            public DiscoveredTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase testCase, LoggerHelper logger, TestPlatformContext testPlatformContext)
             {
                 Name = $"{testCase.TestMethod.TestClass.Class.Name}.{testCase.TestMethod.Method.Name}";
-                TraitNames = testCase.Traits.Keys;
-                VSTestCase = VsDiscoverySink.CreateVsTestCase(source, discoverer, testCase, forceUniqueName: false, logger: logger, designMode: designMode);
-                uniqueID = testCase.UniqueID;
+                TraitNames = testCase.Traits?.Keys;
+                VSTestCase = VsDiscoverySink.CreateVsTestCase(source, discoverer, testCase, forceUniqueName: false, logger: logger, testPlatformContext: testPlatformContext);
+
+                // PERF: note that TestCase is a proxy to actual object in the discovery appdomain. UniqueId is used multiple times,
+                // hence cached to reduce cross-appdomain access cost.
+                TestCase = testCase;
+                UniqueId = testCase.UniqueID;
             }
 
             public void ForceUniqueName()
             {
-                VsDiscoverySink.ForceUniqueName(VSTestCase, uniqueID);
+                VsDiscoverySink.ForceUniqueName(VSTestCase, UniqueId);
             }
         }
     }

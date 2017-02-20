@@ -17,19 +17,19 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         readonly LoggerHelper logger;
         readonly IMessageSinkWithTypes innerSink;
         readonly ITestExecutionRecorder recorder;
-        readonly Dictionary<ITestCase, TestCase> testCases;
+        readonly Dictionary<string, TestCase> testCasesMap;
 
         public VsExecutionSink(IMessageSinkWithTypes innerSink,
                                ITestExecutionRecorder recorder,
                                LoggerHelper logger,
-                               Dictionary<ITestCase, TestCase> testCases,
+                               Dictionary<string, TestCase> testCasesMap,
                                ITestFrameworkExecutionOptions executionOptions,
                                Func<bool> cancelledThunk)
         {
             this.innerSink = innerSink;
             this.recorder = recorder;
             this.logger = logger;
-            this.testCases = testCases;
+            this.testCasesMap = testCasesMap;
             this.executionOptions = executionOptions;
             this.cancelledThunk = cancelledThunk;
 
@@ -63,11 +63,11 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         TestCase FindTestCase(ITestCase testCase)
         {
             TestCase result;
-            if (testCases.TryGetValue(testCase, out result))
-                return result;
 
-            result = testCases.Where(tc => tc.Key.UniqueID == testCase.UniqueID).Select(kvp => kvp.Value).FirstOrDefault();
-            if (result != null)
+            // PERF: most of the reporting routines below (test case start/end etc.) go through this
+            // comparison. `ITestCase` is a proxy object to appdomain executing the test. Lesser calls to
+            // proxy object is better.
+            if (testCasesMap.TryGetValue(testCase.UniqueID, out result))
                 return result;
 
             logger.LogError(testCase, "Result reported for unknown test case: {0}", testCase.DisplayName);
