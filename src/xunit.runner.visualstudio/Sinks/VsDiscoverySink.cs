@@ -37,7 +37,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         readonly List<ITestCase> lastTestMethodTestCases = new List<ITestCase>();
         readonly LoggerHelper logger;
         readonly string source;
-        readonly bool designMode;
+        readonly TestPlatformContext testPlatformContext;
 
         string lastTestMethod;
 
@@ -46,7 +46,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                LoggerHelper logger,
                                ITestCaseDiscoverySink discoverySink,
                                ITestFrameworkDiscoveryOptions discoveryOptions,
-                               bool designMode,
+                               TestPlatformContext testPlatformContext,
                                Func<bool> cancelThunk)
         {
             this.source = source;
@@ -54,7 +54,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             this.logger = logger;
             this.discoverySink = discoverySink;
             this.discoveryOptions = discoveryOptions;
-            this.designMode = designMode;
+            this.testPlatformContext = testPlatformContext;
             this.cancelThunk = cancelThunk;
 
             discoveryEventSink.TestCaseDiscoveryMessageEvent += HandleTestCaseDiscoveryMessage;
@@ -76,7 +76,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                                                 ITestCase xunitTestCase,
                                                 bool forceUniqueName,
                                                 LoggerHelper logger,
-                                                bool designMode,
+                                                TestPlatformContext testPlatformContext,
                                                 string testClassName = null,
                                                 string testMethodName = null,
                                                 string uniqueID = null)
@@ -92,11 +92,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 if (string.IsNullOrEmpty(uniqueID))
                     uniqueID = xunitTestCase.UniqueID;
 
-                var serializedTestCase = discoverer.Serialize(xunitTestCase);
                 var fqTestMethodName = $"{testClassName}.{testMethodName}";
                 var result = new TestCase(fqTestMethodName, uri, source) { DisplayName = Escape(xunitTestCase.DisplayName) };
-                result.SetPropertyValue(VsTestRunner.SerializedTestCaseProperty, serializedTestCase);
 
+                if (testPlatformContext.RequireXunitTestProperty)
+                    result.SetPropertyValue(VsTestRunner.SerializedTestCaseProperty, discoverer.Serialize(xunitTestCase));
+				
                 result.Id = GuidFromString(uri + uniqueID);
 
                 if (forceUniqueName)
@@ -111,10 +112,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                             addTraitThunk(result, key, value);
                 }
 
-                if (designMode)
+                if (testPlatformContext.RequireSourceInformation)
                 {
-                    // Source information is not required for non-design mode i.e. command line test runs.
-                    // See RunSettingsHelper.DesignMode for more details.
                     result.CodeFilePath = xunitTestCase.SourceInformation.FileName;
                     result.LineNumber = xunitTestCase.SourceInformation.LineNumber.GetValueOrDefault();
                 }
@@ -230,7 +229,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
             foreach (var testCase in lastTestMethodTestCases)
             {
-                var vsTestCase = CreateVsTestCase(source, discoverer, testCase, forceUniqueNames, logger, designMode);
+                var vsTestCase = CreateVsTestCase(source, discoverer, testCase, forceUniqueNames, logger, testPlatformContext);
                 if (vsTestCase != null)
                 {
                     if (discoveryOptions.GetInternalDiagnosticMessagesOrDefault())
