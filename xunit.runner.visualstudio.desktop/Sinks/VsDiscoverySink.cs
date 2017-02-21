@@ -39,7 +39,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         readonly string source;
         readonly bool designMode;
 
-        static string lastTestClass;
+        string lastTestClass;
 
         public VsDiscoverySink(string source,
                                ITestFrameworkDiscoverer discoverer,
@@ -204,7 +204,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var testCase = args.Message.TestCase;
             var testClass = testCase.TestMethod.TestClass.Class.Name;
             if (lastTestClass != testClass)
-                SendExistingTestCases();
+                SendExistingTestCases(lastTestClass);
 
             lastTestClass = testClass;
             lastTestClassTestCases.Add(testCase);
@@ -215,7 +215,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         void HandleDiscoveryCompleteMessage(MessageHandlerArgs<IDiscoveryCompleteMessage> args)
         {
-            SendExistingTestCases();
+            SendExistingTestCases(lastTestClass);
 
             Finished.Set();
 
@@ -225,13 +225,13 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         bool IMessageSinkWithTypes.OnMessageWithTypes(IMessageSinkMessage message, HashSet<string> messageTypes)
             => discoveryEventSink.OnMessageWithTypes(message, messageTypes);
 
-        private void SendExistingTestCases()
+        private void SendExistingTestCases(string testClassName)
         {
             var forceUniqueNames = lastTestClassTestCases.Count > 1;
 
             foreach (var testCase in lastTestClassTestCases)
             {
-                var vsTestCase = CreateVsTestCase(source, discoverer, testCase, forceUniqueNames, logger, designMode, lastTestClass);
+                var vsTestCase = CreateVsTestCase(source, discoverer, testCase, forceUniqueNames, logger, designMode, testClassName);
                 if (vsTestCase != null)
                 {
                     if (discoveryOptions.GetDiagnosticMessagesOrDefault())
