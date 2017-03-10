@@ -217,7 +217,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 var vsTestCase = CreateVsTestCase(source, discoverer, testCase, forceUniqueNames, logger, designMode);
                 if (vsTestCase != null)
                 {
-                    if (discoveryOptions.GetDiagnosticMessagesOrDefault())
+                    if (discoveryOptions.GetInternalDiagnosticMessagesOrDefault())
                         logger.Log(testCase, "Discovered test case '{0}' (ID = '{1}', VS FQN = '{2}')", testCase.DisplayName, testCase.UniqueID, vsTestCase.FullyQualifiedName);
 
                     discoverySink.SendTestCase(vsTestCase);

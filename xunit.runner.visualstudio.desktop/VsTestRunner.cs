@@ -300,7 +300,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 (source, discoverer, discoveryOptions) => new VsExecutionDiscoverySink(() => cancelled),
                 (source, discoverer, discoveryOptions, visitor) =>
                 {
-                    if (discoveryOptions.GetDiagnosticMessagesOrDefault())
+                    if (discoveryOptions.GetInternalDiagnosticMessagesOrDefault())
                         foreach (var testCase in visitor.TestCases)
                             logger.Log(testCase, "Discovered [execution] test case '{0}' (ID = '{1}')", testCase.DisplayName, testCase.UniqueID);
 
