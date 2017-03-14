@@ -24,18 +24,12 @@
     "keyFile": "../signing.snk"
   },
   "frameworks": {
-    "netcoreapp1.0": {
-      "imports": [
-        "dotnet",
-        "portable-dnxcore50+net45+win8+wp8+wpa81",
-        "portable-net45+win8"
-      ]
-    }
+    "netcoreapp1.0": {}
   },
   "dependencies": {
     "Microsoft.DotNet.PlatformAbstractions": "1.1.0",
     "Microsoft.Extensions.DependencyModel": "1.1.0",
-    "Microsoft.TestPlatform.ObjectModel": "11.0.0",
+    "Microsoft.TestPlatform.ObjectModel": "15.0.0",
     "Microsoft.NETCore.App": {
       "version": "1.0.0",
       "type": "platform"
