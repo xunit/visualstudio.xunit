@@ -71,26 +71,43 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             discoveryEventSink.Dispose();
         }
 
-        public static TestCase CreateVsTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase xunitTestCase, bool forceUniqueName, LoggerHelper logger, bool designMode)
+        public static TestCase CreateVsTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase xunitTestCase, bool forceUniqueName, LoggerHelper logger, bool designMode, string testClassName = null, string methodName = null, string uniqueID = null)
         {
             try
             {
+                if (string.IsNullOrEmpty(testClassName))
+                {
+                    testClassName = xunitTestCase.TestMethod.TestClass.Class.Name;
+                }
+
+                if (string.IsNullOrEmpty(methodName))
+                {
+                    methodName = xunitTestCase.TestMethod.Method.Name;
+                }
+
+                if (string.IsNullOrEmpty(uniqueID))
+                {
+                    uniqueID = xunitTestCase.UniqueID;
+                }
+
                 var serializedTestCase = discoverer.Serialize(xunitTestCase);
-                var fqTestMethodName = $"{xunitTestCase.TestMethod.TestClass.Class.Name}.{xunitTestCase.TestMethod.Method.Name}";
+                var fqTestMethodName = $"{testClassName}.{methodName}";
                 var result = new TestCase(fqTestMethodName, uri, source) { DisplayName = Escape(xunitTestCase.DisplayName) };
                 result.SetPropertyValue(VsTestRunner.SerializedTestCaseProperty, serializedTestCase);
-                result.Id = GuidFromString(uri + xunitTestCase.UniqueID);
+                
+                result.Id = GuidFromString(uri + uniqueID);
 
                 if (forceUniqueName)
                 {
-                    ForceUniqueName(result, xunitTestCase.UniqueID);
+                    ForceUniqueName(result, uniqueID);
                 }
 
                 if (addTraitThunk != null)
                 {
-                    foreach (var key in xunitTestCase.Traits.Keys)
+                    Dictionary<string, List<string>> traits = xunitTestCase.Traits;
+                    foreach (var key in traits.Keys)
                     {
-                        foreach (var value in xunitTestCase.Traits[key])
+                        foreach (var value in traits[key])
                             addTraitThunk(result, key, value);
                     }
                 }
@@ -187,7 +204,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var testCase = args.Message.TestCase;
             var testClass = testCase.TestMethod.TestClass.Class.Name;
             if (lastTestClass != testClass)
-                SendExistingTestCases();
+                SendExistingTestCases(lastTestClass);
 
             lastTestClass = testClass;
             lastTestClassTestCases.Add(testCase);
@@ -198,7 +215,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         void HandleDiscoveryCompleteMessage(MessageHandlerArgs<IDiscoveryCompleteMessage> args)
         {
-            SendExistingTestCases();
+            SendExistingTestCases(lastTestClass);
 
             Finished.Set();
 
@@ -208,13 +225,13 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         bool IMessageSinkWithTypes.OnMessageWithTypes(IMessageSinkMessage message, HashSet<string> messageTypes)
             => discoveryEventSink.OnMessageWithTypes(message, messageTypes);
 
-        private void SendExistingTestCases()
+        private void SendExistingTestCases(string testClassName)
         {
             var forceUniqueNames = lastTestClassTestCases.Count > 1;
 
             foreach (var testCase in lastTestClassTestCases)
             {
-                var vsTestCase = CreateVsTestCase(source, discoverer, testCase, forceUniqueNames, logger, designMode);
+                var vsTestCase = CreateVsTestCase(source, discoverer, testCase, forceUniqueNames, logger, designMode, testClassName);
                 if (vsTestCase != null)
                 {
                     if (discoveryOptions.GetInternalDiagnosticMessagesOrDefault())
