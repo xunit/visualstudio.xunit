@@ -8,11 +8,15 @@
       <xUnitVsLibs Include="$(MSBuildThisFileDirectory)xunit.runner.visualstudio.uwp.pri">
         <TargetPath>xunit.runner.visualstudio.uwp.pri</TargetPath>
       </xUnitVsLibs>
+      <xUnitVsLibs Include="$(MSBuildThisFileDirectory)xunit.runner.reporters.netstandard11.dll">
+        <TargetPath>xunit.runner.reporters.netstandard11.dll</TargetPath>
+      </xUnitVsLibs>
       <xUnitVsLibs Include="$(MSBuildThisFileDirectory)xunit.runner.utility.netstandard11.dll">
         <TargetPath>xunit.runner.utility.netstandard11.dll</TargetPath>
       </xUnitVsLibs>
       <xUnitVsLibsToRemove Include="@(AppxPackagePayload)" Condition="'%(TargetPath)' == 'xunit.runner.visualstudio.testadapter.dll'"/>
-      <xUnitVsLibsToRemove Include="@(AppxPackagePayload)" Condition="'%(TargetPath)' == 'xunit.runner.utility.net35.dll'"/>
+      <xUnitVsLibsToRemove Include="@(AppxPackagePayload)" Condition="'%(TargetPath)' == 'xunit.runner.reporters.net452.dll'"/>
+      <xUnitVsLibsToRemove Include="@(AppxPackagePayload)" Condition="'%(TargetPath)' == 'xunit.runner.utility.net452.dll'"/>
       <AppxPackagePayload Remove="@(xUnitVsLibsToRemove)" />
       <AppxPackagePayload Include="@(xUnitVsLibs)" />
     </ItemGroup>
