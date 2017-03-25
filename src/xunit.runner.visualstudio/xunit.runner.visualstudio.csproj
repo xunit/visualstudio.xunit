@@ -38,7 +38,6 @@
     <PackageReference Include="Microsoft.DotNet.PlatformAbstractions" Version="1.1.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="1.1.0" />
     <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="15.0.0" PrivateAssets="All" />
-    <PackageReference Include="System.Threading.ThreadPool" Version="4.0.10" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'uap10.0' ">
