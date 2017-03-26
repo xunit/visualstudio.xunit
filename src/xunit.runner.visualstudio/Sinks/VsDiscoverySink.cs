@@ -34,12 +34,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         readonly ITestFrameworkDiscoveryOptions discoveryOptions;
         readonly ITestCaseDiscoverySink discoverySink;
         readonly DiscoveryEventSink discoveryEventSink = new DiscoveryEventSink();
-        readonly List<ITestCase> lastTestClassTestCases = new List<ITestCase>();
+        readonly List<ITestCase> lastTestMethodTestCases = new List<ITestCase>();
         readonly LoggerHelper logger;
         readonly string source;
         readonly bool designMode;
 
-        string lastTestClass;
+        string lastTestMethod;
 
         public VsDiscoverySink(string source,
                                ITestFrameworkDiscoverer discoverer,
@@ -185,12 +185,12 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         void HandleTestCaseDiscoveryMessage(MessageHandlerArgs<ITestCaseDiscoveryMessage> args)
         {
             var testCase = args.Message.TestCase;
-            var testClass = testCase.TestMethod.TestClass.Class.Name;
-            if (lastTestClass != testClass)
+            var testMethod = $"{testCase.TestMethod.TestClass.Class.Name}.{testCase.TestMethod.Method.Name}";
+            if (lastTestMethod != testMethod)
                 SendExistingTestCases();
 
-            lastTestClass = testClass;
-            lastTestClassTestCases.Add(testCase);
+            lastTestMethod = testMethod;
+            lastTestMethodTestCases.Add(testCase);
             TotalTests++;
 
             HandleCancellation(args);
@@ -210,9 +210,9 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         private void SendExistingTestCases()
         {
-            var forceUniqueNames = lastTestClassTestCases.Count > 1;
+            var forceUniqueNames = lastTestMethodTestCases.Count > 1;
 
-            foreach (var testCase in lastTestClassTestCases)
+            foreach (var testCase in lastTestMethodTestCases)
             {
                 var vsTestCase = CreateVsTestCase(source, discoverer, testCase, forceUniqueNames, logger, designMode);
                 if (vsTestCase != null)
@@ -226,7 +226,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                     logger.LogWarning(testCase, "Could not create VS test case for '{0}' (ID = '{1}', VS FQN = '{2}')", testCase.DisplayName, testCase.UniqueID, vsTestCase.FullyQualifiedName);
             }
 
-            lastTestClassTestCases.Clear();
+            lastTestMethodTestCases.Clear();
         }
 
         public static string fqTestMethodName { get; set; }
