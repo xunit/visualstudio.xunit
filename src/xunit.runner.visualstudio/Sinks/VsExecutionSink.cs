@@ -259,9 +259,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         }
 
         VsTestResult MakeVsTestResult(TestOutcome outcome, ITestResultMessage testResult)
-        {
-            return MakeVsTestResult(outcome, testResult.TestCase, testResult.Test.DisplayName, (double)testResult.ExecutionTime, testResult.Output);
-        }
+            => MakeVsTestResult(outcome, testResult.TestCase, testResult.Test.DisplayName, (double)testResult.ExecutionTime, testResult.Output);
+
+        VsTestResult MakeVsTestResult(TestOutcome outcome, ITestSkipped skippedResult)
+            => MakeVsTestResult(outcome, skippedResult.TestCase, skippedResult.Test.DisplayName, (double)skippedResult.ExecutionTime, skippedResult.Reason);
 
         VsTestResult MakeVsTestResult(TestOutcome outcome, ITestCase testCase, string displayName, double executionTime = 0.0, string output = null)
         {
