@@ -92,12 +92,12 @@ function __target__pushmyget() {
 function __target__setversion() {
     if ($buildAssemblyVersion -ne "") {
         _build_step ("Setting assembly version: '" + $buildAssemblyVersion + "'")
-            Get-ChildItem -Recurse -Filter GlobalAssemblyInfo.cs | _replace -match '\("99\.99\.99\.0"\)' -replacement ('("' + $buildAssemblyVersion + '")')
+            Get-ChildItem -Recurse -Filter AssemblyInfo.cs | _replace -match '\("99\.99\.99\.0"\)' -replacement ('("' + $buildAssemblyVersion + '")')
     }
 
     if ($buildSemanticVersion -ne "") {
         _build_step ("Setting semantic version: '" + $buildSemanticVersion + "'")
-            Get-ChildItem -Recurse -Filter GlobalAssemblyInfo.cs | _replace -match '\("99\.99\.99-dev"\)' -replacement ('("' + $buildSemanticVersion + '")')
+            Get-ChildItem -Recurse -Filter AssemblyInfo.cs | _replace -match '\("99\.99\.99-dev"\)' -replacement ('("' + $buildSemanticVersion + '")')
             Get-ChildItem -Recurse -Filter *.nuspec | _replace -match '99\.99\.99-dev' -replacement $buildSemanticVersion
     }
 }
