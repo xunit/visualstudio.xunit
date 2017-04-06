@@ -71,28 +71,44 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             discoveryEventSink.Dispose();
         }
 
-        public static TestCase CreateVsTestCase(string source, ITestFrameworkDiscoverer discoverer, ITestCase xunitTestCase, bool forceUniqueName, LoggerHelper logger, bool designMode)
+        public static TestCase CreateVsTestCase(string source,
+                                                ITestFrameworkDiscoverer discoverer,
+                                                ITestCase xunitTestCase,
+                                                bool forceUniqueName,
+                                                LoggerHelper logger,
+                                                bool designMode,
+                                                string testClassName = null,
+                                                string testMethodName = null,
+                                                string uniqueID = null)
         {
             try
             {
+                if (string.IsNullOrEmpty(testClassName))
+                    testClassName = xunitTestCase.TestMethod.TestClass.Class.Name;
+
+                if (string.IsNullOrEmpty(testMethodName))
+                    testMethodName = xunitTestCase.TestMethod.Method.Name;
+
+                if (string.IsNullOrEmpty(uniqueID))
+                    uniqueID = xunitTestCase.UniqueID;
+
                 var serializedTestCase = discoverer.Serialize(xunitTestCase);
-                var fqTestMethodName = $"{xunitTestCase.TestMethod.TestClass.Class.Name}.{xunitTestCase.TestMethod.Method.Name}";
+                var fqTestMethodName = $"{testClassName}.{testMethodName}";
                 var result = new TestCase(fqTestMethodName, uri, source) { DisplayName = Escape(xunitTestCase.DisplayName) };
                 result.SetPropertyValue(VsTestRunner.SerializedTestCaseProperty, serializedTestCase);
-                result.Id = GuidFromString(uri + xunitTestCase.UniqueID);
+
+                result.Id = GuidFromString(uri + uniqueID);
 
                 if (forceUniqueName)
-                {
-                    ForceUniqueName(result, xunitTestCase.UniqueID);
-                }
+                    ForceUniqueName(result, uniqueID);
 
                 if (addTraitThunk != null)
                 {
-                    foreach (var key in xunitTestCase.Traits.Keys)
-                    {
-                        foreach (var value in xunitTestCase.Traits[key])
+                    var traits = xunitTestCase.Traits;
+
+                    foreach (var key in traits.Keys)
+                        foreach (var value in traits[key])
                             addTraitThunk(result, key, value);
-                    }
                 }
 
                 if (designMode)
