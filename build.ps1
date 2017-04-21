@@ -27,7 +27,7 @@ $testOutputFolder = (join-path (Get-Location) "artifacts\test")
 # Helper functions
 
 function _xunit_console([string] $command) {
-    _exec ('& "' + $PSScriptRoot + '\packages\xunit.runner.console\tools\xunit.console.x86.exe" ' + $command)
+    _exec ('& "' + $PSScriptRoot + '\packages\xunit.runner.console\tools\net452\xunit.console.x86.exe" ' + $command)
 }
 
 # Top-level targets

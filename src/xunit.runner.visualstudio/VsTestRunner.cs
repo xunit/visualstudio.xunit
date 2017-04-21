@@ -507,7 +507,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             var reporter = default(IRunnerReporter);
             try
             {
-                reporter = GetAvailableRunnerReporters(assemblyFileNames).FirstOrDefault(r => r.IsEnvironmentallyEnabled);
+                if (!RunSettingsHelper.NoAutoReporters)
+                    reporter = GetAvailableRunnerReporters(assemblyFileNames).FirstOrDefault(r => r.IsEnvironmentallyEnabled);
             }
             catch { }
 
