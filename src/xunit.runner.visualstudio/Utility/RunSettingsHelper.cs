@@ -15,8 +15,10 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
         /// or IDE.
         /// </summary>
         public static bool DesignMode { get; private set; }
-/*
+
         public static bool NoAutoReporters { get; private set; }
+
+/*
         public static string ReporterSwitch { get; private set; }
 */
         /// <summary>
@@ -28,11 +30,11 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             // reset first, do not want to propagate earlier settings in cases where execution host is kept alive
             DisableAppDomain = false;
             DisableParallelization = false;
+            NoAutoReporters = false;
 
             // We're keeping the default value as true since the adapter (prior to VS 2017) shouldn't
             // differentiate between VS or vstest.console.
             DesignMode = true;
-            //NoAutoReporters = false;
 
 
 #if !WINDOWS_UAP
@@ -58,12 +60,13 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                         bool designMode;
                         if (bool.TryParse(designModeString, out designMode))
                             DesignMode = designMode;
-/*
+
                         var noAutoReportersString = element.Element("NoAutoReporters")?.Value;
                         bool noAutoReporters;
                         if (bool.TryParse(noAutoReportersString, out noAutoReporters))
                             NoAutoReporters = noAutoReporters;
 
+/*
                         ReporterSwitch = element.Element("ReporterSwitch")?.Value;
 */
                     }
