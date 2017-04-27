@@ -16,5 +16,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>False</Visible>
     </None>
+    <ProjectCapability Include="TestContainer" />
   </ItemGroup>
 </Project>
