@@ -505,8 +505,14 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
                         foreach (var filteredTestCase in filteredTestCases)
                         {
-                            testCasesMap.Add(filteredTestCase.UniqueID, filteredTestCase.VSTestCase);
-                            testCases.Add(filteredTestCase.TestCase);
+                            var uniqueID = filteredTestCase.UniqueID;
+                            if (testCasesMap.ContainsKey(uniqueID))
+                                logger.LogWarning(filteredTestCase.TestCase, "Skipping test case with duplicate ID '{0}' ('{1}' and '{2}')", uniqueID, testCasesMap[uniqueID].DisplayName, filteredTestCase.VSTestCase.DisplayName);
+                            else
+                            {
+                                testCasesMap.Add(uniqueID, filteredTestCase.VSTestCase);
+                                testCases.Add(filteredTestCase.TestCase);
+                            }
                         }
                     }
                     else
