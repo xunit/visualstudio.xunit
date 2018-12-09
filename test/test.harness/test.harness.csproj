@@ -1,16 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <EnableUnmanagedDebugging>true</EnableUnmanagedDebugging>
-    <TargetFramework>net452</TargetFramework>
+    <TargetFrameworks>net452;netcoreapp1.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="xunit" Version="2.3.0-beta3-build3699" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
+    <PackageReference Include="xunit" Version="2.4.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\test.testcasefilter\test.testcasefilter.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="PerfTests.cs" DesignTime="True" AutoGen="True" DependentUpon="PerfTests.tt" />
+    <None Update="PerfTests.tt" Generator="TextTemplatingFileGenerator" LastGenOutput="PerfTests.cs" />
   </ItemGroup>
 
 </Project>

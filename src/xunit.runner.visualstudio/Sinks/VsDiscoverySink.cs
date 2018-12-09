@@ -12,34 +12,34 @@ using System.Reflection;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Security.Cryptography;
 using Windows.Security.Cryptography.Core;
-#elif NETCOREAPP1_0
+#elif NETCOREAPP
 using System.Reflection;
 using System.Security.Cryptography;
 #else
 using System.Security.Cryptography;
 #endif
 
-namespace Xunit.Runner.VisualStudio.TestAdapter
+namespace Xunit.Runner.VisualStudio
 {
     public class VsDiscoverySink : IMessageSinkWithTypes, IVsDiscoverySink, IDisposable
     {
         const string Ellipsis = "...";
         const int MaximumDisplayNameLength = 447;
+        const int TestCaseDescriptorBatchSize = 100;
 
         static readonly Action<TestCase, string, string> addTraitThunk = GetAddTraitThunk();
         static readonly Uri uri = new Uri(Constants.ExecutorUri);
 
         readonly Func<bool> cancelThunk;
+        readonly ITestCaseDescriptorProvider descriptorProvider;
         readonly ITestFrameworkDiscoverer discoverer;
         readonly ITestFrameworkDiscoveryOptions discoveryOptions;
         readonly ITestCaseDiscoverySink discoverySink;
         readonly DiscoveryEventSink discoveryEventSink = new DiscoveryEventSink();
-        readonly List<ITestCase> lastTestMethodTestCases = new List<ITestCase>();
         readonly LoggerHelper logger;
         readonly string source;
+        readonly List<ITestCase> testCaseBatch = new List<ITestCase>();
         readonly TestPlatformContext testPlatformContext;
-
-        string lastTestMethod;
 
         public VsDiscoverySink(string source,
                                ITestFrameworkDiscoverer discoverer,
@@ -57,6 +57,8 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             this.testPlatformContext = testPlatformContext;
             this.cancelThunk = cancelThunk;
 
+            descriptorProvider = (discoverer as ITestCaseDescriptorProvider) ?? new DefaultTestCaseDescriptorProvider(discoverer);
+
             discoveryEventSink.TestCaseDiscoveryMessageEvent += HandleTestCaseDiscoveryMessage;
             discoveryEventSink.DiscoveryCompleteMessageEvent += HandleDiscoveryCompleteMessage;
         }
@@ -67,69 +69,43 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         public void Dispose()
         {
-            ((IDisposable)Finished).Dispose();
+            Finished.Dispose();
             discoveryEventSink.Dispose();
         }
 
         public static TestCase CreateVsTestCase(string source,
-                                                ITestFrameworkDiscoverer discoverer,
-                                                ITestCase xunitTestCase,
-                                                bool forceUniqueName,
+                                                TestCaseDescriptor descriptor,
                                                 LoggerHelper logger,
-                                                TestPlatformContext testPlatformContext,
-                                                string testClassName = null,
-                                                string testMethodName = null,
-                                                string uniqueID = null)
+                                                TestPlatformContext testPlatformContext)
         {
             try
             {
-                if (string.IsNullOrEmpty(testClassName))
-                    testClassName = xunitTestCase.TestMethod.TestClass.Class.Name;
-
-                if (string.IsNullOrEmpty(testMethodName))
-                    testMethodName = xunitTestCase.TestMethod.Method.Name;
-
-                if (string.IsNullOrEmpty(uniqueID))
-                    uniqueID = xunitTestCase.UniqueID;
-
-                var fqTestMethodName = $"{testClassName}.{testMethodName}";
-                var result = new TestCase(fqTestMethodName, uri, source) { DisplayName = Escape(xunitTestCase.DisplayName) };
+                var fqTestMethodName = $"{descriptor.ClassName}.{descriptor.MethodName}";
+                var result = new TestCase(fqTestMethodName, uri, source) { DisplayName = Escape(descriptor.DisplayName) };
 
                 if (testPlatformContext.RequireXunitTestProperty)
-                    result.SetPropertyValue(VsTestRunner.SerializedTestCaseProperty, discoverer.Serialize(xunitTestCase));
-				
-                result.Id = GuidFromString(uri + uniqueID);
+                    result.SetPropertyValue(VsTestRunner.SerializedTestCaseProperty, descriptor.Serialization);
 
-                if (forceUniqueName)
-                    ForceUniqueName(result, uniqueID);
+                result.Id = GuidFromString(uri + descriptor.UniqueID);
+                result.CodeFilePath = descriptor.SourceFileName;
+                result.LineNumber = descriptor.SourceLineNumber.GetValueOrDefault();
 
                 if (addTraitThunk != null)
                 {
-                    var traits = xunitTestCase.Traits;
+                    var traits = descriptor.Traits;
 
                     foreach (var key in traits.Keys)
                         foreach (var value in traits[key])
                             addTraitThunk(result, key, value);
                 }
 
-                if (testPlatformContext.RequireSourceInformation)
-                {
-                    result.CodeFilePath = xunitTestCase.SourceInformation.FileName;
-                    result.LineNumber = xunitTestCase.SourceInformation.LineNumber.GetValueOrDefault();
-                }
-
                 return result;
             }
             catch (Exception ex)
             {
-                logger.LogError(xunitTestCase, "Error creating Visual Studio test case for {0}: {1}", xunitTestCase.DisplayName, ex);
+                logger.LogErrorWithSource(source, "Error creating Visual Studio test case for {0}: {1}", descriptor.DisplayName, ex);
                 return null;
             }
-        }
-
-        public static void ForceUniqueName(TestCase testCase, string uniqueID)
-        {
-            testCase.FullyQualifiedName = $"{testCase.FullyQualifiedName} ({uniqueID})";
         }
 
         static string Escape(string value)
@@ -160,7 +136,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
             {
                 var testCaseType = typeof(TestCase);
                 var stringType = typeof(string);
-#if WINDOWS_UAP || NETCOREAPP1_0
+#if WINDOWS_UAP || NETCOREAPP
                 var property = testCaseType.GetRuntimeProperty("Traits");
 #else
                 var property = testCaseType.GetProperty("Traits");
@@ -169,7 +145,7 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
                 if (property == null)
                     return null;
 
-#if WINDOWS_UAP || NETCOREAPP1_0
+#if WINDOWS_UAP || NETCOREAPP
                 var method = property.PropertyType.GetRuntimeMethod("Add", new[] { typeof(string), typeof(string) });
 #else
                 var method = property.PropertyType.GetMethod("Add", new[] { typeof(string), typeof(string) });
@@ -199,14 +175,11 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         void HandleTestCaseDiscoveryMessage(MessageHandlerArgs<ITestCaseDiscoveryMessage> args)
         {
-            var testCase = args.Message.TestCase;
-            var testMethod = $"{testCase.TestMethod.TestClass.Class.Name}.{testCase.TestMethod.Method.Name}";
-            if (lastTestMethod != testMethod)
-                SendExistingTestCases();
-
-            lastTestMethod = testMethod;
-            lastTestMethodTestCases.Add(testCase);
+            testCaseBatch.Add(args.Message.TestCase);
             TotalTests++;
+
+            if (testCaseBatch.Count == TestCaseDescriptorBatchSize)
+                SendExistingTestCases();
 
             HandleCancellation(args);
         }
@@ -225,26 +198,24 @@ namespace Xunit.Runner.VisualStudio.TestAdapter
 
         private void SendExistingTestCases()
         {
-            var forceUniqueNames = lastTestMethodTestCases.Count > 1;
+            if (testCaseBatch.Count == 0)
+                return;
 
-            foreach (var testCase in lastTestMethodTestCases)
+            var descriptors = descriptorProvider.GetTestCaseDescriptors(testCaseBatch, includeSerialization: testPlatformContext.RequireXunitTestProperty);
+            foreach (var descriptor in descriptors)
             {
-                var vsTestCase = CreateVsTestCase(source, discoverer, testCase, forceUniqueNames, logger, testPlatformContext);
+                var vsTestCase = CreateVsTestCase(source, descriptor, logger, testPlatformContext);
                 if (vsTestCase != null)
                 {
                     if (discoveryOptions.GetInternalDiagnosticMessagesOrDefault())
-                        logger.Log(testCase, "Discovered test case '{0}' (ID = '{1}', VS FQN = '{2}')", testCase.DisplayName, testCase.UniqueID, vsTestCase.FullyQualifiedName);
+                        logger.LogWithSource(source, "Discovered test case '{0}' (ID = '{1}', VS FQN = '{2}')", descriptor.DisplayName, descriptor.UniqueID, vsTestCase.FullyQualifiedName);
 
                     discoverySink.SendTestCase(vsTestCase);
                 }
-                else
-                    logger.LogWarning(testCase, "Could not create VS test case for '{0}' (ID = '{1}', VS FQN = '{2}')", testCase.DisplayName, testCase.UniqueID, vsTestCase.FullyQualifiedName);
             }
 
-            lastTestMethodTestCases.Clear();
+            testCaseBatch.Clear();
         }
-
-        public static string fqTestMethodName { get; set; }
 
 #if WINDOWS_UAP
         readonly static HashAlgorithmProvider Hasher = HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Sha1);

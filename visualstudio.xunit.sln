@@ -4,45 +4,25 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 15.0.26315.0
 MinimumVisualStudioVersion = 15.0.26228.4
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{BA799592-92C2-40AD-9FB2-623E94A427F3}"
+	ProjectSection(SolutionItems) = preProject
+		src\xunit.runner.visualstudio.nuspec = src\xunit.runner.visualstudio.nuspec
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{88AA0DC3-2723-4E7D-A89E-A977F319B3AA}"
+	ProjectSection(SolutionItems) = preProject
+		test\Directory.Build.props = test\Directory.Build.props
+		test\Directory.Build.targets = test\Directory.Build.targets
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "xunit.runner.visualstudio", "src\xunit.runner.visualstudio\xunit.runner.visualstudio.csproj", "{6FBF46BB-C136-4587-B121-0B7F1DB02A18}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "test.xunit.runner.visualstudio", "test\test.xunit.runner.visualstudio\test.xunit.runner.visualstudio.csproj", "{24D04B23-4E06-4214-89EB-96BF5EAA1C72}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Meta", "Meta", "{0FA81681-3335-4ED6-9494-D42F1C57C3EA}"
-	ProjectSection(SolutionItems) = preProject
-		CONTRIBUTING.md = CONTRIBUTING.md
-		License.txt = License.txt
-		README.md = README.md
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{68A19566-A918-4FDC-AFA5-50C1FCFCD44F}"
-	ProjectSection(SolutionItems) = preProject
-		appveyor.yml = appveyor.yml
-		build.ps1 = build.ps1
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "git", "git", "{461E412F-4DAD-4FDD-98A5-BC3F19AAD30F}"
-	ProjectSection(SolutionItems) = preProject
-		.gitattributes = .gitattributes
-		.gitignore = .gitignore
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGet", "NuGet", "{79F837A5-1CE7-48BE-904E-3CA2A7F8B919}"
-	ProjectSection(SolutionItems) = preProject
-		NuGet.Config = NuGet.Config
-		build\xunit.runner.visualstudio.desktop.props = build\xunit.runner.visualstudio.desktop.props
-		build\xunit.runner.visualstudio.dotnetcore.props = build\xunit.runner.visualstudio.dotnetcore.props
-		src\xunit.runner.visualstudio.nuspec = src\xunit.runner.visualstudio.nuspec
-		build\xunit.runner.visualstudio.uwp.props = build\xunit.runner.visualstudio.uwp.props
-		build\xunit.runner.visualstudio.uwp.targets = build\xunit.runner.visualstudio.uwp.targets
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "test.harness", "test\test.harness\test.harness.csproj", "{91597B83-3C83-4E24-850A-D3B4DB8142AD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "test.testcasefilter", "test\test.testcasefilter\test.testcasefilter.csproj", "{AE527802-7EA2-4796-A295-3FDF9ECCE32D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test.harness.uwp", "test\test.harness.uwp\test.harness.uwp.csproj", "{1109C1B3-76B1-4268-B756-61B8932D8EA7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -66,6 +46,12 @@ Global
 		{AE527802-7EA2-4796-A295-3FDF9ECCE32D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AE527802-7EA2-4796-A295-3FDF9ECCE32D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AE527802-7EA2-4796-A295-3FDF9ECCE32D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1109C1B3-76B1-4268-B756-61B8932D8EA7}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{1109C1B3-76B1-4268-B756-61B8932D8EA7}.Debug|Any CPU.Build.0 = Debug|x86
+		{1109C1B3-76B1-4268-B756-61B8932D8EA7}.Debug|Any CPU.Deploy.0 = Debug|x86
+		{1109C1B3-76B1-4268-B756-61B8932D8EA7}.Release|Any CPU.ActiveCfg = Release|x86
+		{1109C1B3-76B1-4268-B756-61B8932D8EA7}.Release|Any CPU.Build.0 = Release|x86
+		{1109C1B3-76B1-4268-B756-61B8932D8EA7}.Release|Any CPU.Deploy.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -73,10 +59,11 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{6FBF46BB-C136-4587-B121-0B7F1DB02A18} = {BA799592-92C2-40AD-9FB2-623E94A427F3}
 		{24D04B23-4E06-4214-89EB-96BF5EAA1C72} = {88AA0DC3-2723-4E7D-A89E-A977F319B3AA}
-		{68A19566-A918-4FDC-AFA5-50C1FCFCD44F} = {0FA81681-3335-4ED6-9494-D42F1C57C3EA}
-		{461E412F-4DAD-4FDD-98A5-BC3F19AAD30F} = {0FA81681-3335-4ED6-9494-D42F1C57C3EA}
-		{79F837A5-1CE7-48BE-904E-3CA2A7F8B919} = {0FA81681-3335-4ED6-9494-D42F1C57C3EA}
 		{91597B83-3C83-4E24-850A-D3B4DB8142AD} = {88AA0DC3-2723-4E7D-A89E-A977F319B3AA}
 		{AE527802-7EA2-4796-A295-3FDF9ECCE32D} = {88AA0DC3-2723-4E7D-A89E-A977F319B3AA}
+		{1109C1B3-76B1-4268-B756-61B8932D8EA7} = {88AA0DC3-2723-4E7D-A89E-A977F319B3AA}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D98C9775-3F13-458F-A382-1BD82A380073}
 	EndGlobalSection
 EndGlobal

@@ -1,13 +1,16 @@
+#Requires -Version 5.1
+
 param(
+    [ValidateSet('AppVeyor','Build','CI','Packages','Restore','Test',
+                 '_Packages','_PushMyGet','_SetVersion','_SignPackages','_Test')]
     [string] $target = "test",
     [string] $configuration = "Release",
     [string] $buildAssemblyVersion = "",
     [string] $buildSemanticVersion = ""
 )
 
-if ($PSScriptRoot -eq $null) {
-    fatal "This build script requires PowerShell 3 or later."
-}
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
 
 $buildModuleFile = join-path $PSScriptRoot "build\tools\xunit-build-module.psm1"
 
@@ -17,7 +20,7 @@ if ((test-path $buildModuleFile) -eq $false) {
 }
 
 Set-StrictMode -Version 2
-Import-Module $buildModuleFile -Scope Local -Force -ArgumentList "4.1.0"
+Import-Module $buildModuleFile -Scope Local -Force -ArgumentList "4.8.1"
 Set-Location $PSScriptRoot
 
 $packageOutputFolder = (join-path (Get-Location) "artifacts\packages")
@@ -38,7 +41,7 @@ function __target_appveyor() {
 }
 
 function __target_build() {
-    __target_packagerestore
+    __target_restore
 
     _build_step "Compiling binaries"
         _msbuild "visualstudio.xunit.sln" $configuration
@@ -51,18 +54,18 @@ function __target_ci() {
     __target__packages
 }
 
-function __target_packagerestore() {
+function __target_packages() {
+    __target_build
+    __target__packages
+}
+
+function __target_restore() {
     _download_nuget
 
     _build_step "Restoring NuGet packages"
         _dotnet "restore visualstudio.xunit.sln"
         _mkdir packages
         _exec ('& "' + $nugetExe + '" install xunit.runner.console -OutputDirectory "' + (Join-Path $PSScriptRoot "packages") + '" -NonInteractive -pre -ExcludeVersion')
-}
-
-function __target_packages() {
-    __target_build
-    __target__packages
 }
 
 function __target_test() {
@@ -116,8 +119,9 @@ if ($targetFunction -eq $null) {
 
 _build_step "Performing pre-build verifications"
     _require dotnet "Could not find 'dotnet'. Please ensure .NET CLI Tooling is installed."
-    _require msbuild "Could not find 'msbuild'. Please ensure MSBUILD.EXE v15 is on the path."
-    _verify_msbuild15
+    _verify_dotnetsdk_version "2.1.302"
+    _require msbuild "Could not find 'msbuild'. Please ensure MSBUILD.EXE v15.7 is on the path."
+    _verify_msbuild_version "15.7.0"
 
 _mkdir $packageOutputFolder
 _mkdir $testOutputFolder

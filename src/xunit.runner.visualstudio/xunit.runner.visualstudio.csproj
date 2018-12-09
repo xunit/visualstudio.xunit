@@ -1,9 +1,26 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="MSBuild.Sdk.Extras">
+
+  <PropertyGroup Condition =" '$(TargetFramework)' == 'net452' ">
+    <AssemblyName>xunit.runner.visualstudio.testadapter</AssemblyName>
+    <DefineConstants>$(DefineConstants);NETFRAMEWORK</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition =" '$(TargetFramework)' == 'netcoreapp1.0' ">
+    <AssemblyName>xunit.runner.visualstudio.dotnetcore.testadapter</AssemblyName>
+    <DefineConstants>$(DefineConstants);NETCOREAPP</DefineConstants>
+    <RuntimeFrameworkVersion>1.0.0</RuntimeFrameworkVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition =" '$(TargetFramework)' == 'uap10.0' ">
+    <AssemblyName>xunit.runner.visualstudio.uwp.testadapter</AssemblyName>
+    <DefineConstants>$(DefineConstants);WINDOWS_UAP</DefineConstants>
+    <TargetPlatformMinVersion>10.0.10240.0</TargetPlatformMinVersion>
+    <TargetPlatformVersion>10.0.10240.0</TargetPlatformVersion>
+  </PropertyGroup>
 
   <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyOriginatorKeyFile>../signing.snk</AssemblyOriginatorKeyFile>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <DefineConstants Condition=" '$(TargetFramework)' == 'uap10.0' ">$(DefineConstants);WINDOWS_UAP</DefineConstants>
     <DebugType>embedded</DebugType>
     <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
@@ -13,24 +30,17 @@
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Xunit.Runner.VisualStudio</RootNamespace>
     <SignAssembly>true</SignAssembly>
     <TargetFrameworks>net452;netcoreapp1.0;uap10.0</TargetFrameworks>
     <VersionPrefix>99.99.99-dev</VersionPrefix>
     <WarningsAsErrors>true</WarningsAsErrors>
-    <AssemblyName Condition=" '$(TargetFramework)' == 'net452' ">xunit.runner.visualstudio.testadapter</AssemblyName>
-    <AssemblyName Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">xunit.runner.visualstudio.dotnetcore.testadapter</AssemblyName>
-    <AssemblyName Condition=" '$(TargetFramework)' == 'uap10.0' ">xunit.runner.visualstudio.uwp</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MSBuild.Sdk.Extras" Version="1.0.0" PrivateAssets="All" />
-    <PackageReference Include="SourceLink.Create.GitHub" Version="2.0.2" PrivateAssets="all" />
-    <PackageReference Include="xunit.runner.reporters" Version="2.3.0-beta3-build3699" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <DotNetCliToolReference Include="dotnet-sourcelink-git" Version="2.0.2" />
-    <DotNetCliToolReference Include="dotnet-sourcelink" Version="2.0.2" />
+    <PackageReference Include="SourceLink.Create.CommandLine" Version="2.2" PrivateAssets="all" />
+    <PackageReference Include="xunit.runner.reporters" Version="2.4.1" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net452' ">
@@ -38,16 +48,15 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">
-    <PackageReference Include="Microsoft.DotNet.PlatformAbstractions" Version="1.1.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="1.1.0" />
     <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="15.0.0" PrivateAssets="All" />
+    <PackageReference Include="NETStandard.Library" Version="1.6.0">
+      <!-- Suppress the warning about forced downgrade. This is caused by SourceLink.Create.CommandLine -->
+      <NoWarn>NU1605</NoWarn>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'uap10.0' ">
-    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform " Version="5.2.2" />
     <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="11.0.0" PrivateAssets="All" />
   </ItemGroup>
-
-  <Import Project="$(MSBuildSDKExtrasTargets)" Condition="Exists('$(MSBuildSDKExtrasTargets)')" />
 
 </Project>

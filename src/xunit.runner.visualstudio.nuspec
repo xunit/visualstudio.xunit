@@ -5,12 +5,7 @@
     <version>99.99.99-dev</version>
     <title>xUnit.net [Runner: Visual Studio]</title>
     <authors>James Newkirk, Brad Wilson</authors>
-    <description>Visual Studio 2012+ Test Explorer runner for the xUnit.net framework. Capable of running xUnit.net v1.9.2 and v2.0+ tests.
-
-Supported platforms:
-- Desktop .NET 2.0+
-- .NET Core (including ASP.NET Core) 1.0+
-- Universal Windows App 10+</description>
+    <description>Visual Studio 2012+ Test Explorer runner for the xUnit.net framework. Capable of running xUnit.net v1.9.2 and v2.0+ tests. Supports .NET 2.0 or later, .NET Core 1.0 or later, and Universal Windows 10.0 or later.</description>
     <language>en-US</language>
     <projectUrl>https://github.com/xunit/xunit</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/xunit/media/master/logo-512-transparent.png</iconUrl>
@@ -19,9 +14,7 @@ Supported platforms:
     <developmentDependency>true</developmentDependency>
     <dependencies>
       <group targetFramework="netcoreapp1.0">
-        <dependency id="Microsoft.DotNet.PlatformAbstractions" version="1.1.0" />
-        <dependency id="Microsoft.Extensions.DependencyModel" version="1.1.0" />
-        <dependency id="Microsoft.TestPlatform.ObjectModel" version="15.0.0" />
+        <dependency id="Microsoft.NET.Test.Sdk" version="15.0.0" />
       </group>
     </dependencies>
   </metadata>
@@ -31,18 +24,17 @@ Supported platforms:
     <file src="xunit.runner.visualstudio\bin\$Configuration$\net452\xunit.runner.utility.net452.dll"           target="build\_common\" />
     <file src="xunit.runner.visualstudio\bin\$Configuration$\net452\xunit.runner.visualstudio.testadapter.dll" target="build\_common\" />
 
-    <file src="..\build\xunit.runner.visualstudio.desktop.props" target="build\net20\xunit.runner.visualstudio.props" />
+    <file src="xunit.runner.visualstudio\build\xunit.runner.visualstudio.desktop.props" target="build\net20\xunit.runner.visualstudio.props" />
 
-    <file src="..\build\xunit.runner.visualstudio.uwp.props"                                                   target="build\uap10.0\xunit.runner.visualstudio.props" />
-    <file src="..\build\xunit.runner.visualstudio.uwp.targets"                                                 target="build\uap10.0\xunit.runner.visualstudio.targets" />
-    <file src="xunit.runner.visualstudio\bin\$Configuration$\uap10.0\xunit.runner.reporters.netstandard11.dll" target="build\uap10.0\" />
-    <file src="xunit.runner.visualstudio\bin\$Configuration$\uap10.0\xunit.runner.utility.netstandard11.dll"   target="build\uap10.0\" />
-    <file src="xunit.runner.visualstudio\bin\$Configuration$\uap10.0\xunit.runner.visualstudio.uwp.dll"        target="build\uap10.0\" />
-    <file src="xunit.runner.visualstudio\bin\$Configuration$\uap10.0\xunit.runner.visualstudio.uwp.pri"        target="build\uap10.0\" />
+    <file src="xunit.runner.visualstudio\bin\$Configuration$\uap10.0\xunit.runner.reporters.netstandard11.dll"      target="build\uap10.0\" />
+    <file src="xunit.runner.visualstudio\bin\$Configuration$\uap10.0\xunit.runner.utility.uwp10.dll"                target="build\uap10.0\" />
+    <file src="xunit.runner.visualstudio\bin\$Configuration$\uap10.0\xunit.runner.utility.uwp10.pri"                target="build\uap10.0\" />
+    <file src="xunit.runner.visualstudio\bin\$Configuration$\uap10.0\xunit.runner.visualstudio.uwp.testadapter.dll" target="build\uap10.0\" />
+    <file src="xunit.runner.visualstudio\bin\$Configuration$\uap10.0\xunit.runner.visualstudio.uwp.testadapter.pri" target="build\uap10.0\" />
+    <file src="xunit.runner.visualstudio\build\xunit.runner.visualstudio.uwp.props"                                 target="build\uap10.0\xunit.runner.visualstudio.props" />
+    <file src="xunit.runner.visualstudio\build\xunit.runner.visualstudio.uwp.targets"                               target="build\uap10.0\xunit.runner.visualstudio.targets" />
 
-    <file src="..\build\xunit.runner.visualstudio.dotnetcore.props"                                                                      target="build\netcoreapp1.0\xunit.runner.visualstudio.props" />
-    <file src="xunit.runner.visualstudio\bin\$Configuration$\netcoreapp1.0\publish\xunit.runner.visualstudio.dotnetcore.testadapter.dll" target="build\netcoreapp1.0\" />
-    <file src="xunit.runner.visualstudio\bin\$Configuration$\netcoreapp1.0\publish\xunit.runner.reporters.netcoreapp10.dll"              target="build\netcoreapp1.0\" />
-    <file src="xunit.runner.visualstudio\bin\$Configuration$\netcoreapp1.0\publish\xunit.runner.utility.netcoreapp10.dll"                target="build\netcoreapp1.0\" />
+    <file src="xunit.runner.visualstudio\bin\$Configuration$\netcoreapp1.0\publish\*.*"    target="build\netcoreapp1.0\" />
+    <file src="xunit.runner.visualstudio\build\xunit.runner.visualstudio.dotnetcore.props" target="build\netcoreapp1.0\xunit.runner.visualstudio.props" />
   </files>
 </package>
