@@ -1,7 +1,25 @@
 ﻿<Project Sdk="MSBuild.Sdk.Extras">
 
+  <PropertyGroup>
+    <Copyright>Copyright (c) .NET Foundation and Contributors.</Copyright>
+    <Authors>.NET Foundation and Contributors</Authors>
+    <Company>.NET Foundation</Company>
+    <Product>xUnit.net Testing Framework</Product>
+    <AssemblyTitle>xUnit.net Runner for Visual Studio ($(TargetFramework))</AssemblyTitle>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyOriginatorKeyFile>../signing.snk</AssemblyOriginatorKeyFile>
+    <DebugType>embedded</DebugType>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Xunit.Runner.VisualStudio</RootNamespace>
+    <SignAssembly>true</SignAssembly>
+    <TargetFrameworks>net452;netcoreapp1.0;uap10.0</TargetFrameworks>    
+    <WarningsAsErrors>true</WarningsAsErrors>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>    
+  </PropertyGroup>
+  
   <PropertyGroup Condition =" '$(TargetFramework)' == 'net452' ">
-    <AssemblyName>xunit.runner.visualstudio.testadapter</AssemblyName>
+    <AssemblyName>xunit.runner.visualstudio.testadapter</AssemblyName>    
     <DefineConstants>$(DefineConstants);NETFRAMEWORK</DefineConstants>
   </PropertyGroup>
 
@@ -14,19 +32,6 @@
   <PropertyGroup Condition =" '$(TargetFramework)' == 'uap10.0' ">
     <AssemblyName>xunit.runner.visualstudio.uwp.testadapter</AssemblyName>
     <DefineConstants>$(DefineConstants);WINDOWS_UAP</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyOriginatorKeyFile>../signing.snk</AssemblyOriginatorKeyFile>
-    <DebugType>embedded</DebugType>
-    <LangVersion>latest</LangVersion>
-    <RootNamespace>Xunit.Runner.VisualStudio</RootNamespace>
-    <SignAssembly>true</SignAssembly>
-    <TargetFrameworks>net452;netcoreapp1.0;uap10.0</TargetFrameworks>    
-    <WarningsAsErrors>true</WarningsAsErrors>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>    
   </PropertyGroup>
 
   <ItemGroup>
