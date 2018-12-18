@@ -1,0 +1,64 @@
+trigger:
+- master
+- rel/*
+
+pr:
+- master
+- rel/*
+
+pool:
+  vmImage: vs2017-win2016
+
+variables: 
+  BuildConfiguration: Release
+
+steps:
+- task: DotNetCoreCLI@2  
+  inputs:
+    command: custom
+    custom: tool
+    arguments: install --tool-path . nbgv
+  displayName: Install NBGV tool
+  
+- script: nbgv cloud
+  displayName: Set Version
+
+- task: MSBuild@1
+  displayName: Build
+  inputs:
+    solution: visualstudio.xunit.sln
+    msbuildArguments: /restore /p:UseDotNetNativeToolchain=false /p:PackageOutputPath=$(Build.ArtifactStagingDirectory)\CI
+    configuration: $(BuildConfiguration)
+    maximumCpuCount: true
+
+- task: MSBuild@1
+  displayName: Build for Test (ppdb) workaround
+  inputs:
+    solution: test/test.xunit.runner.visualstudio/test.xunit.runner.visualstudio.csproj
+    msbuildArguments: /t:build /p:DebugType=portable      
+    configuration: $(BuildConfiguration)
+    maximumCpuCount: true
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: test
+    projects: test/test.xunit.runner.visualstudio/test.xunit.runner.visualstudio.csproj
+    arguments: -c $(BuildConfiguration) --no-build --no-restore --collect:"Code Coverage" -s $(System.DefaultWorkingDirectory)/test/CodeCoverage.runsettings
+  displayName: Run Unit Tests
+
+- task: PowerShell@2
+  displayName: Authenticode Artifacts
+  inputs:
+    filePath: scripts/Sign-Package.ps1
+  env:
+    SignClientUser: $(SignClientUser)
+    SignClientSecret: $(SignClientSecret)
+    ArtifactDirectory: $(Build.ArtifactStagingDirectory)
+  condition: and(succeeded(), not(eq(variables['build.reason'], 'PullRequest')), not(eq(variables['SignClientSecret'], '')), not(eq(variables['SignClientUser'], '')))
+
+- task: PublishBuildArtifacts@1
+  displayName: Publish CI Artifacts
+  inputs:
+    pathToPublish: $(Build.ArtifactStagingDirectory)\CI
+    artifactType: container
+    artifactName: CI
