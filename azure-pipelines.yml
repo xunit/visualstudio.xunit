@@ -39,6 +39,16 @@ steps:
     configuration: $(BuildConfiguration)
     maximumCpuCount: true
 
+- task: DotNetCoreCLI@2
+  displayName: 'Publish netcoreapp1.0 version'
+  inputs:
+    command: publish
+    publishWebProjects: false
+    projects: src/xunit.runner.visualstudio/xunit.runner.visualstudio.csproj
+    arguments: '--framework netcoreapp1.0 --configuration $(BuildConfiguration)'
+    zipAfterPublish: false
+    modifyOutputPath: false
+
 - task: NuGetToolInstaller@0
   displayName: 'Use NuGet 4.9.2'
   inputs:
