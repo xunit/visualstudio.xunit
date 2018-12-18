@@ -25,6 +25,7 @@
     <BuildOutputTargetFolder>build</BuildOutputTargetFolder>
     <XunitVersion>2.4.1</XunitVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <NoWarn>$(NoWarn)1701;1702;NU5105</NoWarn>
   </PropertyGroup>
   
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net452' ">
