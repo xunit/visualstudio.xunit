@@ -23,14 +23,6 @@ steps:
 - script: nbgv cloud
   displayName: Set Version
 
-- powershell: |   
-    # version    
-    $ver = .\nbgv get-version -f json | ConvertFrom-Json
-        
-    $doc = Get-Content ".\src\xunit.runner.visualstudio.nuspec"
-    $doc | % { $_.Replace("99.99.99-dev", "$($ver.NuGetPackageVersion)") } | Set-Content ".\src\xunit.runner.visualstudio.nuspec"    
-  displayName: Update Versions
-
 - task: MSBuild@1
   displayName: Build
   inputs:
@@ -49,26 +41,13 @@ steps:
     zipAfterPublish: false
     modifyOutputPath: false
 
-- task: NuGetToolInstaller@0
-  displayName: 'Use NuGet 4.9.2'
+- task: MSBuild@1
+  displayName: Pack devices
   inputs:
-    versionSpec: 4.9.2
-
-- task: NuGetCommand@2
-  displayName: Pack
-  inputs:
-    command: pack
-    packagesToPack: src/xunit.runner.visualstudio.nuspec
+    solution: src/xunit.runner.visualstudio/xunit.runner.visualstudio.csproj
+    msbuildArguments: /t:pack /p:PackageOutputPath=$(Build.ArtifactStagingDirectory)\CI
     configuration: $(BuildConfiguration)
-    packDestination: $(Build.ArtifactStagingDirectory)\CI
-
-# - task: MSBuild@1
-#   displayName: Pack 
-#   inputs:
-#     solution: src/xunit.runner.visualstudio/xunit.runner.visualstudio.csproj
-#     msbuildArguments: /t:pack /p:PackageOutputPath=$(Build.ArtifactStagingDirectory)\CI
-#     configuration: $(BuildConfiguration)
-#     maximumCpuCount: true  
+    maximumCpuCount: true  
 
 - task: MSBuild@1
   displayName: Build for Test (ppdb) workaround
