@@ -27,6 +27,13 @@ Included items must then not match any entries in the exclude list to remain inc
                 <ModulePath>.*test.xunit.runner.visualstudio.dll$</ModulePath>
               </Exclude>
             </ModulePaths>
+            
+            <Functions>  
+              <Exclude>  
+                <!-- Exclude methods in a class or namespace named Internal: -->  
+                <Function>.*\.Internal\..*</Function>  
+              </Exclude>  
+            </Functions>
 
           </CodeCoverage>
         </Configuration>
