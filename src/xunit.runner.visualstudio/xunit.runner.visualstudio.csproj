@@ -14,32 +14,24 @@
   <PropertyGroup Condition =" '$(TargetFramework)' == 'uap10.0' ">
     <AssemblyName>xunit.runner.visualstudio.uwp.testadapter</AssemblyName>
     <DefineConstants>$(DefineConstants);WINDOWS_UAP</DefineConstants>
-    <TargetPlatformMinVersion>10.0.10240.0</TargetPlatformMinVersion>
-    <TargetPlatformVersion>10.0.10240.0</TargetPlatformVersion>
   </PropertyGroup>
 
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyOriginatorKeyFile>../signing.snk</AssemblyOriginatorKeyFile>
     <DebugType>embedded</DebugType>
-    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
-    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <LangVersion>latest</LangVersion>
     <RootNamespace>Xunit.Runner.VisualStudio</RootNamespace>
     <SignAssembly>true</SignAssembly>
-    <TargetFrameworks>net452;netcoreapp1.0;uap10.0</TargetFrameworks>
-    <VersionPrefix>99.99.99-dev</VersionPrefix>
+    <TargetFrameworks>net452;netcoreapp1.0;uap10.0</TargetFrameworks>    
     <WarningsAsErrors>true</WarningsAsErrors>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>    
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SourceLink.Create.CommandLine" Version="2.2" PrivateAssets="all" />
+    <PackageReference Include="Nerdbank.GitVersioning" Version="2.3.38" PrivateAssets="all" />  
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02" PrivateAssets="All" />
     <PackageReference Include="xunit.runner.reporters" Version="2.4.1" />
   </ItemGroup>
 
@@ -49,10 +41,7 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">
     <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="15.0.0" PrivateAssets="All" />
-    <PackageReference Include="NETStandard.Library" Version="1.6.0">
-      <!-- Suppress the warning about forced downgrade. This is caused by SourceLink.Create.CommandLine -->
-      <NoWarn>NU1605</NoWarn>
-    </PackageReference>
+    <PackageReference Include="NETStandard.Library" Version="1.6.0" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'uap10.0' ">
