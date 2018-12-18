@@ -31,8 +31,9 @@ Included items must then not match any entries in the exclude list to remain inc
             <Functions>  
               <Exclude>  
                 <!-- Exclude methods in a class or namespace named Internal: -->  
-                <Function>.*\.Internal\..*</Function>  
-              </Exclude>  
+                <Function>^Internal\..*</Function>
+                <Function>^Xunit\.Json.*</Function>  
+              </Exclude>
             </Functions>
 
           </CodeCoverage>
