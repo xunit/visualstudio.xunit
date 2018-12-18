@@ -43,7 +43,7 @@ steps:
   inputs:
     command: test
     projects: test/test.xunit.runner.visualstudio/test.xunit.runner.visualstudio.csproj
-    arguments: -c $(BuildConfiguration) --no-build --no-restore --collect:"Code Coverage" -s $(System.DefaultWorkingDirectory)/test/CodeCoverage.runsettings -- RunConfiguration.NoAutoReporters=true
+    arguments: -c $(BuildConfiguration) --no-build --no-restore --collect:"Code Coverage" -s $(System.DefaultWorkingDirectory)/test/CodeCoverage.runsettings
   displayName: Run Unit Tests
 
 - task: PowerShell@2
