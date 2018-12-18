@@ -15,7 +15,7 @@ namespace Xunit.Runner.VisualStudio
         readonly HashSet<string> knownTraits;
         List<string> supportedPropertyNames;
         ITestCaseFilterExpression filterExpression;
-        bool successfullyGotFilter;
+        readonly bool successfullyGotFilter;
 
         public TestCaseFilter(IRunContext runContext, LoggerHelper logger, string assemblyFileName, HashSet<string> knownTraits)
         {

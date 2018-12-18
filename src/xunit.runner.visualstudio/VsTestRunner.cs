@@ -29,8 +29,8 @@ namespace Xunit.Runner.VisualStudio
 #endif
     public class VsTestRunner : ITestDiscoverer, ITestExecutor
     {
-        static IRunnerReporter[] NoReporters = new IRunnerReporter[0];
-        static int PrintedHeader = 0;
+        static readonly IRunnerReporter[] NoReporters = new IRunnerReporter[0];
+        static int printedHeader = 0;
         public static TestProperty SerializedTestCaseProperty = GetTestProperty();
 
 #if WINDOWS_UAP || NETCOREAPP
@@ -39,7 +39,7 @@ namespace Xunit.Runner.VisualStudio
         static readonly AppDomainSupport AppDomainDefaultBehavior = AppDomainSupport.Required;
 #endif
 
-        static readonly HashSet<string> platformAssemblies = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        static readonly HashSet<string> PlatformAssemblies = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "microsoft.visualstudio.testplatform.unittestframework.dll",
             "microsoft.visualstudio.testplatform.core.dll",
@@ -108,7 +108,7 @@ namespace Xunit.Runner.VisualStudio
 
         static void PrintHeader(LoggerHelper loggerHelper)
         {
-            if (Interlocked.Exchange(ref PrintedHeader, 1) == 0)
+            if (Interlocked.Exchange(ref printedHeader, 1) == 0)
             {
 #if NETFRAMEWORK
                 var platform = $"Desktop .NET {Environment.Version}";
@@ -158,11 +158,11 @@ namespace Xunit.Runner.VisualStudio
                 var sourcePath = Environment.CurrentDirectory;
 #endif
                 sources = Directory.GetFiles(sourcePath, "*.dll")
-                                   .Where(file => !platformAssemblies.Contains(Path.GetFileName(file)))
+                                   .Where(file => !PlatformAssemblies.Contains(Path.GetFileName(file)))
                                    .ToList();
 
                 ((List<string>)sources).AddRange(Directory.GetFiles(sourcePath, "*.exe")
-                                       .Where(file => !platformAssemblies.Contains(Path.GetFileName(file))));
+                                       .Where(file => !PlatformAssemblies.Contains(Path.GetFileName(file))));
             }
 
             RunTests(
@@ -248,7 +248,7 @@ namespace Xunit.Runner.VisualStudio
             }
         }
 
-        private bool DiscoverTestsInSource<TVisitor>(XunitFrontController framework,
+        bool DiscoverTestsInSource<TVisitor>(XunitFrontController framework,
                                                      LoggerHelper logger,
                                                      TestPlatformContext testPlatformContext,
                                                      RunSettings runSettings,
@@ -358,7 +358,7 @@ namespace Xunit.Runner.VisualStudio
         static bool IsXunitTestAssembly(string assemblyFileName)
         {
             // Don't try to load ourselves (or any test framework assemblies), since we fail (issue #47 in xunit/xunit).
-            if (platformAssemblies.Contains(Path.GetFileName(assemblyFileName)))
+            if (PlatformAssemblies.Contains(Path.GetFileName(assemblyFileName)))
                 return false;
 
 #if NETCOREAPP
@@ -499,7 +499,7 @@ namespace Xunit.Runner.VisualStudio
                     if (runInfo.TestCases == null || !runInfo.TestCases.Any())
                     {
                         // Discover tests
-                        AssemblyDiscoveredInfo assemblyDiscoveredInfo = new AssemblyDiscoveredInfo();
+                        var assemblyDiscoveredInfo = new AssemblyDiscoveredInfo();
                         DiscoverTestsInSource(controller, logger, testPlatformContext, runSettings,
                             (source, discoverer, discoveryOptions) => new VsExecutionDiscoverySink(() => cancelled),
                             (source, discoverer, discoveryOptions, visitor) =>
@@ -565,7 +565,7 @@ namespace Xunit.Runner.VisualStudio
                                 logger.LogErrorWithSource(assemblyFileName, "Received null response from BulkDeserialize");
                             else
                             {
-                                for (int idx = 0; idx < runInfo.TestCases.Count; ++idx)
+                                for (var idx = 0; idx < runInfo.TestCases.Count; ++idx)
                                 {
                                     try
                                     {
@@ -633,7 +633,7 @@ namespace Xunit.Runner.VisualStudio
                                                  AssemblyRunInfo runInfo)
         {
             var @event = new ManualResetEvent(initialState: false);
-            Action handler = () =>
+            void handler()
             {
                 try
                 {
@@ -643,7 +643,7 @@ namespace Xunit.Runner.VisualStudio
                 {
                     @event.Set();
                 }
-            };
+            }
 
 #if WINDOWS_UAP
             var fireAndForget = Windows.System.Threading.ThreadPool.RunAsync(_ => handler());
@@ -796,7 +796,7 @@ namespace Xunit.Runner.VisualStudio
             var descriptors = descriptorProvider.GetTestCaseDescriptors(testCases, false);
             var results = new List<DiscoveredTestCase>(descriptors.Count);
 
-            for (int idx = 0; idx < descriptors.Count; ++idx)
+            for (var idx = 0; idx < descriptors.Count; ++idx)
             {
                 var testCase = new DiscoveredTestCase(source, descriptors[idx], testCases[idx], logger, testPlatformContext);
                 if (testCase.VSTestCase != null)
