@@ -18,17 +18,9 @@ $vsixs = gci $Env:ArtifactDirectory\*.vsix -Recurse | Select -ExpandProperty Ful
 foreach ($nupkg in $nupgks){
 	Write-Host "Submitting $nupkg for signing"
 
-	.\SignClient 'sign' -c $appSettings -i $nupkg -f $filter -r $env:SignClientUser -s $env:SignClientSecret -n 'xUnit.net' -d 'xUnit.net' -u 'https://github.com/xunit/devices.xunit' 
+	.\SignClient 'sign' -c $appSettings -i $nupkg -f $filter -r $env:SignClientUser -s $env:SignClientSecret -n 'xUnit.net' -d 'xUnit.net' -u 'https://github.com/xunit/visualstudio.xunit' 
 
 	Write-Host "Finished signing $nupkg"
-}
-
-foreach ($vsix in $vsixs){
-	Write-Host "Submitting $vsix for signing"
-
-	.\SignClient 'sign' -c $appSettings -i $vsix -f $filter -r $env:SignClientUser -s $env:SignClientSecret -n 'xUnit.net' -d 'xUnit.net' -u 'https://github.com/xunit/devices.xunit' 
-
-	Write-Host "Finished signing $vsix"
 }
 
 Write-Host "Sign-package complete"
