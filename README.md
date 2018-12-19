@@ -25,7 +25,7 @@ Easiest thing to do is add a `launchSettings.json` file that adds the `vstest.co
 
 With that as the startup project, you can set breakpoints and then hit them. You may need to manually load symbols the first time if it's not detected automatically.
 
-### `netcoreapp1.0`
+### `netcoreapp2.1`
 
 Debugging the .NET Core version of the runner is currently much more difficult. You'll need [Process Explorer](https://technet.microsoft.com/en-us/sysinternals/processexplorer.aspx) to help locate the correct process to debug. This limitation should be improved in subsequent .NET Test Platform releases.
 
