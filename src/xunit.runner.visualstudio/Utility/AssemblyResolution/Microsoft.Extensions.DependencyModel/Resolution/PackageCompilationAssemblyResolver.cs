@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation and contributors. All rights reserved.
+﻿// Copyright (c) .NET Foundation and contributors. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #if NETFRAMEWORK || NETCOREAPP
@@ -42,7 +42,7 @@ namespace Internal.Microsoft.Extensions.DependencyModel.Resolution
 
         internal static string[] GetDefaultProbeDirectories(Platform osPlatform, IEnvironment environment)
         {
-#if NETCOREAPP1_0
+#if NETCOREAPP
             var probeDirectories = AppContext.GetData("PROBING_DIRECTORIES");
 #else
             var probeDirectories = AppDomain.CurrentDomain.GetData("PROBING_DIRECTORIES");

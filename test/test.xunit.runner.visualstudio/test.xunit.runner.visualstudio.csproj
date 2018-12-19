@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
-    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="15.0.0" />
+    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="15.9.0" />
   </ItemGroup>
 
   <ItemGroup>
