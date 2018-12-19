@@ -13,11 +13,11 @@
     <LangVersion>latest</LangVersion>
     <RootNamespace>Xunit.Runner.VisualStudio</RootNamespace>
     <SignAssembly>true</SignAssembly>
-    <TargetFrameworks>net452;netcoreapp2.1;uap10.0</TargetFrameworks>    
+    <TargetFrameworks>net452;netcoreapp2.1;uap10.0.16299</TargetFrameworks>    
     <WarningsAsErrors>true</WarningsAsErrors>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <Description>Visual Studio 2012+ Test Explorer runner for the xUnit.net framework. Capable of running xUnit.net v1.9.2 and v2.0+ tests. Supports .NET 2.0 or later, .NET Core 1.0 or later, and Universal Windows 10.0 or later.</Description>
+    <Description>Visual Studio 2012+ Test Explorer runner for the xUnit.net framework. Capable of running xUnit.net v1.9.2 and v2.0+ tests. Supports .NET 2.0 or later, .NET Core 2.1 or later, and Universal Windows 10.0.16299 or later.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIconUrl>https://raw.githubusercontent.com/xunit/media/master/logo-512-transparent.png</PackageIconUrl>
     <PackageProjectUrl>https://github.com/xunit/visualstudio.xunit</PackageProjectUrl>
@@ -38,7 +38,7 @@
     <DefineConstants>$(DefineConstants);NETCOREAPP</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'uap10.0' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'uap10.0.16299' ">
     <AssemblyName>xunit.runner.visualstudio.uwp.testadapter</AssemblyName>
     <DefineConstants>$(DefineConstants);WINDOWS_UAP</DefineConstants>
   </PropertyGroup>
@@ -61,11 +61,12 @@
     <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\netcoreapp1.0\*.dll" PackagePath="build\netcoreapp2.1" Pack="true" Visible="false" />
     <None Include="$(NuGetPackageRoot)xunit.abstractions\2.0.3\lib\netstandard2.0\*.dll" PackagePath="build\netcoreapp2.1" Pack="true" Visible="false" />
     
-    <None Include="build\xunit.runner.visualstudio.uwp.props" PackagePath="build\uap10.0\xunit.runner.visualstudio.props" Pack="true" />
-    <None Include="build\xunit.runner.visualstudio.uwp.targets" PackagePath="build\uap10.0\xunit.runner.visualstudio.targets" Pack="true" />
-    <None Include="$(NuGetPackageRoot)xunit.runner.reporters\$(XunitVersion)\lib\netstandard1.1\*.dll" PackagePath="build\uap10.0" Pack="true" Visible="false" />
-    <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\uap10.0\*.dll" PackagePath="build\uap10.0" Pack="true" Visible="false" />
-    <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\uap10.0\*.pri" PackagePath="build\uap10.0" Pack="true" Visible="false" />
+    <None Include="build\xunit.runner.visualstudio.uwp.props" PackagePath="build\uap10.0.16299\xunit.runner.visualstudio.props" Pack="true" />
+    <None Include="build\xunit.runner.visualstudio.uwp.targets" PackagePath="build\uap10.0.16299\xunit.runner.visualstudio.targets" Pack="true" />
+    <None Include="$(NuGetPackageRoot)xunit.runner.reporters\$(XunitVersion)\lib\netstandard1.5\*.dll" PackagePath="build\uap10.0.16299" Pack="true" Visible="false" />
+    <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\netstandard1.5\*.dll" PackagePath="build\uap10.0.16299" Pack="true" Visible="false" />
+    <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\uap10.0\*.dll" PackagePath="build\uap10.0.16299" Pack="true" Visible="false" />
+    <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\uap10.0\*.pri" PackagePath="build\uap10.0.16299" Pack="true" Visible="false" />
   </ItemGroup>
 
 </Project>
