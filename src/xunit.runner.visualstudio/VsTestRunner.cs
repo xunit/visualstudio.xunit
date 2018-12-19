@@ -19,6 +19,7 @@ using Internal.Microsoft.Extensions.DependencyModel;
 
 namespace Xunit.Runner.VisualStudio
 {
+    [FileExtension(".msix")]
     [FileExtension(".appx")]
     [FileExtension(".dll")]
     [FileExtension(".exe")]
@@ -77,7 +78,7 @@ namespace Xunit.Runner.VisualStudio
             Guard.ArgumentNotNull("sources", sources);
             Guard.ArgumentNotNull("logger", logger);
             Guard.ArgumentNotNull("discoverySink", discoverySink);
-            Guard.ArgumentValid("sources", "AppX not supported for discovery", !ContainsAppX(sources));
+            Guard.ArgumentValid("sources", "AppX/MSIX not supported for discovery", !ContainsAppX(sources));
 
             var stopwatch = Stopwatch.StartNew();
             var loggerHelper = new LoggerHelper(logger, stopwatch);
@@ -210,7 +211,8 @@ namespace Xunit.Runner.VisualStudio
         // Helpers
 
         static bool ContainsAppX(IEnumerable<string> sources)
-            => sources.Any(s => string.Compare(Path.GetExtension(s), ".appx", StringComparison.OrdinalIgnoreCase) == 0);
+            => sources.Any(s => string.Compare(Path.GetExtension(s), ".appx", StringComparison.OrdinalIgnoreCase) == 0 ||
+                                string.Compare(Path.GetExtension(s), ".msix", StringComparison.OrdinalIgnoreCase) == 0);
 
         void DiscoverTests<TVisitor>(IEnumerable<string> sources,
                                      LoggerHelper logger,
