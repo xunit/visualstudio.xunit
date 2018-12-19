@@ -13,7 +13,7 @@
     <LangVersion>latest</LangVersion>
     <RootNamespace>Xunit.Runner.VisualStudio</RootNamespace>
     <SignAssembly>true</SignAssembly>
-    <TargetFrameworks>net452;netcoreapp1.0;uap10.0</TargetFrameworks>    
+    <TargetFrameworks>net452;netcoreapp2.1;uap10.0</TargetFrameworks>    
     <WarningsAsErrors>true</WarningsAsErrors>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -33,10 +33,9 @@
     <DefineConstants>$(DefineConstants);NETFRAMEWORK</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
     <AssemblyName>xunit.runner.visualstudio.dotnetcore.testadapter</AssemblyName>
     <DefineConstants>$(DefineConstants);NETCOREAPP</DefineConstants>
-    <RuntimeFrameworkVersion>1.0.0</RuntimeFrameworkVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'uap10.0' ">
@@ -47,20 +46,8 @@
   <ItemGroup>
     <PackageReference Include="Nerdbank.GitVersioning" Version="2.3.38" PrivateAssets="all" />  
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02" PrivateAssets="All" />
-    <PackageReference Include="xunit.runner.reporters" Version="$(XunitVersion)" PrivateAssets="All" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net452' ">
-    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="11.0.0" PrivateAssets="All" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">
-    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="15.0.0" PrivateAssets="All" />
-    <PackageReference Include="NETStandard.Library" Version="1.6.0" PrivateAssets="All" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'uap10.0' ">
-    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="11.0.0" PrivateAssets="All" />
+    <PackageReference Include="xunit.runner.reporters" Version="$(XunitVersion)" PrivateAssets="All" />    
+    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="15.9.0" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup Label="Package">
@@ -69,10 +56,10 @@
     <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\net452\*.dll" PackagePath="build\net452" Pack="true" Visible="false" />
     <None Include="$(NuGetPackageRoot)xunit.abstractions\2.0.3\lib\netstandard1.0\*.dll" PackagePath="build\net452" Pack="true" Visible="false" />
 
-    <None Include="build\xunit.runner.visualstudio.dotnetcore.props" PackagePath="build\netcoreapp1.0\xunit.runner.visualstudio.props" Pack="true" />
-    <None Include="$(NuGetPackageRoot)xunit.runner.reporters\$(XunitVersion)\lib\netcoreapp1.0\*.dll" PackagePath="build\netcoreapp1.0" Pack="true" Visible="false" />
-    <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\netcoreapp1.0\*.dll" PackagePath="build\netcoreapp1.0" Pack="true" Visible="false" />
-    <None Include="$(NuGetPackageRoot)xunit.abstractions\2.0.3\lib\netstandard1.0\*.dll" PackagePath="build\netcoreapp1.0" Pack="true" Visible="false" />
+    <None Include="build\xunit.runner.visualstudio.dotnetcore.props" PackagePath="build\netcoreapp2.1\xunit.runner.visualstudio.props" Pack="true" />
+    <None Include="$(NuGetPackageRoot)xunit.runner.reporters\$(XunitVersion)\lib\netcoreapp1.0\*.dll" PackagePath="build\netcoreapp2.1" Pack="true" Visible="false" />
+    <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\netcoreapp1.0\*.dll" PackagePath="build\netcoreapp2.1" Pack="true" Visible="false" />
+    <None Include="$(NuGetPackageRoot)xunit.abstractions\2.0.3\lib\netstandard2.0\*.dll" PackagePath="build\netcoreapp2.1" Pack="true" Visible="false" />
     
     <None Include="build\xunit.runner.visualstudio.uwp.props" PackagePath="build\uap10.0\xunit.runner.visualstudio.props" Pack="true" />
     <None Include="build\xunit.runner.visualstudio.uwp.targets" PackagePath="build\uap10.0\xunit.runner.visualstudio.targets" Pack="true" />
