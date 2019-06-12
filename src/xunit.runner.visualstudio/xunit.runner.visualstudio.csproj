@@ -44,7 +44,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nerdbank.GitVersioning" Version="2.3.167" PrivateAssets="all" />  
+    <PackageReference Include="Nerdbank.GitVersioning" Version="2.3.181" PrivateAssets="all" />  
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02" PrivateAssets="All" />
     <PackageReference Include="xunit.runner.reporters" Version="$(XunitVersion)" PrivateAssets="All" />    
     <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="15.9.0" PrivateAssets="All" />
