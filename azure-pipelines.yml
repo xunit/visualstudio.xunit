@@ -41,7 +41,7 @@ steps:
   inputs:
     command: test
     projects: test/test.xunit.runner.visualstudio/test.xunit.runner.visualstudio.csproj
-    arguments: -c $(BuildConfiguration) --no-build --no-restore --settings test/CodeCoverage.runsettings --collect:"XPlat Code Coverage"
+    arguments: -c $(BuildConfiguration) --no-build --no-restore --settings $(Build.SourcesDirectory)/test/CodeCoverage.runsettings --collect:"XPlat Code Coverage"
   displayName: Run Unit Tests
   
 - task: DotNetCoreCLI@2
