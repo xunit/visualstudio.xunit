@@ -9,7 +9,7 @@
        <DataCollector friendlyName="XPlat code coverage">
         <Configuration>
           <Format>cobertura</Format>
-          <Exclude>[xunit.core*]*,[xunit.execution*]*,[xunit.runner.rep*]*,[xunit.util*]*,[xunit.assert*]*,[xunit.abst*]*</Exclude> <!-- [Assembly-Filter]Type-Filter -->          
+          <Exclude>[xunit.core*]*,[xunit.execution*]*,[xunit.runner.rep*]*,[xunit.runner.util*]*,[xunit.assert*]*,[xunit.abst*]*</Exclude> <!-- [Assembly-Filter]Type-Filter -->          
           <ExcludeByAttribute>Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute</ExcludeByAttribute>
         </Configuration>
       </DataCollector>                 
