@@ -1,7 +1,6 @@
 <Project>
 
   <PropertyGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' ">
-    <DebugType>full</DebugType>
     <EnableUnmanagedDebugging>true</EnableUnmanagedDebugging>
   </PropertyGroup>
 
