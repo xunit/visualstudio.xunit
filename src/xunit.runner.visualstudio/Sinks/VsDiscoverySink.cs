@@ -40,6 +40,7 @@ namespace Xunit.Runner.VisualStudio
         readonly string source;
         readonly List<ITestCase> testCaseBatch = new List<ITestCase>();
         readonly TestPlatformContext testPlatformContext;
+        readonly TestCaseFilter testCaseFilter;
 
         public VsDiscoverySink(string source,
                                ITestFrameworkDiscoverer discoverer,
@@ -47,6 +48,7 @@ namespace Xunit.Runner.VisualStudio
                                ITestCaseDiscoverySink discoverySink,
                                ITestFrameworkDiscoveryOptions discoveryOptions,
                                TestPlatformContext testPlatformContext,
+                               TestCaseFilter testCaseFilter,
                                Func<bool> cancelThunk)
         {
             this.source = source;
@@ -55,6 +57,7 @@ namespace Xunit.Runner.VisualStudio
             this.discoverySink = discoverySink;
             this.discoveryOptions = discoveryOptions;
             this.testPlatformContext = testPlatformContext;
+            this.testCaseFilter = testCaseFilter;
             this.cancelThunk = cancelThunk;
 
             descriptorProvider = (discoverer as ITestCaseDescriptorProvider) ?? new DefaultTestCaseDescriptorProvider(discoverer);
@@ -205,7 +208,7 @@ namespace Xunit.Runner.VisualStudio
             foreach (var descriptor in descriptors)
             {
                 var vsTestCase = CreateVsTestCase(source, descriptor, logger, testPlatformContext);
-                if (vsTestCase != null)
+                if (vsTestCase != null && testCaseFilter.MatchTestCase(vsTestCase))
                 {
                     if (discoveryOptions.GetInternalDiagnosticMessagesOrDefault())
                         logger.LogWithSource(source, "Discovered test case '{0}' (ID = '{1}', VS FQN = '{2}')", descriptor.DisplayName, descriptor.UniqueID, vsTestCase.FullyQualifiedName);

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 
@@ -14,8 +15,9 @@ namespace Xunit.Runner.VisualStudio
 
         readonly HashSet<string> knownTraits;
         List<string> supportedPropertyNames;
-        ITestCaseFilterExpression filterExpression;
+        readonly ITestCaseFilterExpression filterExpression;
         readonly bool successfullyGotFilter;
+        readonly bool isDiscovery;
 
         public TestCaseFilter(IRunContext runContext, LoggerHelper logger, string assemblyFileName, HashSet<string> knownTraits)
         {
@@ -23,6 +25,16 @@ namespace Xunit.Runner.VisualStudio
             supportedPropertyNames = GetSupportedPropertyNames();
 
             successfullyGotFilter = GetTestCaseFilterExpression(runContext, logger, assemblyFileName, out filterExpression);
+        }
+
+        public TestCaseFilter(IDiscoveryContext discoveryContext, LoggerHelper logger)
+        {
+            // Traits are not known at discovery time because we load them from tests
+            isDiscovery = true;
+            knownTraits = new HashSet<string>();
+            supportedPropertyNames = GetSupportedPropertyNames();
+
+            successfullyGotFilter = GetTestCaseFilterExpressionFromDiscoveryContext(discoveryContext, logger, out filterExpression);
         }
 
         public bool MatchTestCase(TestCase testCase)
@@ -44,7 +56,7 @@ namespace Xunit.Runner.VisualStudio
         public object PropertyProvider(TestCase testCase, string name)
         {
             // Traits filtering
-            if (knownTraits.Contains(name))
+            if (isDiscovery || knownTraits.Contains(name))
             {
                 var result = new List<string>();
 
@@ -80,6 +92,50 @@ namespace Xunit.Runner.VisualStudio
             {
                 logger.LogWarning("{0}: Exception filtering tests: {1}", Path.GetFileNameWithoutExtension(assemblyFileName), e.Message);
                 return false;
+            }
+        }
+
+        bool GetTestCaseFilterExpressionFromDiscoveryContext(IDiscoveryContext discoveryContext, LoggerHelper logger, out ITestCaseFilterExpression filter)
+        {
+            filter = null;
+
+            if (discoveryContext is IRunContext runContext)
+            {
+                try
+                {
+                    filter = runContext.GetTestCaseFilter(supportedPropertyNames, null);
+                    return true;
+                }
+                catch (TestPlatformException e)
+                {
+                    logger.LogWarning("Exception filtering tests: {0}", e.Message);
+                    return false;
+                }
+            }
+            else
+            {
+                try
+                {
+
+#if WINDOWS_UAP
+                    // on UWP .Net Native Tool Chain we are not able to run methods via invoke, act like no filter was specified for UWP
+#else
+                    // GetTestCaseFilter is present on DiscoveryContext but not in IDiscoveryContext interface
+                    var method = discoveryContext.GetType().GetRuntimeMethod("GetTestCaseFilter", new[] { typeof(IEnumerable<string>), typeof(Func<string, TestProperty>) });
+                    filter = (ITestCaseFilterExpression)method?.Invoke(discoveryContext, new object[] { supportedPropertyNames, null });
+#endif
+                    return true;
+                }
+                catch (TargetInvocationException e)
+                {
+                    if (e?.InnerException is TestPlatformException ex)
+                    {
+                        logger.LogWarning("Exception filtering tests: {0}", ex.InnerException?.Message);
+                        return false;
+                    }
+
+                    throw e.InnerException;
+                }
             }
         }
 
