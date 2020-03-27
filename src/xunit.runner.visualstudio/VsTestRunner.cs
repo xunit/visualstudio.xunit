@@ -102,9 +102,8 @@ namespace Xunit.Runner.VisualStudio
             };
 
             var testCaseFilter = new TestCaseFilter(discoveryContext, loggerHelper);
-
             DiscoverTests(
-                sources, loggerHelper, testPlatformContext, runSettings, 
+                sources, loggerHelper, testPlatformContext, runSettings,
                 (source, discoverer, discoveryOptions) => new VsDiscoverySink(source, discoverer, loggerHelper, discoverySink, discoveryOptions, testPlatformContext, testCaseFilter, () => cancelled)
             );
         }

@@ -116,7 +116,6 @@ namespace Xunit.Runner.VisualStudio
             {
                 try
                 {
-
 #if WINDOWS_UAP
                     // on UWP .Net Native Tool Chain we are not able to run methods via invoke, act like no filter was specified for UWP
 #else
