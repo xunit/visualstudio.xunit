@@ -101,9 +101,10 @@ namespace Xunit.Runner.VisualStudio
                 RequireXunitTestProperty = true
             };
 
+            var testCaseFilter = new TestCaseFilter(discoveryContext, loggerHelper);
             DiscoverTests(
                 sources, loggerHelper, testPlatformContext, runSettings,
-                (source, discoverer, discoveryOptions) => new VsDiscoverySink(source, discoverer, loggerHelper, discoverySink, discoveryOptions, testPlatformContext, () => cancelled)
+                (source, discoverer, discoveryOptions) => new VsDiscoverySink(source, discoverer, loggerHelper, discoverySink, discoveryOptions, testPlatformContext, testCaseFilter, () => cancelled)
             );
         }
 
