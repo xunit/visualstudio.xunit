@@ -7,58 +7,104 @@ pr:
 - rel/*
 
 pool:
-  vmImage: vs2017-win2016
+  vmImage: windows-latest
 
 variables: 
   BuildConfiguration: Release
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
-steps:
-- task: DotNetCoreCLI@2  
-  inputs:
-    command: custom
-    custom: tool
-    arguments: install --tool-path . nbgv
-  displayName: Install NBGV tool
-  
-- script: nbgv cloud
-  displayName: Set Version
+stages:
+- stage: Build
+  jobs:
+  - job: Build
+    pool:
+      vmImage: windows-latest
 
-- task: MSBuild@1
-  displayName: Build
-  inputs:
-    solution: visualstudio.xunit.sln
-    msbuildArguments: /restore /p:UseDotNetNativeToolchain=false /p:PackageOutputPath=$(Build.ArtifactStagingDirectory)\CI
-    configuration: $(BuildConfiguration)
-    maximumCpuCount: true
+    variables:
+      BuildConfiguration: Release
 
-- task: MSBuild@1
-  displayName: Build for Test (ppdb) workaround
-  inputs:
-    solution: test/test.xunit.runner.visualstudio/test.xunit.runner.visualstudio.csproj
-    msbuildArguments: /t:build /p:DebugType=portable      
-    configuration: $(BuildConfiguration)
-    maximumCpuCount: true
+    steps:
+    - task: UseDotNet@2
+      displayName: Use .NET Core 3.1.x SDK
+      inputs:
+        version: 3.1.x
+        performMultiLevelLookup: true
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: test
-    projects: test/test.xunit.runner.visualstudio/test.xunit.runner.visualstudio.csproj
-    arguments: -c $(BuildConfiguration) --no-build --no-restore --collect:"Code Coverage" -s $(System.DefaultWorkingDirectory)/test/CodeCoverage.runsettings
-  displayName: Run Unit Tests
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: custom
+        custom: tool
+        arguments: install --tool-path . nbgv
+      displayName: Install NBGV tool
 
-- task: PowerShell@2
-  displayName: Authenticode Artifacts
-  inputs:
-    filePath: scripts/Sign-Package.ps1
-  env:
-    SignClientUser: $(SignClientUser)
-    SignClientSecret: $(SignClientSecret)
-    ArtifactDirectory: $(Build.ArtifactStagingDirectory)
-  condition: and(succeeded(), not(eq(variables['build.reason'], 'PullRequest')), not(eq(variables['SignClientSecret'], '')), not(eq(variables['SignClientUser'], '')))
+    - script: nbgv cloud
+      displayName: Set Version
 
-- task: PublishBuildArtifacts@1
-  displayName: Publish CI Artifacts
-  inputs:
-    pathToPublish: $(Build.ArtifactStagingDirectory)\CI
-    artifactType: container
-    artifactName: CI
+    - task: MSBuild@1
+      displayName: Build
+      inputs:
+        solution: visualstudio.xunit.sln
+        msbuildArguments: /restore /p:UseDotNetNativeToolchain=false /p:PackageOutputPath=$(Build.ArtifactStagingDirectory)\artifacts
+        configuration: $(BuildConfiguration)
+        maximumCpuCount: true
+
+    - task: MSBuild@1
+      displayName: Build for Test (ppdb) workaround
+      inputs:
+        solution: test/test.xunit.runner.visualstudio/test.xunit.runner.visualstudio.csproj
+        msbuildArguments: /t:build /p:DebugType=portable      
+        configuration: $(BuildConfiguration)
+        maximumCpuCount: true
+
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: test
+        projects: test/test.xunit.runner.visualstudio/test.xunit.runner.visualstudio.csproj
+        arguments: -c $(BuildConfiguration) --no-build --no-restore --collect:"Code Coverage" -s $(System.DefaultWorkingDirectory)/test/CodeCoverage.runsettings
+      displayName: Run Unit Tests
+
+    - publish: $(Build.ArtifactStagingDirectory)\artifacts
+      displayName: Publish build packages
+      artifact: BuildPackages
+
+    - publish: config
+      displayName: Publish signing config
+      artifact: config
+
+- stage: CodeSign
+  condition: and(succeeded('Build'), not(eq(variables['build.reason'], 'PullRequest')))
+  jobs:
+  - deployment: CodeSign
+    displayName: Code Signing
+    pool:
+      vmImage: windows-latest    
+    environment: Code Sign
+    variables:
+    - group: SignClient Credentials
+    strategy:
+      runOnce:
+        deploy:
+          steps: 
+          - task: DotNetCoreCLI@2
+            inputs:
+              command: custom
+              custom: tool
+              arguments: install --tool-path . SignClient
+            displayName: Install SignTool tool
+
+          - pwsh: |
+              .\SignClient "Sign" `
+              --baseDirectory "$(Pipeline.Workspace)\BuildPackages" `
+              --input "**/*.nupkg" `
+              --config "$(Pipeline.Workspace)\config\signclient.json" `
+              --filelist "$(Pipeline.Workspace)\config\filter.txt" `
+              --user "$(SignClientUser)" `
+              --secret "$(SignClientSecret)" `
+              --name "xUnit.net" `
+              --description "xUnit.net" `
+              --descriptionUrl "https://github.com/xunit/visualstudio.xunit"
+            displayName: Sign packages
+              
+          - publish: $(Pipeline.Workspace)/BuildPackages
+            displayName: Publish Signed Packages
+            artifact: SignedPackages
