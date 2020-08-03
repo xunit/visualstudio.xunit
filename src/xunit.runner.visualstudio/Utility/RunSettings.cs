@@ -113,7 +113,8 @@ namespace Xunit.Runner.VisualStudio
 
 #if NETCOREAPP
             return string.IsNullOrWhiteSpace(TargetFrameworkVersion) ||// Short circuit on null since we don't have anything to detect, return true
-                   (TargetFrameworkVersion.StartsWith(".NETCoreApp,", StringComparison.OrdinalIgnoreCase) ||
+                   (TargetFrameworkVersion.StartsWith("net5", StringComparison.OrdinalIgnoreCase) ||
+                   TargetFrameworkVersion.StartsWith(".NETCoreApp,", StringComparison.OrdinalIgnoreCase) ||
                    TargetFrameworkVersion.StartsWith("FrameworkCore10", StringComparison.OrdinalIgnoreCase));
 #elif WINDOWS_UAP
             return string.IsNullOrWhiteSpace(TargetFrameworkVersion) || // Short circuit on null since we don't have anything to detect, return true
