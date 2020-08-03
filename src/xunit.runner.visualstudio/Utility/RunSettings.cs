@@ -118,12 +118,12 @@ namespace Xunit.Runner.VisualStudio
                    TargetFrameworkVersion.StartsWith("FrameworkCore10", StringComparison.OrdinalIgnoreCase));
 #elif WINDOWS_UAP
             return string.IsNullOrWhiteSpace(TargetFrameworkVersion) || // Short circuit on null since we don't have anything to detect, return true
-                   TargetFrameworkVersion.StartsWith(".NETCore,", StringComparison.OrdinalIgnoreCase) ||
+                   (TargetFrameworkVersion.StartsWith(".NETCore,", StringComparison.OrdinalIgnoreCase) ||
                    TargetFrameworkVersion.StartsWith("Uap,", StringComparison.OrdinalIgnoreCase) ||
                    TargetFrameworkVersion.StartsWith("FrameworkUap10", StringComparison.OrdinalIgnoreCase));
 #else
             if (!string.IsNullOrWhiteSpace(TargetFrameworkVersion) && 
-                TargetFrameworkVersion.StartsWith(".NETCore", StringComparison.OrdinalIgnoreCase) ||
+                (TargetFrameworkVersion.StartsWith(".NETCore", StringComparison.OrdinalIgnoreCase) ||
                 TargetFrameworkVersion.StartsWith("Uap,", StringComparison.OrdinalIgnoreCase) ||
                 TargetFrameworkVersion.StartsWith("FrameworkCore10", StringComparison.OrdinalIgnoreCase) ||
                 TargetFrameworkVersion.StartsWith("FrameworkUap10", StringComparison.OrdinalIgnoreCase)))
