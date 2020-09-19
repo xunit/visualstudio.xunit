@@ -6,15 +6,16 @@
     <AssemblyTitle>xUnit.net Runner for Visual Studio ($(TargetFramework))</AssemblyTitle>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RootNamespace>Xunit.Runner.VisualStudio</RootNamespace>
-    <TargetFrameworks>net452;netcoreapp2.1;uap10.0.16299</TargetFrameworks>    
+    <TargetFrameworks>net472;netcoreapp2.1;uap10.0.16299</TargetFrameworks>    
     <WarningsAsErrors>true</WarningsAsErrors>
-    <Description>Visual Studio 2017 15.9+ Test Explorer runner for the xUnit.net framework. Capable of running xUnit.net v1.9.2 and v2.0+ tests. Supports .NET 2.0 or later, .NET Core 2.1 or later, and Universal Windows 10.0.16299 or later.</Description>
+    <Description>Visual Studio 2019 16.8+ Test Explorer runner for the xUnit.net framework. Capable of running xUnit.net v1.9.2 and v2.0+ tests. Supports .NET 2.0 or later, .NET Core 2.1 or later, and Universal Windows 10.0.16299 or later.</Description>
 
     <DevelopmentDependency>true</DevelopmentDependency>
     <BuildOutputTargetFolder>build</BuildOutputTargetFolder>
     <XunitVersion>2.4.1</XunitVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <NoWarn>$(NoWarn)1701;1702;NU5105</NoWarn>
+    <TargetPlatformVersion Condition=" '$(TargetFramework)' == 'uap10.0.16299' ">10.0.19041.0</TargetPlatformVersion>
   </PropertyGroup>
   
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net452' ">
