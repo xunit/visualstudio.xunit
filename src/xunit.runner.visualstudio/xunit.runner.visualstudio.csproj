@@ -42,11 +42,11 @@
     <None Include="build\xunit.runner.visualstudio.desktop.props" 
           PackagePath="build\net472\xunit.runner.visualstudio.props" 
           Pack="true" />
-    <None Include="$(NuGetPackageRoot)xunit.runner.reporters\$(XunitVersion)\lib\net472\*.dll" 
+    <None Include="$(NuGetPackageRoot)xunit.runner.reporters\$(XunitVersion)\lib\net452\*.dll" 
           PackagePath="build\net472" 
           Pack="true" 
           Visible="false" />
-    <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\net472\*.dll" 
+    <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\net452\*.dll" 
           PackagePath="build\net472" 
           Pack="true" 
           Visible="false" />
