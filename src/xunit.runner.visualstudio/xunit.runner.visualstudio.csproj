@@ -18,7 +18,7 @@
     <TargetPlatformVersion Condition=" '$(TargetFramework)' == 'uap10.0.16299' ">10.0.19041.0</TargetPlatformVersion>
   </PropertyGroup>
   
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net452' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net472' ">
     <AssemblyName>xunit.runner.visualstudio.testadapter</AssemblyName>    
     <DefineConstants>$(DefineConstants);NETFRAMEWORK</DefineConstants>
   </PropertyGroup>
@@ -40,18 +40,18 @@
 
   <ItemGroup Label="Package">
     <None Include="build\xunit.runner.visualstudio.desktop.props" 
-          PackagePath="build\net452\xunit.runner.visualstudio.props" 
+          PackagePath="build\net472\xunit.runner.visualstudio.props" 
           Pack="true" />
-    <None Include="$(NuGetPackageRoot)xunit.runner.reporters\$(XunitVersion)\lib\net452\*.dll" 
-          PackagePath="build\net452" 
+    <None Include="$(NuGetPackageRoot)xunit.runner.reporters\$(XunitVersion)\lib\net472\*.dll" 
+          PackagePath="build\net472" 
           Pack="true" 
           Visible="false" />
-    <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\net452\*.dll" 
-          PackagePath="build\net452" 
+    <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\net472\*.dll" 
+          PackagePath="build\net472" 
           Pack="true" 
           Visible="false" />
     <None Include="$(NuGetPackageRoot)xunit.abstractions\2.0.3\lib\netstandard1.0\*.dll" 
-          PackagePath="build\net452" 
+          PackagePath="build\net472" 
           Pack="true" 
           Visible="false" />
 
