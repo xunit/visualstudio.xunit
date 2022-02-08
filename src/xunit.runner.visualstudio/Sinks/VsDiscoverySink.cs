@@ -189,9 +189,16 @@ namespace Xunit.Runner.VisualStudio
 
         void HandleDiscoveryCompleteMessage(MessageHandlerArgs<IDiscoveryCompleteMessage> args)
         {
-            SendExistingTestCases();
-
-            Finished.Set();
+            try
+            {
+                SendExistingTestCases();
+            }
+            finally
+            {
+                // Set test discovery complete despite any potential issues 
+                // with sending test cases over. This would avoid causing test discovery to hang for the entire session.
+                Finished.Set();
+            }
 
             HandleCancellation(args);
         }
