@@ -79,7 +79,16 @@
     <None Include="..\..\License.txt" 
           PackagePath="License.txt" 
           Pack="true" />
-          
+
+    <None Include="build\_._" 
+          PackagePath="lib\net472" 
+          Pack="true" />
+    <None Include="build\_._" 
+          PackagePath="lib\netcoreapp3.1" 
+          Pack="true" />    
+    <None Include="build\_._" 
+          PackagePath="lib\uap10.0.16299" 
+          Pack="true" />    
           
     <None Include="build\xunit.runner.visualstudio.uwp.props" 
           PackagePath="build\uap10.0.16299\xunit.runner.visualstudio.props" 
