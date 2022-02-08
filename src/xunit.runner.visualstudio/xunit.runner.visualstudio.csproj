@@ -6,9 +6,9 @@
     <AssemblyTitle>xUnit.net Runner for Visual Studio ($(TargetFramework))</AssemblyTitle>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RootNamespace>Xunit.Runner.VisualStudio</RootNamespace>
-    <TargetFrameworks>net472;netcoreapp2.1;uap10.0.16299</TargetFrameworks>    
+    <TargetFrameworks>net472;netcoreapp3.1;uap10.0.16299</TargetFrameworks>    
     <WarningsAsErrors>true</WarningsAsErrors>
-    <Description>Visual Studio 2019 16.8+ Test Explorer runner for the xUnit.net framework. Capable of running xUnit.net v1.9.2 and v2.0+ tests. Supports .NET 2.0 or later, .NET Core 2.1 or later, and Universal Windows 10.0.16299 or later.</Description>
+    <Description>Visual Studio 2019 16.8+ Test Explorer runner for the xUnit.net framework. Capable of running xUnit.net v1.9.2 and v2.0+ tests. Supports .NET 4.7.2 or later, .NET Core 3.1 or later, and Universal Windows 10.0.16299 or later.</Description>
 
     <DevelopmentDependency>true</DevelopmentDependency>
     <BuildOutputTargetFolder>build</BuildOutputTargetFolder>
@@ -18,12 +18,12 @@
     <TargetPlatformVersion Condition=" '$(TargetFramework)' == 'uap10.0.16299' ">10.0.19041.0</TargetPlatformVersion>
   </PropertyGroup>
   
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net452' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net472' ">
     <AssemblyName>xunit.runner.visualstudio.testadapter</AssemblyName>    
     <DefineConstants>$(DefineConstants);NETFRAMEWORK</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' ">
     <AssemblyName>xunit.runner.visualstudio.dotnetcore.testadapter</AssemblyName>
     <DefineConstants>$(DefineConstants);NETCOREAPP</DefineConstants>
   </PropertyGroup>
@@ -40,34 +40,34 @@
 
   <ItemGroup Label="Package">
     <None Include="build\xunit.runner.visualstudio.desktop.props" 
-          PackagePath="build\net452\xunit.runner.visualstudio.props" 
+          PackagePath="build\net472\xunit.runner.visualstudio.props" 
           Pack="true" />
-    <None Include="$(NuGetPackageRoot)xunit.runner.reporters\$(XunitVersion)\lib\net452\*.dll" 
-          PackagePath="build\net452" 
+    <None Include="$(NuGetPackageRoot)xunit.runner.reporters\$(XunitVersion)\lib\net472\*.dll" 
+          PackagePath="build\net472" 
           Pack="true" 
           Visible="false" />
-    <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\net452\*.dll" 
-          PackagePath="build\net452" 
+    <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\net472\*.dll" 
+          PackagePath="build\net472" 
           Pack="true" 
           Visible="false" />
     <None Include="$(NuGetPackageRoot)xunit.abstractions\2.0.3\lib\netstandard1.0\*.dll" 
-          PackagePath="build\net452" 
+          PackagePath="build\net472" 
           Pack="true" 
           Visible="false" />
 
     <None Include="build\xunit.runner.visualstudio.dotnetcore.props" 
-          PackagePath="build\netcoreapp2.1\xunit.runner.visualstudio.props" 
+          PackagePath="build\netcoreapp3.1\xunit.runner.visualstudio.props" 
           Pack="true" />
     <None Include="$(NuGetPackageRoot)xunit.runner.reporters\$(XunitVersion)\lib\netcoreapp1.0\*.dll" 
-          PackagePath="build\netcoreapp2.1" 
+          PackagePath="build\netcoreapp3.1" 
           Pack="true" 
           Visible="false" />
     <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\netcoreapp1.0\*.dll" 
-          PackagePath="build\netcoreapp2.1" 
+          PackagePath="build\netcoreapp3.1" 
           Pack="true" 
           Visible="false" />
     <None Include="$(NuGetPackageRoot)xunit.abstractions\2.0.3\lib\netstandard2.0\*.dll" 
-          PackagePath="build\netcoreapp2.1" 
+          PackagePath="build\netcoreapp3.1" 
           Pack="true" 
           Visible="false" />
     
