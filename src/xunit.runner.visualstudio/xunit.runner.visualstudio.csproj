@@ -12,7 +12,6 @@
 
     <DevelopmentDependency>true</DevelopmentDependency>
     <BuildOutputTargetFolder>build</BuildOutputTargetFolder>
-    <XunitVersion>2.4.2-pre.12</XunitVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <NoWarn>$(NoWarn)1701;1702;NU5105</NoWarn>
     <TargetPlatformVersion Condition=" '$(TargetFramework)' == 'uap10.0.16299' ">10.0.19041.0</TargetPlatformVersion>
