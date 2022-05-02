@@ -17,6 +17,7 @@
     <TargetPlatformVersion Condition=" '$(TargetFramework)' == 'uap10.0.16299' ">10.0.19041.0</TargetPlatformVersion>
     <!-- Set the PackageId explicitly as our different AssemblyNames will cause restore errors otherwise -->
     <PackageId>xunit.runner.visualstudio</PackageId>
+    <XunitVersion>2.4.2-pre.12</XunitVersion>
   </PropertyGroup>
   
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net472' ">
