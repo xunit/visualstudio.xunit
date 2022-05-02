@@ -13,7 +13,8 @@
     <DebugType>embedded</DebugType>
     <LangVersion>latest</LangVersion>
     <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)src/signing.snk</AssemblyOriginatorKeyFile>        
+    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)src/signing.snk</AssemblyOriginatorKeyFile>    
+    <XunitVersion>2.4.2-pre.12</XunitVersion>
   </PropertyGroup>
 
   <ItemGroup>
