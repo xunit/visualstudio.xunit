@@ -2,7 +2,7 @@
 {
     public static class Constants
     {
-#if NET472
+#if NETFRAMEWORK
         public const string ExecutorUri = "executor://xunit/VsTestRunner2/net";
 #elif WINDOWS_UAP
         public const string ExecutorUri = "executor://xunit/VsTestRunner2/uap";
