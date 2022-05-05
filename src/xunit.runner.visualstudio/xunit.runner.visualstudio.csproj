@@ -37,7 +37,7 @@
 
   <ItemGroup>
     <PackageReference Include="xunit.runner.reporters" Version="$(XunitVersion)" PrivateAssets="All" />    
-    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="16.10.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="17.1.0" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup Label="Package">
