@@ -6,7 +6,7 @@
     <AssemblyTitle>xUnit.net Runner for Visual Studio ($(TargetFramework))</AssemblyTitle>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RootNamespace>Xunit.Runner.VisualStudio</RootNamespace>
-    <TargetFrameworks>net472;netcoreapp3.1;uap10.0.16299</TargetFrameworks>    
+    <TargetFrameworks>net462;netcoreapp3.1;uap10.0.16299</TargetFrameworks>    
     <WarningsAsErrors>true</WarningsAsErrors>
     <Description>Visual Studio 2019 16.8+ Test Explorer runner for the xUnit.net framework. Capable of running xUnit.net v1.9.2 and v2.0+ tests. Supports .NET 4.7.2 or later, .NET Core 3.1 or later, and Universal Windows 10.0.16299 or later.</Description>
 
@@ -17,10 +17,10 @@
     <TargetPlatformVersion Condition=" '$(TargetFramework)' == 'uap10.0.16299' ">10.0.19041.0</TargetPlatformVersion>
     <!-- Set the PackageId explicitly as our different AssemblyNames will cause restore errors otherwise -->
     <PackageId>xunit.runner.visualstudio</PackageId>
-    <XunitVersion>2.4.2-pre.12</XunitVersion>
+    <XunitVersion>2.4.2-pre.22</XunitVersion>
   </PropertyGroup>
   
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net472' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net462' ">
     <AssemblyName>xunit.runner.visualstudio.testadapter</AssemblyName>    
     <DefineConstants>$(DefineConstants);NETFRAMEWORK</DefineConstants>
   </PropertyGroup>
@@ -42,18 +42,18 @@
 
   <ItemGroup Label="Package">
     <None Include="build\xunit.runner.visualstudio.desktop.props" 
-          PackagePath="build\net472\xunit.runner.visualstudio.props" 
+          PackagePath="build\net462\xunit.runner.visualstudio.props" 
           Pack="true" />
     <None Include="$(NuGetPackageRoot)xunit.runner.reporters\$(XunitVersion)\lib\net452\*.dll" 
-          PackagePath="build\net472" 
+          PackagePath="build\net462" 
           Pack="true" 
           Visible="false" />
     <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\net452\*.dll" 
-          PackagePath="build\net472" 
+          PackagePath="build\net462" 
           Pack="true" 
           Visible="false" />
     <None Include="$(NuGetPackageRoot)xunit.abstractions\2.0.3\lib\netstandard1.0\*.dll" 
-          PackagePath="build\net472" 
+          PackagePath="build\net462" 
           Pack="true" 
           Visible="false" />
 
@@ -81,7 +81,7 @@
           Pack="true" />
 
     <None Include="build\_._" 
-          PackagePath="lib\net472" 
+          PackagePath="lib\net462" 
           Pack="true" />
     <None Include="build\_._" 
           PackagePath="lib\netcoreapp3.1" 

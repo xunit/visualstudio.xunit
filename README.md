@@ -6,9 +6,9 @@ To open an issue for this project, please visit the [core xUnit.net project issu
 
 ## Debugging
 
-Debugging the VS Adapter is tricky. There are two ways to do it depending on whether you want to do it under `net472` or `netcoreapp3.1`. In all cases, you'll currently need to build your own test adapter NuGet package using `build.ps1`, `build.ps1 Packages` first to ensure you have local symbols. The symbols are not in the public package. It's helpful to add it to a local `\packages` directory and then use an entry like `<add key="Local Packages" value=".\packages" />` in your `NuGet.config` file to point to it. Don't forget to eventually delete it from your global profile `.nuget\packages\xunit...` when you're done.
+Debugging the VS Adapter is tricky. There are two ways to do it depending on whether you want to do it under `net462` or `netcoreapp3.1`. In all cases, you'll currently need to build your own test adapter NuGet package using `build.ps1`, `build.ps1 Packages` first to ensure you have local symbols. The symbols are not in the public package. It's helpful to add it to a local `\packages` directory and then use an entry like `<add key="Local Packages" value=".\packages" />` in your `NuGet.config` file to point to it. Don't forget to eventually delete it from your global profile `.nuget\packages\xunit...` when you're done.
 
-### `net472`
+### `net462`
 Easiest thing to do is add a `launchSettings.json` file that adds the `vstest.console.exe` as a startup project and point it to an xunit dll. Something like the following (use `/listtests` if you just want to debug the discovery portion):
 
 ```json
@@ -16,7 +16,7 @@ Easiest thing to do is add a `launchSettings.json` file that adds the `vstest.co
   "profiles": {
     "vstest console": {
       "executablePath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow\\vstest.console.exe",
-      "commandLineArgs": ".\\bin\\Debug\\net472\\Tests.System.Reactive.dll /TestAdapterPath:.\\bin\\Debug\\net472 /listtests",
+      "commandLineArgs": ".\\bin\\Debug\\net462\\Tests.System.Reactive.dll /TestAdapterPath:.\\bin\\Debug\\net462 /listtests",
       "workingDirectory": "C:\\dev\\RxNET\\Rx.NET\\Source\\Tests.System.Reactive\\"
     }
   }
