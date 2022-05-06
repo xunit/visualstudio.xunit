@@ -1,6 +1,6 @@
 ## About This Project
 
-This project contains the Visual Studio runner for xUnit.net. It supports the built-in Test Explorer feature in Visual Studio 2019 16.10 and later. It supports .NET 6.0, .NET Framework 4.7.2, Windows UWP 10.0.16299). It can run tests from xUnit.net 1.9.2 and later.
+This project contains the Visual Studio runner for xUnit.net. It supports the built-in Test Explorer feature in Visual Studio 2019 16.10 and later. It supports .NET 6.0, .NET Framework 4.6.2, Windows UWP 10.0.16299). It can run tests from xUnit.net 1.9.2 and later.
 
 To open an issue for this project, please visit the [core xUnit.net project issue tracker](https://github.com/xunit/xunit/issues).
 
