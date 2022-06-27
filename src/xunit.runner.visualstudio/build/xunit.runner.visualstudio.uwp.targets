@@ -8,8 +8,8 @@
       <xUnitVsLibs Include="$(MSBuildThisFileDirectory)xunit.runner.visualstudio.uwp.testadapter.pri">
         <TargetPath>xunit.runner.visualstudio.uwp.testadapter.pri</TargetPath>
       </xUnitVsLibs>
-      <xUnitVsLibs Include="$(MSBuildThisFileDirectory)xunit.runner.reporters.netstandard11.dll">
-        <TargetPath>xunit.runner.reporters.netstandard11.dll</TargetPath>
+      <xUnitVsLibs Include="$(MSBuildThisFileDirectory)xunit.runner.reporters.netstandard15.dll">
+        <TargetPath>xunit.runner.reporters.netstandard15.dll</TargetPath>
       </xUnitVsLibs>
       <xUnitVsLibs Include="$(MSBuildThisFileDirectory)xunit.runner.utility.uwp10.dll">
         <TargetPath>xunit.runner.utility.uwp10.dll</TargetPath>
