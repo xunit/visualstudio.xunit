@@ -111,7 +111,7 @@
     <!-- I don't know where these are coming from, but older 4.0 versions are being included and causing downgrades -->
     <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
     <PackageReference Include="System.ComponentModel.Primitives" Version="4.3.0" />
-    <PackageReference Include="xunit" Version="2.4.2-pre.22" />
+    <PackageReference Include="xunit" Version="2.4.2-pre.25" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
