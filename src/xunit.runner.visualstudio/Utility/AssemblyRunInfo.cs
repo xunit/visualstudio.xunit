@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 
 namespace Xunit.Runner.VisualStudio

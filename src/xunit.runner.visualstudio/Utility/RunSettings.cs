@@ -122,7 +122,7 @@ namespace Xunit.Runner.VisualStudio
                    TargetFrameworkVersion.StartsWith("Uap,", StringComparison.OrdinalIgnoreCase) ||
                    TargetFrameworkVersion.StartsWith("FrameworkUap10", StringComparison.OrdinalIgnoreCase));
 #else
-            if (!string.IsNullOrWhiteSpace(TargetFrameworkVersion) && 
+            if (!string.IsNullOrWhiteSpace(TargetFrameworkVersion) &&
                 (TargetFrameworkVersion.StartsWith(".NETCore", StringComparison.OrdinalIgnoreCase) ||
                 TargetFrameworkVersion.StartsWith("Uap,", StringComparison.OrdinalIgnoreCase) ||
                 TargetFrameworkVersion.StartsWith("FrameworkCore10", StringComparison.OrdinalIgnoreCase) ||

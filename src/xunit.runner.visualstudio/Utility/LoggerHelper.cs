@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
 using System.IO;
+
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
+
 using Xunit.Abstractions;
 
 public class LoggerHelper

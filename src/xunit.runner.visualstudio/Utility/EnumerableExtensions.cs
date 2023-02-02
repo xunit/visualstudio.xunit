@@ -1,4 +1,4 @@
-namespace System.Collections.Generic
+﻿namespace System.Collections.Generic
 {
     internal static class EnumerableExtensions
     {

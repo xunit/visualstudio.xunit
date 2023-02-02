@@ -20,7 +20,7 @@ namespace test.harness
 
     public class ConcreteGenericTest : GenericTestBase<string>
     {
-        
+
     }
 
     public abstract class GenericTestBase<T>
@@ -28,7 +28,7 @@ namespace test.harness
         [Fact]
         public void SomeTest()
         {
-        
+
         }
 
     }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Engine;
@@ -20,22 +21,22 @@ namespace test.harness.uwp
         public void HandleDiscoveryComplete(DiscoveryCompleteEventArgs discoveryCompleteEventArgs, IEnumerable<TestCase> lastChunk)
         {
             TestCases.AddRange(lastChunk);
-            OnDiscoveryCompleted?.Invoke(this, EventArgs.Empty); 
+            OnDiscoveryCompleted?.Invoke(this, EventArgs.Empty);
         }
 
         public void HandleLogMessage(TestMessageLevel level, string message)
         {
-            
+
         }
 
         public void HandleRawMessage(string rawMessage)
         {
-            
+
         }
 
         public List<TestCase> TestCases { get; } = new List<TestCase>();
 
-        public event EventHandler OnDiscoveryCompleted; 
+        public event EventHandler OnDiscoveryCompleted;
     }
 
     class MockTestCaseEventsHandler : ITestCaseEventsHandler
@@ -65,27 +66,27 @@ namespace test.harness.uwp
     {
         public void HandleLogMessage(TestMessageLevel level, string message)
         {
-            
+
         }
 
         public void HandleRawMessage(string rawMessage)
         {
-            
+
         }
 
         public void HandleTestRunComplete(TestRunCompleteEventArgs testRunCompleteArgs, TestRunChangedEventArgs lastChunkArgs, ICollection<AttachmentSet> runContextAttachments, ICollection<string> executorUris)
         {
-            
+
         }
 
         public void HandleTestRunStatsChange(TestRunChangedEventArgs testRunChangedArgs)
         {
-            
+
         }
 
         public int LaunchProcessWithDebuggerAttached(TestProcessStartInfo testProcessStartInfo)
         {
-            return 0;   
+            return 0;
         }
     }
 }
