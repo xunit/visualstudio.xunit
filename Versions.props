@@ -1,0 +1,7 @@
+<Project>
+
+  <PropertyGroup>
+    <XunitVersion>2.4.2</XunitVersion>
+  </PropertyGroup>
+
+</Project>
