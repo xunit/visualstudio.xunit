@@ -1,9 +1,11 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
+
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
+
 using NSubstitute;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Runner.VisualStudio;
@@ -13,7 +15,7 @@ public class RunnerReporterTests
     public class TestRunnerReporterNotEnabled : IRunnerReporter
     {
         string IRunnerReporter.Description
-            => throw new NotImplementedException();
+            => "Not auto-enabled runner";
 
         bool IRunnerReporter.IsEnvironmentallyEnabled
             => false;
@@ -22,7 +24,7 @@ public class RunnerReporterTests
             => "notautoenabled";
 
         IMessageSink IRunnerReporter.CreateMessageHandler(IRunnerLogger logger)
-            => throw new NotImplementedException();
+            => new NullMessageSink();
     }
 
     public class TestRunnerReporter : TestRunnerReporterNotEnabled, IRunnerReporter
