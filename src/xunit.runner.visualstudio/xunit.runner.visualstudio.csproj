@@ -36,7 +36,7 @@
 
   <ItemGroup>
     <PackageReference Include="xunit.runner.reporters" Version="$(XunitVersion)" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="17.4.1" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="17.5.0" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup Label="Package">
@@ -64,5 +64,53 @@
     <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\uap10.0\*.dll" PackagePath="build\uap10.0.16299" Pack="true" Visible="false" />
     <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\uap10.0\*.pri" PackagePath="build\uap10.0.16299" Pack="true" Visible="false" />
   </ItemGroup>
+
+  <!-- Support deterministic builds (via https://github.com/clairernovotny/DeterministicBuilds) -->
+  <PropertyGroup>
+    <ContinuousIntegrationBuild Condition=" '$(GITHUB_ACTIONS)' == 'true' ">true</ContinuousIntegrationBuild>
+    <TargetFrameworkMonikerAssemblyAttributesPath>$([System.IO.Path]::Combine('$(IntermediateOutputPath)','$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)'))</TargetFrameworkMonikerAssemblyAttributesPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedFiles Include="$(GeneratedAssemblyInfoFile)"/>
+  </ItemGroup>
+
+  <!-- Supplement Nerdbank.GitVersioning version calculations -->
+  <Target Name="UpdateAssemblyVersionInfo" BeforeTargets="GenerateAssemblyVersionInfo" DependsOnTargets="GetBuildVersion">
+    <PropertyGroup>
+      <!-- Local builds should have a '-dev' suffix on the build number -->
+      <PrereleaseSuffix Condition=" '$(GITHUB_ACTIONS)' != 'true' ">-dev</PrereleaseSuffix>
+      <!-- AssemblyVersion and AssemblyFileVersion should be x.y.z.0 -->
+      <AssemblyVersion>$(BuildVersionSimple)</AssemblyVersion>
+      <AssemblyFileVersion>$(BuildVersionSimple)</AssemblyFileVersion>
+      <!-- Always put the Git hash in the informational version, even for non-pre-release versions -->
+      <AssemblyInformationalVersion>$(BuildVersionSimple)$(PrereleaseVersion)$(PrereleaseSuffix)+$(GitCommitIdShort)</AssemblyInformationalVersion>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="UpdateNuSpecProperties" BeforeTargets="GenerateNuspec" DependsOnTargets="GetBuildVersion">
+    <ReadLinesFromFile File="$(MSBuildThisFileDirectory)..\.git\modules\src\xunit.v3.assert\Asserts\HEAD">
+      <Output TaskParameter="Lines" PropertyName="GitAssertModuleCommitId"/>
+    </ReadLinesFromFile>
+    <PropertyGroup>
+      <!-- Local builds should have a '-dev' suffix on the build number -->
+      <PrereleaseSuffix Condition=" '$(GITHUB_ACTIONS)' != 'true' ">-dev</PrereleaseSuffix>
+      <!-- Never put the Git hash in the package version -->
+      <PackageVersion>$(BuildVersionSimple)$(PrereleaseVersion)$(PrereleaseSuffix)</PackageVersion>
+      <!-- Pass through values we don't know ahead of time for any hand-crafted .nuspec files -->
+      <NuspecProperties>
+        Configuration=$(Configuration);
+        GitAssertModuleCommitId=$(GitAssertModuleCommitId);
+        GitCommitId=$(GitCommitId);
+        MicrosoftBclAsyncInterfacesVersion=$(MicrosoftBclAsyncInterfacesVersion);
+        MonoCecilVersion=$(MonoCecilVersion);
+        PackageVersion=$(PackageVersion);
+        SystemIoPipelinesVersion=$(SystemIoPipelinesVersion);
+        SystemNetHttpVersion=$(SystemNetHttpVersion);
+        SystemThreadingTasksExtensionsVersion=$(SystemThreadingTasksExtensionsVersion);
+        XunitAbstractionsVersion=$(XunitAbstractionsVersion);
+        XunitAnalyzersVersion=$(XunitAnalyzersVersion);
+      </NuspecProperties>
+    </PropertyGroup>
+  </Target>
 
 </Project>
