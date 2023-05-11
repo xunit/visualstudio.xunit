@@ -20,7 +20,7 @@ Unless otherwise noted, the source code here is covered by the following license
 The code in src/xunit.runner.visualstudio/Utility/AssemblyResolution/Microsoft.DotNet.PlatformAbstractions was imported from:
     https://github.com/dotnet/core-setup/tree/v2.0.1/src/managed/Microsoft.DotNet.PlatformAbstractions
 
-The code in src/xunit.runner.visualstudio/Utility/AssemblyResolution/Microsoft.DotNet.PlatformAbstractions was imported from:
+The code in src/xunit.runner.visualstudio/Utility/AssemblyResolution/Microsoft.Extensions.DependencyModel was imported from:
     https://github.com/dotnet/core-setup/tree/v2.0.1/src/managed/Microsoft.Extensions.DependencyModel
 
 Both sets of code are covered by the following license:
