@@ -1,4 +1,4 @@
-﻿<Project Sdk="MSBuild.Sdk.Extras">
+<Project Sdk="MSBuild.Sdk.Extras">
 
   <PropertyGroup>
 
@@ -36,7 +36,7 @@
 
   <ItemGroup>
     <PackageReference Include="xunit.runner.reporters" Version="$(XunitVersion)" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="17.4.1" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="17.6.0" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup Label="Package">
