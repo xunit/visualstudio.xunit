@@ -60,16 +60,7 @@
     <TargetFrameworkMonikerAssemblyAttributesPath>$([System.IO.Path]::Combine('$(IntermediateOutputPath)','$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)'))</TargetFrameworkMonikerAssemblyAttributesPath>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedFiles Include="$(GeneratedAssemblyInfoFile)"/>
-  </ItemGroup>
-
-  <!-- Support deterministic builds (via https://github.com/clairernovotny/DeterministicBuilds) -->
-  <PropertyGroup>
-    <ContinuousIntegrationBuild Condition=" '$(GITHUB_ACTIONS)' == 'true' ">true</ContinuousIntegrationBuild>
-    <TargetFrameworkMonikerAssemblyAttributesPath>$([System.IO.Path]::Combine('$(IntermediateOutputPath)','$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)'))</TargetFrameworkMonikerAssemblyAttributesPath>
-  </PropertyGroup>
-  <ItemGroup>
-    <EmbeddedFiles Include="$(GeneratedAssemblyInfoFile)"/>
+    <EmbeddedFiles Include="$(GeneratedAssemblyInfoFile)" />
   </ItemGroup>
 
   <!-- Supplement Nerdbank.GitVersioning version calculations -->
@@ -87,7 +78,7 @@
 
   <Target Name="UpdateNuSpecProperties" BeforeTargets="GenerateNuspec" DependsOnTargets="GetBuildVersion">
     <ReadLinesFromFile File="$(MSBuildThisFileDirectory)..\.git\modules\src\xunit.v3.assert\Asserts\HEAD">
-      <Output TaskParameter="Lines" PropertyName="GitAssertModuleCommitId"/>
+      <Output TaskParameter="Lines" PropertyName="GitAssertModuleCommitId" />
     </ReadLinesFromFile>
     <PropertyGroup>
       <!-- Local builds should have a '-dev' suffix on the build number -->
