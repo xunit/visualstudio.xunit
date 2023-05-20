@@ -1,164 +1,173 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 
-namespace Xunit.Runner.VisualStudio
+namespace Xunit.Runner.VisualStudio;
+
+public class TestCaseFilter
 {
-    public class TestCaseFilter
-    {
-        const string DisplayNameString = "DisplayName";
-        const string FullyQualifiedNameString = "FullyQualifiedName";
+	const string DisplayNameString = "DisplayName";
+	const string FullyQualifiedNameString = "FullyQualifiedName";
 
-        readonly HashSet<string> knownTraits;
-        List<string> supportedPropertyNames;
-        readonly ITestCaseFilterExpression filterExpression;
-        readonly bool successfullyGotFilter;
-        readonly bool isDiscovery;
+	readonly HashSet<string> knownTraits;
+	List<string> supportedPropertyNames;
+	readonly ITestCaseFilterExpression filterExpression;
+	readonly bool successfullyGotFilter;
+	readonly bool isDiscovery;
 
-        public TestCaseFilter(IRunContext runContext, LoggerHelper logger, string assemblyFileName, HashSet<string> knownTraits)
-        {
-            this.knownTraits = knownTraits;
-            supportedPropertyNames = GetSupportedPropertyNames();
+	public TestCaseFilter(
+		IRunContext runContext,
+		LoggerHelper logger,
+		string assemblyFileName,
+		HashSet<string> knownTraits)
+	{
+		this.knownTraits = knownTraits;
+		supportedPropertyNames = GetSupportedPropertyNames();
 
-            successfullyGotFilter = GetTestCaseFilterExpression(runContext, logger, assemblyFileName, out filterExpression);
-        }
+		successfullyGotFilter = GetTestCaseFilterExpression(runContext, logger, assemblyFileName, out filterExpression);
+	}
 
-        public TestCaseFilter(IDiscoveryContext discoveryContext, LoggerHelper logger)
-        {
-            // Traits are not known at discovery time because we load them from tests
-            isDiscovery = true;
-            knownTraits = new HashSet<string>();
-            supportedPropertyNames = GetSupportedPropertyNames();
+	public TestCaseFilter(
+		IDiscoveryContext discoveryContext,
+		LoggerHelper logger)
+	{
+		// Traits are not known at discovery time because we load them from tests
+		isDiscovery = true;
+		knownTraits = new HashSet<string>();
+		supportedPropertyNames = GetSupportedPropertyNames();
 
-            successfullyGotFilter = GetTestCaseFilterExpressionFromDiscoveryContext(discoveryContext, logger, out filterExpression);
-        }
+		successfullyGotFilter = GetTestCaseFilterExpressionFromDiscoveryContext(discoveryContext, logger, out filterExpression);
+	}
 
-        public bool MatchTestCase(TestCase testCase)
-        {
-            if (!successfullyGotFilter)
-            {
-                // Had an error while getting filter, match no testcase to ensure discovered test list is empty
-                return false;
-            }
-            else if (filterExpression == null)
-            {
-                // No filter specified, keep every testcase
-                return true;
-            }
+	public bool MatchTestCase(TestCase testCase)
+	{
+		if (!successfullyGotFilter)
+		{
+			// Had an error while getting filter, match no testcase to ensure discovered test list is empty
+			return false;
+		}
+		else if (filterExpression == null)
+		{
+			// No filter specified, keep every testcase
+			return true;
+		}
 
-            return filterExpression.MatchTestCase(testCase, (p) => PropertyProvider(testCase, p));
-        }
+		return filterExpression.MatchTestCase(testCase, (p) => PropertyProvider(testCase, p));
+	}
 
-        public object PropertyProvider(TestCase testCase, string name)
-        {
-            // Traits filtering
-            if (isDiscovery || knownTraits.Contains(name))
-            {
-                var result = new List<string>();
+	public object PropertyProvider(
+		TestCase testCase,
+		string name)
+	{
+		// Traits filtering
+		if (isDiscovery || knownTraits.Contains(name))
+		{
+			var result = new List<string>();
 
-                foreach (var trait in GetTraits(testCase))
-                    if (string.Equals(trait.Key, name, StringComparison.OrdinalIgnoreCase))
-                        result.Add(trait.Value);
+			foreach (var trait in GetTraits(testCase))
+				if (string.Equals(trait.Key, name, StringComparison.OrdinalIgnoreCase))
+					result.Add(trait.Value);
 
-                if (result.Count > 0)
-                    return result.ToArray();
-            }
-            else
-            {
-                // Handle the displayName and fullyQualifierNames independently
-                if (string.Equals(name, FullyQualifiedNameString, StringComparison.OrdinalIgnoreCase))
-                    return testCase.FullyQualifiedName;
-                if (string.Equals(name, DisplayNameString, StringComparison.OrdinalIgnoreCase))
-                    return testCase.DisplayName;
-            }
+			if (result.Count > 0)
+				return result.ToArray();
+		}
+		else
+		{
+			// Handle the displayName and fullyQualifierNames independently
+			if (string.Equals(name, FullyQualifiedNameString, StringComparison.OrdinalIgnoreCase))
+				return testCase.FullyQualifiedName;
+			if (string.Equals(name, DisplayNameString, StringComparison.OrdinalIgnoreCase))
+				return testCase.DisplayName;
+		}
 
-            return null;
-        }
+		return null;
+	}
 
-        bool GetTestCaseFilterExpression(IRunContext runContext, LoggerHelper logger, string assemblyFileName, out ITestCaseFilterExpression filter)
-        {
-            filter = null;
+	bool GetTestCaseFilterExpression(
+		IRunContext runContext,
+		LoggerHelper logger,
+		string assemblyFileName,
+		out ITestCaseFilterExpression filter)
+	{
+		filter = null;
 
-            try
-            {
-                filter = runContext.GetTestCaseFilter(supportedPropertyNames, null);
-                return true;
-            }
-            catch (TestPlatformFormatException e)
-            {
-                logger.LogWarning("{0}: Exception filtering tests: {1}", Path.GetFileNameWithoutExtension(assemblyFileName), e.Message);
-                return false;
-            }
-        }
+		try
+		{
+			filter = runContext.GetTestCaseFilter(supportedPropertyNames, null);
+			return true;
+		}
+		catch (TestPlatformFormatException e)
+		{
+			logger.LogWarning("{0}: Exception filtering tests: {1}", Path.GetFileNameWithoutExtension(assemblyFileName), e.Message);
+			return false;
+		}
+	}
 
-        bool GetTestCaseFilterExpressionFromDiscoveryContext(IDiscoveryContext discoveryContext, LoggerHelper logger, out ITestCaseFilterExpression filter)
-        {
-            filter = null;
+	bool GetTestCaseFilterExpressionFromDiscoveryContext(
+		IDiscoveryContext discoveryContext,
+		LoggerHelper logger,
+		out ITestCaseFilterExpression filter)
+	{
+		filter = null;
 
-            if (discoveryContext is IRunContext runContext)
-            {
-                try
-                {
-                    filter = runContext.GetTestCaseFilter(supportedPropertyNames, null);
-                    return true;
-                }
-                catch (TestPlatformException e)
-                {
-                    logger.LogWarning("Exception filtering tests: {0}", e.Message);
-                    return false;
-                }
-            }
-            else
-            {
-                try
-                {
-#if WINDOWS_UAP
-                    // on UWP .Net Native Tool Chain we are not able to run methods via invoke, act like no filter was specified for UWP
-#else
-                    // GetTestCaseFilter is present on DiscoveryContext but not in IDiscoveryContext interface
-                    var method = discoveryContext.GetType().GetRuntimeMethod("GetTestCaseFilter", new[] { typeof(IEnumerable<string>), typeof(Func<string, TestProperty>) });
-                    filter = (ITestCaseFilterExpression)method?.Invoke(discoveryContext, new object[] { supportedPropertyNames, null });
-#endif
-                    return true;
-                }
-                catch (TargetInvocationException e)
-                {
-                    if (e?.InnerException is TestPlatformException ex)
-                    {
-                        logger.LogWarning("Exception filtering tests: {0}", ex.InnerException?.Message);
-                        return false;
-                    }
+		if (discoveryContext is IRunContext runContext)
+		{
+			try
+			{
+				filter = runContext.GetTestCaseFilter(supportedPropertyNames, null);
+				return true;
+			}
+			catch (TestPlatformException e)
+			{
+				logger.LogWarning("Exception filtering tests: {0}", e.Message);
+				return false;
+			}
+		}
+		else
+		{
+			try
+			{
+				// GetTestCaseFilter is present on DiscoveryContext but not in IDiscoveryContext interface
+				var method = discoveryContext.GetType().GetRuntimeMethod("GetTestCaseFilter", new[] { typeof(IEnumerable<string>), typeof(Func<string, TestProperty>) });
+				filter = (ITestCaseFilterExpression)method?.Invoke(discoveryContext, new object[] { supportedPropertyNames, null });
+				return true;
+			}
+			catch (TargetInvocationException e)
+			{
+				if (e?.InnerException is TestPlatformException ex)
+				{
+					logger.LogWarning("Exception filtering tests: {0}", ex.InnerException?.Message);
+					return false;
+				}
 
-                    throw e.InnerException;
-                }
-            }
-        }
+				throw e.InnerException;
+			}
+		}
+	}
 
-        List<string> GetSupportedPropertyNames()
-        {
-            // Returns the set of well-known property names usually used with the Test Plugins (Used Test Traits + DisplayName + FullyQualifiedName)
-            if (supportedPropertyNames == null)
-            {
-                supportedPropertyNames = knownTraits.ToList();
-                supportedPropertyNames.Add(DisplayNameString);
-                supportedPropertyNames.Add(FullyQualifiedNameString);
-            }
+	List<string> GetSupportedPropertyNames()
+	{
+		// Returns the set of well-known property names usually used with the Test Plugins (Used Test Traits + DisplayName + FullyQualifiedName)
+		if (supportedPropertyNames == null)
+		{
+			supportedPropertyNames = knownTraits.ToList();
+			supportedPropertyNames.Add(DisplayNameString);
+			supportedPropertyNames.Add(FullyQualifiedNameString);
+		}
 
-            return supportedPropertyNames;
-        }
+		return supportedPropertyNames;
+	}
 
-        static IEnumerable<KeyValuePair<string, string>> GetTraits(TestCase testCase)
-        {
-            var traitProperty = TestProperty.Find("TestObject.Traits");
-            if (traitProperty != null)
-                return testCase.GetPropertyValue(traitProperty, Enumerable.Empty<KeyValuePair<string, string>>().ToArray());
+	static IEnumerable<KeyValuePair<string, string>> GetTraits(TestCase testCase)
+	{
+		var traitProperty = TestProperty.Find("TestObject.Traits");
+		if (traitProperty != null)
+			return testCase.GetPropertyValue(traitProperty, Enumerable.Empty<KeyValuePair<string, string>>().ToArray());
 
-            return Enumerable.Empty<KeyValuePair<string, string>>();
-        }
-    }
+		return Enumerable.Empty<KeyValuePair<string, string>>();
+	}
 }

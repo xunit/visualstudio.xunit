@@ -1,20 +1,17 @@
-﻿<Project Sdk="MSBuild.Sdk.Extras">
+<Project Sdk="MSBuild.Sdk.Extras">
 
   <PropertyGroup>
-
     <Title>xUnit.net [Runner: Visual Studio]</Title>
     <AssemblyTitle>xUnit.net Runner for Visual Studio ($(TargetFramework))</AssemblyTitle>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RootNamespace>Xunit.Runner.VisualStudio</RootNamespace>
-    <TargetFrameworks>net462;netcoreapp3.1;uap10.0.16299</TargetFrameworks>
+    <TargetFrameworks>net462;net6.0</TargetFrameworks>
     <WarningsAsErrors>true</WarningsAsErrors>
-    <Description>Visual Studio 2019 16.8+ Test Explorer runner for the xUnit.net framework. Capable of running xUnit.net v1.9.2 and v2.0+ tests. Supports .NET 4.7.2 or later, .NET Core 3.1 or later, and Universal Windows 10.0.16299 or later.</Description>
-
+    <Description>Visual Studio 2019 16.8+ Test Explorer runner for the xUnit.net framework. Capable of running xUnit.net v1.9.2 and v2.0+ tests. Supports .NET 4.6.2 or later, and .NET 6 or later.</Description>
     <DevelopmentDependency>true</DevelopmentDependency>
     <BuildOutputTargetFolder>build</BuildOutputTargetFolder>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <NoWarn>$(NoWarn)1701;1702;NU5105</NoWarn>
-    <TargetPlatformVersion Condition=" '$(TargetFramework)' == 'uap10.0.16299' ">10.0.19041.0</TargetPlatformVersion>
     <!-- Set the PackageId explicitly as our different AssemblyNames will cause restore errors otherwise -->
     <PackageId>xunit.runner.visualstudio</PackageId>
   </PropertyGroup>
@@ -24,19 +21,19 @@
     <DefineConstants>$(DefineConstants);NETFRAMEWORK</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
     <AssemblyName>xunit.runner.visualstudio.dotnetcore.testadapter</AssemblyName>
     <DefineConstants>$(DefineConstants);NETCOREAPP</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'uap10.0.16299' ">
-    <AssemblyName>xunit.runner.visualstudio.uwp.testadapter</AssemblyName>
-    <DefineConstants>$(DefineConstants);WINDOWS_UAP</DefineConstants>
-  </PropertyGroup>
+  <ItemGroup>
+    <PackageDownload Include="Microsoft.NETCore.App.Ref" Version="[6.0.11]" />
+  </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="xunit.runner.reporters" Version="$(XunitVersion)" PrivateAssets="All" />
     <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="17.5.0" PrivateAssets="All" />
+    <PackageReference Include="TunnelVisionLabs.ReferenceAssemblyAnnotator" Version="1.0.0-alpha.160" />
+    <PackageReference Include="xunit.runner.reporters" Version="$(XunitVersion)" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup Label="Package">
@@ -45,24 +42,25 @@
     <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\net452\*.dll" PackagePath="build\net462" Pack="true" Visible="false" />
     <None Include="$(NuGetPackageRoot)xunit.abstractions\2.0.3\lib\netstandard1.0\*.dll" PackagePath="build\net462" Pack="true" Visible="false" />
 
-    <None Include="build\xunit.runner.visualstudio.dotnetcore.props" PackagePath="build\netcoreapp3.1\xunit.runner.visualstudio.props" Pack="true" />
-    <None Include="$(NuGetPackageRoot)xunit.runner.reporters\$(XunitVersion)\lib\netcoreapp1.0\*.dll" PackagePath="build\netcoreapp3.1" Pack="true" Visible="false" />
-    <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\netcoreapp1.0\*.dll" PackagePath="build\netcoreapp3.1" Pack="true" Visible="false" />
-    <None Include="$(NuGetPackageRoot)xunit.abstractions\2.0.3\lib\netstandard2.0\*.dll" PackagePath="build\netcoreapp3.1" Pack="true" Visible="false" />
+    <None Include="build\xunit.runner.visualstudio.dotnetcore.props" PackagePath="build\net6.0\xunit.runner.visualstudio.props" Pack="true" />
+    <None Include="$(NuGetPackageRoot)xunit.runner.reporters\$(XunitVersion)\lib\netcoreapp1.0\*.dll" PackagePath="build\net6.0" Pack="true" Visible="false" />
+    <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\netcoreapp1.0\*.dll" PackagePath="build\net6.0" Pack="true" Visible="false" />
+    <None Include="$(NuGetPackageRoot)xunit.abstractions\2.0.3\lib\netstandard2.0\*.dll" PackagePath="build\net6.0" Pack="true" Visible="false" />
 
     <None Include="..\..\logo-512-transparent.png" PackagePath="logo-512-transparent.png" Pack="true" />
     <None Include="..\..\License.txt" PackagePath="License.txt" Pack="true" />
 
     <None Include="build\_._" PackagePath="lib\net462" Pack="true" />
-    <None Include="build\_._" PackagePath="lib\netcoreapp3.1" Pack="true" />
-    <None Include="build\_._" PackagePath="lib\uap10.0.16299" Pack="true" />
+    <None Include="build\_._" PackagePath="lib\net6.0" Pack="true" />
+  </ItemGroup>
 
-    <None Include="build\xunit.runner.visualstudio.uwp.props" PackagePath="build\uap10.0.16299\xunit.runner.visualstudio.props" Pack="true" />
-    <None Include="build\xunit.runner.visualstudio.uwp.targets" PackagePath="build\uap10.0.16299\xunit.runner.visualstudio.targets" Pack="true" />
-    <None Include="$(NuGetPackageRoot)xunit.runner.reporters\$(XunitVersion)\lib\netstandard1.5\*.dll" PackagePath="build\uap10.0.16299" Pack="true" Visible="false" />
-    <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\netstandard1.5\*.dll" PackagePath="build\uap10.0.16299" Pack="true" Visible="false" />
-    <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\uap10.0\*.dll" PackagePath="build\uap10.0.16299" Pack="true" Visible="false" />
-    <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\uap10.0\*.pri" PackagePath="build\uap10.0.16299" Pack="true" Visible="false" />
+  <!-- Support deterministic builds (via https://github.com/clairernovotny/DeterministicBuilds) -->
+  <PropertyGroup>
+    <ContinuousIntegrationBuild Condition=" '$(GITHUB_ACTIONS)' == 'true' ">true</ContinuousIntegrationBuild>
+    <TargetFrameworkMonikerAssemblyAttributesPath>$([System.IO.Path]::Combine('$(IntermediateOutputPath)','$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)'))</TargetFrameworkMonikerAssemblyAttributesPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedFiles Include="$(GeneratedAssemblyInfoFile)"/>
   </ItemGroup>
 
   <!-- Support deterministic builds (via https://github.com/clairernovotny/DeterministicBuilds) -->

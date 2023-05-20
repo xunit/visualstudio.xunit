@@ -1,9 +1,8 @@
-﻿using System;
+using System;
 
-namespace Xunit.Runner.VisualStudio
+namespace Xunit.Runner.VisualStudio;
+
+internal interface IVsDiscoverySink : IMessageSinkWithTypes, IDisposable
 {
-    internal interface IVsDiscoverySink : IMessageSinkWithTypes, IDisposable
-    {
-        int Finish();
-    }
+	int Finish();
 }

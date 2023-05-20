@@ -1,48 +1,48 @@
 <#
-    var passedTests = 10000;
-    var failedTests = 0;
-    var padding = "00000";
-    var count = 1;
-    var testmethodprefix = "Test_";
+	var passedTests = 10000;
+	var failedTests = 0;
+	var padding = "00000";
+	var count = 1;
+	var testmethodprefix = "Test_";
 #>
 using Xunit;
 
 public class XunitHighTestCountTests
 {
 <#
-    if (passedTests > 0)
-    {
+	if (passedTests > 0)
+	{
 #>
-    #region PassingTests
+	#region PassingTests
 <#
-        for (int i = 0; i < passedTests; i++, count++)
-        {
-            var methodName = testmethodprefix + count.ToString(padding);
+		for (int i = 0; i < passedTests; i++, count++)
+		{
+			var methodName = testmethodprefix + count.ToString(padding);
 #>
-    [Fact] public void <#=methodName#>() { }
+	[Fact] public void <#=methodName#>() { }
 <#
-        }
+		}
 #>
-    #endregion
+	#endregion
 <#
-    }
+	}
 #>
 <#
-    if (failedTests > 0)
-    {
+	if (failedTests > 0)
+	{
 #>
-    #region FailingTests
+	#region FailingTests
 <#
-        for (var i = 0; i < failedTests; i++, count++)
-        {
-            var methodName = testmethodprefix + count.ToString(padding);
+		for (var i = 0; i < failedTests; i++, count++)
+		{
+			var methodName = testmethodprefix + count.ToString(padding);
 #>
-    [Fact] public void <#=methodName#>() { Assert.True(false); }
+	[Fact] public void <#=methodName#>() { Assert.True(false); }
 <#
-        }
+		}
 #>
-    #endregion
+	#endregion
 <#
-    }
+	}
 #>
 }

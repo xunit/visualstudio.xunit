@@ -1,75 +1,109 @@
-﻿// This code was adapted from https://github.com/Microsoft/msbuild/blob/ab090d1255caa87e742cbdbc6d7fe904ecebd975/src/Build/Logging/BaseConsoleLogger.cs#L361-L401
+// This code was adapted from https://github.com/Microsoft/msbuild/blob/ab090d1255caa87e742cbdbc6d7fe904ecebd975/src/Build/Logging/BaseConsoleLogger.cs#L361-L401
 // Under the MIT license https://github.com/Microsoft/msbuild/blob/ab090d1255caa87e742cbdbc6d7fe904ecebd975/LICENSE
 
-#if !NETSTANDARD1_1
-
 using System;
+using System.Runtime.InteropServices;
 
-namespace Xunit
+namespace Xunit;
+
+/// <summary>
+/// This is a static class which helps write colored text to the console. On Windows, it will use the built-in
+/// console functions; on Linux and macOS, it will use ANSI color codes.
+/// </summary>
+public static class ConsoleHelper
 {
-    internal static class ConsoleHelper
-    {
-        internal static Action ResetColor;
-        internal static Action<ConsoleColor> SetForegroundColor;
+	/// <summary>
+	/// Equivalent to <see cref="Console.ResetColor"/>.
+	/// </summary>
+	public static Action ResetColor { get; }
 
-        static ConsoleHelper()
-        {
-#if NETFRAMEWORK
-            ResetColor = ResetColorConsole;
-            SetForegroundColor = SetForegroundColorConsole;
-#else
-            if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
-            {
-                ResetColor = ResetColorConsole;
-                SetForegroundColor = SetForegroundColorConsole;
-            }
-            else
-            {
-                ResetColor = ResetColorANSI;
-                SetForegroundColor = SetForegroundColorANSI;
-            }
-#endif
-        }
+	/// <summary>
+	/// Equivalent to <see cref="Console.BackgroundColor"/>.
+	/// </summary>
+	public static Action<ConsoleColor> SetBackgroundColor { get; }
 
-        static void SetForegroundColorANSI(ConsoleColor c)
-        {
-            string colorString = "\x1b[";
-            switch (c)
-            {
-                case ConsoleColor.Black: colorString += "30"; break;
-                case ConsoleColor.DarkBlue: colorString += "34"; break;
-                case ConsoleColor.DarkGreen: colorString += "32"; break;
-                case ConsoleColor.DarkCyan: colorString += "36"; break;
-                case ConsoleColor.DarkRed: colorString += "31"; break;
-                case ConsoleColor.DarkMagenta: colorString += "35"; break;
-                case ConsoleColor.DarkYellow: colorString += "33"; break;
-                case ConsoleColor.Gray: colorString += "37"; break;
-                case ConsoleColor.DarkGray: colorString += "30;1"; break;
-                case ConsoleColor.Blue: colorString += "34;1"; break;
-                case ConsoleColor.Green: colorString += "32;1"; break;
-                case ConsoleColor.Cyan: colorString += "36;1"; break;
-                case ConsoleColor.Red: colorString += "31;1"; break;
-                case ConsoleColor.Magenta: colorString += "35;1"; break;
-                case ConsoleColor.Yellow: colorString += "33;1"; break;
-                case ConsoleColor.White: colorString += "37;1"; break;
-                default: colorString = ""; break;
-            }
-            if ("" != colorString)
-            {
-                colorString += "m";
-                Console.Out.Write(colorString);
-            }
-        }
+	/// <summary>
+	/// Equivalent to <see cref="Console.ForegroundColor"/>.
+	/// </summary>
+	public static Action<ConsoleColor> SetForegroundColor { get; }
 
-        static void SetForegroundColorConsole(ConsoleColor c)
-            => Console.ForegroundColor = c;
+	static ConsoleHelper()
+	{
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		{
+			ResetColor = ResetColorConsole;
+			SetBackgroundColor = SetBackgroundColorConsole;
+			SetForegroundColor = SetForegroundColorConsole;
+		}
+		else
+		{
+			ResetColor = ResetColorANSI;
+			SetBackgroundColor = SetBackgroundColorANSI;
+			SetForegroundColor = SetForegroundColorANSI;
+		}
+	}
 
-        static void ResetColorANSI()
-            => Console.Out.Write("\x1b[m");
+	static void SetBackgroundColorANSI(ConsoleColor c)
+	{
+		var colorString = c switch
+		{
+			ConsoleColor.Black => "\x1b[40m",
+			ConsoleColor.DarkBlue => "\x1b[44m",
+			ConsoleColor.DarkGreen => "\x1b[42m",
+			ConsoleColor.DarkCyan => "\x1b[46m",
+			ConsoleColor.DarkRed => "\x1b[41m",
+			ConsoleColor.DarkMagenta => "\x1b[45m",
+			ConsoleColor.DarkYellow => "\x1b[43m",
+			ConsoleColor.Gray => "\x1b[47m",
+			ConsoleColor.DarkGray => "\x1b[100m",
+			ConsoleColor.Blue => "\x1b[104m",
+			ConsoleColor.Green => "\x1b[102m",
+			ConsoleColor.Cyan => "\x1b[106m",
+			ConsoleColor.Red => "\x1b[101m",
+			ConsoleColor.Magenta => "\x1b[105m",
+			ConsoleColor.Yellow => "\x1b[103m",
+			ConsoleColor.White => "\x1b[107m",
+			_ => "",
+		};
 
-        static void ResetColorConsole()
-            => Console.ResetColor();
-    }
+		Console.Out.Write(colorString);
+	}
+
+	static void SetBackgroundColorConsole(ConsoleColor c) =>
+		Console.BackgroundColor = c;
+
+	static void SetForegroundColorANSI(ConsoleColor c)
+	{
+		var colorString = c switch
+		{
+			ConsoleColor.Black => "\x1b[30m",
+			ConsoleColor.DarkBlue => "\x1b[34m",
+			ConsoleColor.DarkGreen => "\x1b[32m",
+			ConsoleColor.DarkCyan => "\x1b[36m",
+			ConsoleColor.DarkRed => "\x1b[31m",
+			ConsoleColor.DarkMagenta => "\x1b[35m",
+			ConsoleColor.DarkYellow => "\x1b[33m",
+			ConsoleColor.Gray => "\x1b[37m",
+			ConsoleColor.DarkGray => "\x1b[90m",
+			ConsoleColor.Blue => "\x1b[94m",
+			ConsoleColor.Green => "\x1b[92m",
+			ConsoleColor.Cyan => "\x1b[96m",
+			ConsoleColor.Red => "\x1b[91m",
+			ConsoleColor.Magenta => "\x1b[95m",
+			ConsoleColor.Yellow => "\x1b[93m",
+			ConsoleColor.White => "\x1b[97m",
+			_ => "",
+		};
+
+		Console.Out.Write(colorString);
+	}
+
+	static void SetForegroundColorConsole(ConsoleColor c) =>
+		Console.ForegroundColor = c;
+
+	static void ResetColorANSI() =>
+		Console.Out.Write("\x1b[0m");
+
+	static void ResetColorConsole() =>
+		Console.ResetColor();
 }
-
-#endif

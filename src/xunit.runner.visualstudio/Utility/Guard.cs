@@ -1,43 +1,32 @@
-﻿using System;
-using System.Collections;
-using System.IO;
+#nullable enable
+
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+
+namespace Xunit.Internal;
 
 /// <summary>
-/// Guard class, used for guard clauses and argument validation
+/// Helper class for guarding value arguments and valid state.
 /// </summary>
-static class Guard
+public static class Guard
 {
-    /// <summary/>
-    public static void ArgumentNotNull(string argName, object argValue)
-    {
-        if (argValue == null)
-            throw new ArgumentNullException(argName);
-    }
+	/// <summary>
+	/// Ensures that a nullable reference type argument is not null.
+	/// </summary>
+	/// <typeparam name="T">The argument type</typeparam>
+	/// <param name="argValue">The value of the argument</param>
+	/// <param name="argName">The name of the argument</param>
+	/// <returns>The argument value as a non-null value</returns>
+	/// <exception cref="ArgumentNullException">Thrown when the argument is null</exception>
+	public static T ArgumentNotNull<T>(
+		[NotNull] T? argValue,
+		[CallerArgumentExpression(nameof(argValue))] string? argName = null)
+			where T : class
+	{
+		if (argValue == null)
+			throw new ArgumentNullException(argName?.TrimStart('@'));
 
-    /// <summary/>
-    public static void ArgumentNotNullOrEmpty(string argName, IEnumerable argValue)
-    {
-        ArgumentNotNull(argName, argValue);
-
-        if (!argValue.GetEnumerator().MoveNext())
-            throw new ArgumentException("Argument was empty", argName);
-    }
-
-    /// <summary/>
-    public static void ArgumentValid(string argName, string message, bool test)
-    {
-        if (!test)
-            throw new ArgumentException(message, argName);
-    }
-
-#if !XUNIT_FRAMEWORK
-    /// <summary/>
-    public static void FileExists(string argName, string fileName)
-    {
-        ArgumentNotNullOrEmpty(argName, fileName);
-#if !NETSTANDARD
-        ArgumentValid(argName, $"File not found: {fileName}", File.Exists(fileName));
-#endif
-    }
-#endif
+		return argValue;
+	}
 }
