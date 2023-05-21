@@ -28,12 +28,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageDownload Include="Microsoft.NETCore.App.Ref" Version="[6.0.11]" />
+    <PackageDownload Include="Microsoft.NETCore.App.Ref" Version="[$(MicrosoftNetCoreAppRefVersion)]" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="17.5.0" PrivateAssets="All" />
-    <PackageReference Include="TunnelVisionLabs.ReferenceAssemblyAnnotator" Version="1.0.0-alpha.160" />
+    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="$(MicrosoftTestPlatformObjectModelVersion)" PrivateAssets="All" />
+    <PackageReference Include="TunnelVisionLabs.ReferenceAssemblyAnnotator" Version="$(TunnelVisionLabsReferenceAssemblyAnnotatorVersion)" />
     <PackageReference Include="xunit.runner.reporters" Version="$(XunitVersion)" PrivateAssets="All" />
   </ItemGroup>
 
