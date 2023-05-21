@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using Internal.Microsoft.DotNet.PlatformAbstractions;
@@ -19,19 +20,19 @@ class XunitPackageCompilationAssemblyResolver : ICompilationAssemblyResolver
 	readonly List<string> nugetPackageDirectories;
 
 	public XunitPackageCompilationAssemblyResolver(
-		IMessageSink internalDiagnosticsMessageSink,
-		IFileSystem fileSystem = null)
+		IMessageSink? internalDiagnosticsMessageSink,
+		IFileSystem? fileSystem = null)
 	{
 		nugetPackageDirectories = GetDefaultProbeDirectories(internalDiagnosticsMessageSink);
 		this.fileSystem = fileSystem ?? new FileSystemWrapper();
 	}
 
-	static List<string> GetDefaultProbeDirectories(IMessageSink internalDiagnosticsMessageSink) =>
+	static List<string> GetDefaultProbeDirectories(IMessageSink? internalDiagnosticsMessageSink) =>
 		GetDefaultProbeDirectories(RuntimeEnvironment.OperatingSystemPlatform, internalDiagnosticsMessageSink);
 
 	static List<string> GetDefaultProbeDirectories(
 		Platform osPlatform,
-		IMessageSink internalDiagnosticsMessageSink)
+		IMessageSink? internalDiagnosticsMessageSink)
 	{
 		var results = default(List<string>);
 
@@ -48,7 +49,7 @@ class XunitPackageCompilationAssemblyResolver : ICompilationAssemblyResolver
 				results.Add(packageDirectory);
 			else
 			{
-				string basePath;
+				string? basePath;
 				if (osPlatform == Platform.Windows)
 					basePath = Environment.GetEnvironmentVariable("USERPROFILE");
 				else
@@ -59,8 +60,7 @@ class XunitPackageCompilationAssemblyResolver : ICompilationAssemblyResolver
 			}
 		}
 
-		if (internalDiagnosticsMessageSink != null)
-			internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[XunitPackageCompilationAssemblyResolver.GetDefaultProbeDirectories] returns: [{string.Join(",", results.Select(x => $"'{x}'"))}]"));
+		internalDiagnosticsMessageSink?.OnMessage(new _DiagnosticMessage($"[XunitPackageCompilationAssemblyResolver.GetDefaultProbeDirectories] returns: [{string.Join(",", results.Select(x => $"'{x}'"))}]"));
 
 		return results;
 	}
@@ -86,7 +86,7 @@ class XunitPackageCompilationAssemblyResolver : ICompilationAssemblyResolver
 	bool TryResolveFromPackagePath(
 		CompilationLibrary library,
 		string basePath,
-		out IEnumerable<string> results)
+		[NotNullWhen(true)] out IEnumerable<string>? results)
 	{
 		var paths = new List<string>();
 

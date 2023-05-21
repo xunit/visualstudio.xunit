@@ -14,13 +14,13 @@ using System.Reflection;
 
 namespace Xunit.Runner.VisualStudio;
 
-public class VsDiscoverySink : IMessageSinkWithTypes, IVsDiscoverySink, IDisposable
+public sealed class VsDiscoverySink : IMessageSinkWithTypes, IVsDiscoverySink, IDisposable
 {
-	const string Ellipsis = "...";
+	static readonly string Ellipsis = new((char)183, 3);
 	const int MaximumDisplayNameLength = 447;
 	const int TestCaseDescriptorBatchSize = 100;
 
-	static readonly Action<TestCase, string, string> addTraitThunk = GetAddTraitThunk();
+	static readonly Action<TestCase, string, string>? addTraitThunk = GetAddTraitThunk();
 	static readonly Uri uri = new(Constants.ExecutorUri);
 
 	readonly Func<bool> cancelThunk;
@@ -68,7 +68,7 @@ public class VsDiscoverySink : IMessageSinkWithTypes, IVsDiscoverySink, IDisposa
 		discoveryEventSink.Dispose();
 	}
 
-	public static TestCase CreateVsTestCase(
+	public static TestCase? CreateVsTestCase(
 		string source,
 		TestCaseDescriptor descriptor,
 		LoggerHelper logger,
@@ -126,7 +126,7 @@ public class VsDiscoverySink : IMessageSinkWithTypes, IVsDiscoverySink, IDisposa
 		return TotalTests;
 	}
 
-	static Action<TestCase, string, string> GetAddTraitThunk()
+	static Action<TestCase, string, string>? GetAddTraitThunk()
 	{
 		try
 		{

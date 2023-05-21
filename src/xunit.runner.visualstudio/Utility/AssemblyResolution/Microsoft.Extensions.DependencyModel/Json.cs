@@ -1,10 +1,12 @@
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
 
-namespace Xunit;
+namespace Internal.Microsoft.Extensions.DependencyModel;
 
 class JsonArray : JsonValue
 {
@@ -189,11 +191,7 @@ class JsonBuffer
 
 	string ReadNumber(int firstRead)
 	{
-#if NET35
-            _buffer = new StringBuilder();
-#else
 		_buffer.Clear();
-#endif
 		_buffer.Append((char)firstRead);
 
 		while (true)
@@ -249,11 +247,7 @@ class JsonBuffer
 
 	string ReadString()
 	{
-#if NET35
-            _buffer = new StringBuilder();
-#else
 		_buffer.Clear();
-#endif
 		var escaped = false;
 
 		while (true)
@@ -303,11 +297,8 @@ class JsonBuffer
 					var unicodeLine = _line;
 					var unicodeColumn = _column;
 
-#if NET35
-                        _codePointBuffer = new StringBuilder(4);
-#else
 					_codePointBuffer.Clear();
-#endif
+
 					for (int i = 0; i < 4; ++i)
 					{
 						next = ReadNextChar();

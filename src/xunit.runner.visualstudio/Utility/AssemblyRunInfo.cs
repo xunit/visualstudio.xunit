@@ -5,7 +5,19 @@ namespace Xunit.Runner.VisualStudio;
 
 public class AssemblyRunInfo
 {
-	public string AssemblyFileName;
-	public TestAssemblyConfiguration Configuration;
-	public IList<TestCase> TestCases;
+	public AssemblyRunInfo(
+		string assemblyFileName,
+		TestAssemblyConfiguration configuration,
+		IList<TestCase>? testCases)
+	{
+		AssemblyFileName = assemblyFileName;
+		Configuration = configuration;
+		TestCases = testCases;
+	}
+
+	public string AssemblyFileName { get; }
+
+	public TestAssemblyConfiguration Configuration { get; }
+
+	public IList<TestCase>? TestCases { get; }
 }

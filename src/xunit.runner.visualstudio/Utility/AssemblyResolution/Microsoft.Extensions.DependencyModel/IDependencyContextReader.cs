@@ -1,4 +1,6 @@
-﻿#if NETCOREAPP
+#nullable disable
+
+#if NETCOREAPP
 
 using System;
 using System.IO;

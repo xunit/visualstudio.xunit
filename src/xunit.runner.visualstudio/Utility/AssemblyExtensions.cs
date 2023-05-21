@@ -6,9 +6,9 @@ using System.Reflection;
 
 internal static class AssemblyExtensions
 {
-	public static string GetLocalCodeBase(this Assembly assembly)
+	public static string? GetLocalCodeBase(this Assembly assembly)
 	{
-		string codeBase = assembly.CodeBase;
+		string? codeBase = assembly.CodeBase;
 		if (codeBase == null)
 			return null;
 

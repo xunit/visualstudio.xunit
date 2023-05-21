@@ -47,18 +47,18 @@ public class RunSettings
 	/// <summary>
 	/// Gets a value which indicates which reporter we should use.
 	/// </summary>
-	public string ReporterSwitch { get; set; }
+	public string? ReporterSwitch { get; set; }
 
 	/// <summary>
 	/// Gets a value which indicates the target framework the tests are being run in.
 	/// </summary>
-	public string TargetFrameworkVersion { get; set; }
+	public string? TargetFrameworkVersion { get; set; }
 
 	/// <summary>
 	/// Reads settings for the current run from run settings xml
 	/// </summary>
 	/// <param name="runSettingsXml">RunSettingsXml of the run</param>
-	public static RunSettings Parse(string runSettingsXml)
+	public static RunSettings Parse(string? runSettingsXml)
 	{
 		var result = new RunSettings();
 

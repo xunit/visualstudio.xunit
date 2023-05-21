@@ -15,7 +15,7 @@ public class TestCaseFilter
 
 	readonly HashSet<string> knownTraits;
 	List<string> supportedPropertyNames;
-	readonly ITestCaseFilterExpression filterExpression;
+	readonly ITestCaseFilterExpression? filterExpression;
 	readonly bool successfullyGotFilter;
 	readonly bool isDiscovery;
 
@@ -59,7 +59,7 @@ public class TestCaseFilter
 		return filterExpression.MatchTestCase(testCase, (p) => PropertyProvider(testCase, p));
 	}
 
-	public object PropertyProvider(
+	public object? PropertyProvider(
 		TestCase testCase,
 		string name)
 	{
@@ -91,13 +91,13 @@ public class TestCaseFilter
 		IRunContext runContext,
 		LoggerHelper logger,
 		string assemblyFileName,
-		out ITestCaseFilterExpression filter)
+		out ITestCaseFilterExpression? filter)
 	{
 		filter = null;
 
 		try
 		{
-			filter = runContext.GetTestCaseFilter(supportedPropertyNames, null);
+			filter = runContext.GetTestCaseFilter(supportedPropertyNames, s => null);
 			return true;
 		}
 		catch (TestPlatformFormatException e)
@@ -110,7 +110,7 @@ public class TestCaseFilter
 	bool GetTestCaseFilterExpressionFromDiscoveryContext(
 		IDiscoveryContext discoveryContext,
 		LoggerHelper logger,
-		out ITestCaseFilterExpression filter)
+		out ITestCaseFilterExpression? filter)
 	{
 		filter = null;
 
@@ -118,7 +118,7 @@ public class TestCaseFilter
 		{
 			try
 			{
-				filter = runContext.GetTestCaseFilter(supportedPropertyNames, null);
+				filter = runContext.GetTestCaseFilter(supportedPropertyNames, s => null);
 				return true;
 			}
 			catch (TestPlatformException e)
@@ -131,20 +131,25 @@ public class TestCaseFilter
 		{
 			try
 			{
+				static TestProperty? noop(string name) => null;
+
 				// GetTestCaseFilter is present on DiscoveryContext but not in IDiscoveryContext interface
-				var method = discoveryContext.GetType().GetRuntimeMethod("GetTestCaseFilter", new[] { typeof(IEnumerable<string>), typeof(Func<string, TestProperty>) });
-				filter = (ITestCaseFilterExpression)method?.Invoke(discoveryContext, new object[] { supportedPropertyNames, null });
+				var method = discoveryContext.GetType().GetRuntimeMethod("GetTestCaseFilter", new[] { typeof(IEnumerable<string>), typeof(Func<string, TestProperty?>) });
+				filter = method?.Invoke(discoveryContext, new object[] { supportedPropertyNames, (object)noop }) as ITestCaseFilterExpression;
 				return true;
 			}
 			catch (TargetInvocationException e)
 			{
-				if (e?.InnerException is TestPlatformException ex)
+				if (e.InnerException is TestPlatformException ex)
 				{
 					logger.LogWarning("Exception filtering tests: {0}", ex.InnerException?.Message);
 					return false;
 				}
 
-				throw e.InnerException;
+				(e.InnerException ?? e).Rethrow();
+
+				// We will never reach this because of the line above, but we need to keep the compiler happy
+				throw new InvalidOperationException("This line should never be executed");
 			}
 		}
 	}

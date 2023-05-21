@@ -7,7 +7,10 @@ class _DiagnosticMessage : IDiagnosticMessage
 	/// <summary>
 	/// Initializes a new instance of the <see cref="DiagnosticMessage"/> class.
 	/// </summary>
-	public _DiagnosticMessage() { }
+	public _DiagnosticMessage()
+	{
+		Message = string.Empty;
+	}
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="DiagnosticMessage"/> class.

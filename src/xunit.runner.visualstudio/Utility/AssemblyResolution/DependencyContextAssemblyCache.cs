@@ -17,7 +17,7 @@ class DependencyContextAssemblyCache
 {
 	static readonly RuntimeFallbacks AnyAndBase = new("unknown", "any", "base");
 	static readonly string[] ManagedAssemblyExtensions = { ".dll", ".exe" };
-	static readonly Tuple<string, Assembly> ManagedAssemblyNotFound = new(null, null);
+	static readonly Tuple<string?, Assembly?> ManagedAssemblyNotFound = new(null, null);
 	static readonly Regex RuntimeIdRegex = new(@"(?<os>[A-Za-z0-9]+)(\.(?<version>[0-9\.]+))?(?<arch>\-[A-Za-z0-9]+)?(?<extra>\-[A-Za-z0-9]+)?");
 
 	readonly string assemblyFolder;
@@ -25,21 +25,21 @@ class DependencyContextAssemblyCache
 	readonly string currentRuntimeIdentifier;
 	readonly Lazy<string> fallbackRuntimeIdentifier;
 	readonly IFileSystem fileSystem;
-	readonly IMessageSink internalDiagnosticsMessageSink;
-	readonly Dictionary<string, Assembly> managedAssemblyCache;
+	readonly IMessageSink? internalDiagnosticsMessageSink;
+	readonly Dictionary<string, Assembly?> managedAssemblyCache;
 	readonly Dictionary<string, Tuple<RuntimeLibrary, RuntimeAssetGroup>> managedAssemblyMap;
 	readonly Platform operatingSystemPlatform;
 	readonly string[] unmanagedDllFormats;
-	readonly Dictionary<string, string> unmanagedAssemblyCache;
+	readonly Dictionary<string, string?> unmanagedAssemblyCache;
 	readonly Dictionary<string, Tuple<RuntimeLibrary, RuntimeAssetGroup>> unmanagedAssemblyMap;
 
 	public DependencyContextAssemblyCache(
 		string assemblyFolder,
 		DependencyContext dependencyContext,
-		IMessageSink internalDiagnosticsMessageSink,
+		IMessageSink? internalDiagnosticsMessageSink,
 		Platform? operatingSystemPlatform = null,
-		string currentRuntimeIdentifier = null,
-		IFileSystem fileSystem = null)
+		string? currentRuntimeIdentifier = null,
+		IFileSystem? fileSystem = null)
 	{
 		this.assemblyFolder = assemblyFolder;
 		this.internalDiagnosticsMessageSink = internalDiagnosticsMessageSink;
@@ -50,15 +50,13 @@ class DependencyContextAssemblyCache
 		fallbackRuntimeIdentifier = new Lazy<string>(() => GetFallbackRuntime(this.currentRuntimeIdentifier));
 		assemblyResolver = new XunitPackageCompilationAssemblyResolver(internalDiagnosticsMessageSink, fileSystem);
 
-		if (internalDiagnosticsMessageSink != null)
-			internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache..ctor] Runtime graph: [{string.Join(",", dependencyContext.RuntimeGraph.Select(x => $"'{x.Runtime}'"))}]"));
+		internalDiagnosticsMessageSink?.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache..ctor] Runtime graph: [{string.Join(",", dependencyContext.RuntimeGraph.Select(x => $"'{x.Runtime}'"))}]"));
 
 		var compatibleRuntimes = GetCompatibleRuntimes(dependencyContext);
 
-		if (internalDiagnosticsMessageSink != null)
-			internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache..ctor] Compatible runtimes: [{string.Join(",", compatibleRuntimes.Select(x => $"'{x}'"))}]"));
+		internalDiagnosticsMessageSink?.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache..ctor] Compatible runtimes: [{string.Join(",", compatibleRuntimes.Select(x => $"'{x}'"))}]"));
 
-		managedAssemblyCache = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase);
+		managedAssemblyCache = new(StringComparer.OrdinalIgnoreCase);
 		managedAssemblyMap =
 			dependencyContext
 				.RuntimeLibraries
@@ -68,19 +66,19 @@ class DependencyContextAssemblyCache
 						.Select(runtime => Tuple.Create(lib, lib.RuntimeAssemblyGroups.FirstOrDefault(libGroup => string.Equals(libGroup.Runtime, runtime))))
 						.FirstOrDefault(tuple => tuple.Item2?.AssetPaths != null)
 				)
-				.Where(tuple => tuple != null)
+				.WhereNotNull()
+				.Where(tuple => tuple.Item2 != null)
 				.SelectMany(tuple =>
-					tuple.Item2.AssetPaths
+					tuple.Item2!.AssetPaths
 						.Where(x => x != null)
 						.Select(path => Tuple.Create(Path.GetFileNameWithoutExtension(path), Tuple.Create(tuple.Item1, tuple.Item2)))
 				)
 				.ToDictionaryIgnoringDuplicateKeys(tuple => tuple.Item1, tuple => tuple.Item2, StringComparer.OrdinalIgnoreCase);
 
-		if (internalDiagnosticsMessageSink != null)
-			internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache..ctor] Managed assembly map: [{string.Join(",", managedAssemblyMap.Keys.Select(k => $"'{k}'").OrderBy(k => k, StringComparer.OrdinalIgnoreCase))}]"));
+		internalDiagnosticsMessageSink?.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache..ctor] Managed assembly map: [{string.Join(",", managedAssemblyMap.Keys.Select(k => $"'{k}'").OrderBy(k => k, StringComparer.OrdinalIgnoreCase))}]"));
 
 		unmanagedDllFormats = GetUnmanagedDllFormats().ToArray();
-		unmanagedAssemblyCache = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+		unmanagedAssemblyCache = new(StringComparer.OrdinalIgnoreCase);
 		unmanagedAssemblyMap =
 			dependencyContext
 				.RuntimeLibraries
@@ -89,16 +87,16 @@ class DependencyContextAssemblyCache
 						.Select(runtime => Tuple.Create(lib, lib.NativeLibraryGroups.FirstOrDefault(libGroup => string.Equals(libGroup.Runtime, runtime))))
 						.FirstOrDefault(tuple => tuple.Item2?.AssetPaths != null)
 				)
-				.Where(tuple => tuple != null)
+				.WhereNotNull()
+				.Where(tuple => tuple.Item2 != null)
 				.SelectMany(tuple =>
-					tuple.Item2.AssetPaths
+					tuple.Item2!.AssetPaths
 						.Where(x => x != null)
 						.Select(path => Tuple.Create(Path.GetFileName(path), Tuple.Create(tuple.Item1, tuple.Item2)))
 				)
 				.ToDictionaryIgnoringDuplicateKeys(tuple => tuple.Item1, tuple => tuple.Item2, StringComparer.OrdinalIgnoreCase);
 
-		if (internalDiagnosticsMessageSink != null)
-			internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache..ctor] Unmanaged assembly map: [{string.Join(",", unmanagedAssemblyMap.Keys.Select(k => $"'{k}'").OrderBy(k => k, StringComparer.OrdinalIgnoreCase))}]"));
+		internalDiagnosticsMessageSink?.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache..ctor] Unmanaged assembly map: [{string.Join(",", unmanagedAssemblyMap.Keys.Select(k => $"'{k}'").OrderBy(k => k, StringComparer.OrdinalIgnoreCase))}]"));
 	}
 
 	List<string> GetCompatibleRuntimes(DependencyContext dependencyContext)
@@ -119,30 +117,15 @@ class DependencyContextAssemblyCache
 	{
 		var match = RuntimeIdRegex.Match(runtime);
 		var arch = match?.Groups?["arch"]?.Value;
-		var result = default(string);
-
-		switch (operatingSystemPlatform)
+		var result = operatingSystemPlatform switch
 		{
-			case Platform.Windows:
-				result = "win10" + arch;
-				break;
+			Platform.Windows => "win10" + arch,
+			Platform.Darwin => "osx.10.12" + arch,
+			Platform.Linux => "linux" + arch,
+			_ => "unknown",
+		};
 
-			case Platform.Darwin:
-				result = "osx.10.12" + arch;
-				break;
-
-			case Platform.Linux:
-				result = "linux" + arch;
-				break;
-
-			default:
-				result = "unknown";
-				break;
-		}
-
-		if (internalDiagnosticsMessageSink != null)
-			internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache.GetFallbackRuntime] Could not find runtime '{runtime}', falling back to '{result}'"));
-
+		internalDiagnosticsMessageSink?.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache.GetFallbackRuntime] Could not find runtime '{runtime}', falling back to '{result}'"));
 		return result;
 	}
 
@@ -166,7 +149,7 @@ class DependencyContextAssemblyCache
 		}
 	}
 
-	public Assembly LoadManagedDll(
+	public Assembly? LoadManagedDll(
 		string assemblyName,
 		Func<string, Assembly> managedAssemblyLoader)
 	{
@@ -220,7 +203,7 @@ class DependencyContextAssemblyCache
 		return result;
 	}
 
-	Tuple<string, Assembly> ResolveManagedAssembly(
+	Tuple<string?, Assembly?> ResolveManagedAssembly(
 		string assemblyName,
 		Func<string, Assembly> managedAssemblyLoader)
 	{
@@ -235,7 +218,7 @@ class DependencyContextAssemblyCache
 				{
 					var assembly = managedAssemblyLoader(resolvedAssemblyPath);
 					if (assembly != null)
-						return Tuple.Create(resolvedAssemblyPath, assembly);
+						return Tuple.Create<string?, Assembly?>(resolvedAssemblyPath, assembly);
 				}
 			}
 			catch { }
@@ -257,28 +240,25 @@ class DependencyContextAssemblyCache
 
 					var assembly = managedAssemblyLoader(resolvedAssemblyPath);
 					if (assembly != null)
-						return Tuple.Create(resolvedAssemblyPath, assembly);
+						return Tuple.Create<string?, Assembly?>(resolvedAssemblyPath, assembly);
 
-					if (internalDiagnosticsMessageSink != null)
-						internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache.ResolveManagedAssembly] Resolving '{assemblyName}', found assembly path '{resolvedAssemblyPath}' but the assembly would not load"));
+					internalDiagnosticsMessageSink?.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache.ResolveManagedAssembly] Resolving '{assemblyName}', found assembly path '{resolvedAssemblyPath}' but the assembly would not load"));
 				}
 				else
 				{
-					if (internalDiagnosticsMessageSink != null)
-						internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache.ResolveManagedAssembly] Resolving '{assemblyName}', found a resolved path, but could not map a filename in [{string.Join(",", assemblies.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).Select(k => $"'{k}'"))}]"));
+					internalDiagnosticsMessageSink?.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache.ResolveManagedAssembly] Resolving '{assemblyName}', found a resolved path, but could not map a filename in [{string.Join(",", assemblies.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).Select(k => $"'{k}'"))}]"));
 				}
 			}
 			else
 			{
-				if (internalDiagnosticsMessageSink != null)
-					internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache.ResolveManagedAssembly] Resolving '{assemblyName}', found in dependency map, but unable to resolve a path in [{string.Join(",", assetGroup.AssetPaths.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).Select(k => $"'{k}'"))}]"));
+				internalDiagnosticsMessageSink?.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache.ResolveManagedAssembly] Resolving '{assemblyName}', found in dependency map, but unable to resolve a path in [{string.Join(",", assetGroup.AssetPaths.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).Select(k => $"'{k}'"))}]"));
 			}
 		}
 
 		return ManagedAssemblyNotFound;
 	}
 
-	public string ResolveUnmanagedLibrary(string unmanagedLibraryName)
+	public string? ResolveUnmanagedLibrary(string unmanagedLibraryName)
 	{
 		foreach (var format in unmanagedDllFormats)
 		{
@@ -297,13 +277,11 @@ class DependencyContextAssemblyCache
 					if (resolvedAssemblyPath != null)
 						return Path.GetFullPath(resolvedAssemblyPath);
 
-					if (internalDiagnosticsMessageSink != null)
-						internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache.ResolveUnmanagedLibrary] Found a resolved path, but could not map a filename in [{string.Join(",", assemblies.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).Select(k => $"'{k}'"))}]"));
+					internalDiagnosticsMessageSink?.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache.ResolveUnmanagedLibrary] Found a resolved path, but could not map a filename in [{string.Join(",", assemblies.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).Select(k => $"'{k}'"))}]"));
 				}
 				else
 				{
-					if (internalDiagnosticsMessageSink != null)
-						internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache.ResolveUnmanagedLibrary] Found in dependency map, but unable to resolve a path in [{string.Join(",", assetGroup.AssetPaths.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).Select(k => $"'{k}'"))}]"));
+					internalDiagnosticsMessageSink?.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache.ResolveUnmanagedLibrary] Found in dependency map, but unable to resolve a path in [{string.Join(",", assetGroup.AssetPaths.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).Select(k => $"'{k}'"))}]"));
 				}
 			}
 		}

@@ -9,7 +9,7 @@ using VsTestResultMessage = Microsoft.VisualStudio.TestPlatform.ObjectModel.Test
 
 namespace Xunit.Runner.VisualStudio;
 
-public class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposable
+public sealed class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposable
 {
 	readonly Func<bool> cancelledThunk;
 	readonly LoggerHelper logger;
@@ -57,7 +57,7 @@ public class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposable
 		base.Dispose();
 	}
 
-	TestCase FindTestCase(ITestCase testCase)
+	TestCase? FindTestCase(ITestCase testCase)
 	{
 		if (testCasesMap.TryGetValue(testCase.UniqueID, out var result))
 			return result;
@@ -256,22 +256,22 @@ public class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposable
 		}
 	}
 
-	VsTestResult MakeVsTestResult(
+	VsTestResult? MakeVsTestResult(
 		TestOutcome outcome,
 		ITestResultMessage testResult) =>
 			MakeVsTestResult(outcome, testResult.TestCase, testResult.Test.DisplayName, (double)testResult.ExecutionTime, testResult.Output);
 
-	VsTestResult MakeVsTestResult(
+	VsTestResult? MakeVsTestResult(
 		TestOutcome outcome,
 		ITestSkipped skippedResult) =>
 			MakeVsTestResult(outcome, skippedResult.TestCase, skippedResult.Test.DisplayName, (double)skippedResult.ExecutionTime, skippedResult.Reason);
 
-	VsTestResult MakeVsTestResult(
+	VsTestResult? MakeVsTestResult(
 		TestOutcome outcome,
 		ITestCase testCase,
 		string displayName,
 		double executionTime = 0.0,
-		string output = null)
+		string? output = null)
 	{
 		var vsTestCase = FindTestCase(testCase);
 		if (vsTestCase == null)
@@ -295,7 +295,7 @@ public class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposable
 		return result;
 	}
 
-	TestOutcome GetAggregatedTestOutcome(ITestCaseFinished testCaseFinished)
+	static TestOutcome GetAggregatedTestOutcome(ITestCaseFinished testCaseFinished)
 	{
 		if (testCaseFinished.TestsRun == 0)
 			return TestOutcome.NotFound;

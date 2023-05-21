@@ -14,7 +14,7 @@ namespace Xunit;
 /// </summary>
 class AssemblyHelper : AssemblyLoadContext, IDisposable
 {
-	readonly DependencyContextAssemblyCache assemblyCache;
+	readonly DependencyContextAssemblyCache? assemblyCache;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="NetCoreAssemblyDependencyResolver"/> class.
@@ -24,32 +24,35 @@ class AssemblyHelper : AssemblyLoadContext, IDisposable
 	/// may pass <c>null</c> for no internal diagnostics messages</param>
 	public AssemblyHelper(
 		string assemblyFileName,
-		IMessageSink internalDiagnosticsMessageSink)
+		IMessageSink? internalDiagnosticsMessageSink)
 	{
 		if (!File.Exists(assemblyFileName))
 		{
-			if (internalDiagnosticsMessageSink != null)
-				internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[AssemblyHelper_NetCoreApp..ctor] Assembly file not found: '{assemblyFileName}'"));
+			internalDiagnosticsMessageSink?.OnMessage(new _DiagnosticMessage($"[AssemblyHelper_NetCoreApp..ctor] Assembly file not found: '{assemblyFileName}'"));
 			return;
 		}
 
 		var assembly = LoadFromAssemblyPath(assemblyFileName);
 		if (assembly == null)
 		{
-			if (internalDiagnosticsMessageSink != null)
-				internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[AssemblyHelper_NetCoreApp..ctor] Assembly file could not be loaded: '{assemblyFileName}'"));
+			internalDiagnosticsMessageSink?.OnMessage(new _DiagnosticMessage($"[AssemblyHelper_NetCoreApp..ctor] Assembly file could not be loaded: '{assemblyFileName}'"));
 			return;
 		}
 
 		var dependencyContext = DependencyContext.Load(assembly);
 		if (dependencyContext == null)
 		{
-			if (internalDiagnosticsMessageSink != null)
-				internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[AssemblyHelper_NetCoreApp..ctor] Assembly file does not contain dependency manifest: '{assemblyFileName}'"));
+			internalDiagnosticsMessageSink?.OnMessage(new _DiagnosticMessage($"[AssemblyHelper_NetCoreApp..ctor] Assembly file does not contain dependency manifest: '{assemblyFileName}'"));
 			return;
 		}
 
 		var assemblyFolder = Path.GetDirectoryName(assemblyFileName);
+		if (assemblyFolder == null)
+		{
+			internalDiagnosticsMessageSink?.OnMessage(new _DiagnosticMessage($"[AssemblyHelper_NetCoreApp..ctor] Assembly file does not have an associated folder to watch: '{assemblyFileName}'"));
+			return;
+		}
+
 		assemblyCache = new DependencyContextAssemblyCache(assemblyFolder, dependencyContext, internalDiagnosticsMessageSink);
 
 		Default.Resolving += OnResolving;
@@ -80,10 +83,15 @@ class AssemblyHelper : AssemblyLoadContext, IDisposable
 		return result;
 	}
 
-	Assembly OnResolving(
+	Assembly? OnResolving(
 		AssemblyLoadContext context,
-		AssemblyName name) =>
-			assemblyCache?.LoadManagedDll(name.Name, LoadFromAssemblyPath);
+		AssemblyName name)
+	{
+		if (assemblyCache == null || name.Name == null)
+			return null;
+
+		return assemblyCache.LoadManagedDll(name.Name, LoadFromAssemblyPath);
+	}
 
 	/// <summary>
 	/// Subscribes to the appropriate assembly resolution event, to provide automatic assembly resolution for
@@ -93,7 +101,7 @@ class AssemblyHelper : AssemblyLoadContext, IDisposable
 	/// <returns>An object which, when disposed, un-subscribes.</returns>
 	public static IDisposable SubscribeResolveForAssembly(
 		string assemblyFileName,
-		IMessageSink internalDiagnosticsMessageSink = null) =>
+		IMessageSink? internalDiagnosticsMessageSink = null) =>
 			new AssemblyHelper(assemblyFileName, internalDiagnosticsMessageSink);
 
 	/// <summary>
@@ -104,7 +112,7 @@ class AssemblyHelper : AssemblyLoadContext, IDisposable
 	/// <returns>An object which, when disposed, un-subscribes.</returns>
 	public static IDisposable SubscribeResolveForAssembly(
 		Type typeInAssembly,
-		IMessageSink internalDiagnosticsMessageSink = null) =>
+		IMessageSink? internalDiagnosticsMessageSink = null) =>
 			new AssemblyHelper(typeInAssembly.GetTypeInfo().Assembly.Location, internalDiagnosticsMessageSink);
 }
 

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Xunit.Abstractions;
+using Xunit.Internal;
 using Xunit.Sdk;
 
 namespace Xunit;
@@ -17,14 +18,14 @@ class AssemblyHelper : LongLivedMarshalByRefObject, IDisposable
 	static readonly string[] Extensions = { ".dll", ".exe" };
 
 	readonly string directory;
-	readonly IMessageSink internalDiagnosticsMessageSink;
-	readonly Dictionary<string, Assembly> lookupCache = new Dictionary<string, Assembly>();
+	readonly IMessageSink? internalDiagnosticsMessageSink;
+	readonly Dictionary<string, Assembly?> lookupCache = new();
 
 	/// <summary>
 	/// Constructs an instance using the given <paramref name="directory"/> for resolution.
 	/// </summary>
 	/// <param name="directory">The directory to use for resolving assemblies.</param>
-	public AssemblyHelper(string directory) :
+	public AssemblyHelper(string? directory) :
 		this(directory, null)
 	{ }
 
@@ -34,10 +35,10 @@ class AssemblyHelper : LongLivedMarshalByRefObject, IDisposable
 	/// <param name="directory">The directory to use for resolving assemblies.</param>
 	/// <param name="internalDiagnosticsMessageSink">The message sink to send internal diagnostics messages to</param>
 	public AssemblyHelper(
-		string directory,
-		IMessageSink internalDiagnosticsMessageSink)
+		string? directory,
+		IMessageSink? internalDiagnosticsMessageSink)
 	{
-		this.directory = directory;
+		this.directory = Guard.ArgumentNotNull(directory);
 		this.internalDiagnosticsMessageSink = internalDiagnosticsMessageSink;
 
 		AppDomain.CurrentDomain.AssemblyResolve += Resolve;
@@ -47,34 +48,34 @@ class AssemblyHelper : LongLivedMarshalByRefObject, IDisposable
 	public void Dispose() =>
 		AppDomain.CurrentDomain.AssemblyResolve -= Resolve;
 
-	Assembly LoadAssembly(AssemblyName assemblyName)
+	Assembly? LoadAssembly(string assemblyName)
 	{
-		if (lookupCache.TryGetValue(assemblyName.Name, out var result))
+		if (lookupCache.TryGetValue(assemblyName, out var result))
 			return result;
 
-		var path = Path.Combine(directory, assemblyName.Name);
+		var path = Path.Combine(directory, assemblyName);
 		result = ResolveAndLoadAssembly(path, out var resolvedAssemblyPath);
 
 		if (internalDiagnosticsMessageSink != null)
 		{
 			if (result == null)
-				internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[AssemblyHelper_Desktop.LoadAssembly] Resolution for '{assemblyName.Name}' failed, passed down to next resolver"));
+				internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[AssemblyHelper_Desktop.LoadAssembly] Resolution for '{assemblyName}' failed, passed down to next resolver"));
 			else
-				internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[AssemblyHelper_Desktop.LoadAssembly] Resolved '{assemblyName.Name}' to '{resolvedAssemblyPath}'"));
+				internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[AssemblyHelper_Desktop.LoadAssembly] Resolved '{assemblyName}' to '{resolvedAssemblyPath}'"));
 		}
 
-		lookupCache[assemblyName.Name] = result;
+		lookupCache[assemblyName] = result;
 		return result;
 	}
 
-	Assembly Resolve(
-		object sender,
+	Assembly? Resolve(
+		object? sender,
 		ResolveEventArgs args) =>
-			LoadAssembly(new AssemblyName(args.Name));
+			LoadAssembly(args.Name);
 
-	Assembly ResolveAndLoadAssembly(
+	Assembly? ResolveAndLoadAssembly(
 		string pathWithoutExtension,
-		out string resolvedAssemblyPath)
+		out string? resolvedAssemblyPath)
 	{
 		foreach (var extension in Extensions)
 		{
@@ -100,7 +101,7 @@ class AssemblyHelper : LongLivedMarshalByRefObject, IDisposable
 	/// <returns>An object which, when disposed, un-subscribes.</returns>
 	public static IDisposable SubscribeResolveForAssembly(
 		string assemblyFileName,
-		IMessageSink internalDiagnosticsMessageSink = null) =>
+		IMessageSink? internalDiagnosticsMessageSink = null) =>
 			new AssemblyHelper(Path.GetDirectoryName(Path.GetFullPath(assemblyFileName)), internalDiagnosticsMessageSink);
 
 	/// <summary>
@@ -111,7 +112,7 @@ class AssemblyHelper : LongLivedMarshalByRefObject, IDisposable
 	/// <returns>An object which, when disposed, un-subscribes.</returns>
 	public static IDisposable SubscribeResolveForAssembly(
 		Type typeInAssembly,
-		IMessageSink internalDiagnosticsMessageSink = null) =>
+		IMessageSink? internalDiagnosticsMessageSink = null) =>
 			new AssemblyHelper(Path.GetDirectoryName(typeInAssembly.Assembly.Location), internalDiagnosticsMessageSink);
 }
 

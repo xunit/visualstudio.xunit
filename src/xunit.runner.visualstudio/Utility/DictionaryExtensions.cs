@@ -7,7 +7,8 @@ static class DictionaryExtensions
 		this IEnumerable<TInput> inputValues,
 		Func<TInput, TKey> keySelector,
 		Func<TInput, TValue> valueSelector,
-		IEqualityComparer<TKey> comparer = null)
+		IEqualityComparer<TKey>? comparer = null)
+			where TKey : notnull
 	{
 		var result = new Dictionary<TKey, TValue>(comparer);
 
