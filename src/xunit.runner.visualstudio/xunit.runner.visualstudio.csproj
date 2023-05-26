@@ -13,6 +13,8 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <NoWarn>$(NoWarn);CS0436</NoWarn>
     <Nullable>enable</Nullable>
+    <PackageIcon>_content/logo-128-transparent.png</PackageIcon>
+    <PackageReadmeFile>_content/README.md</PackageReadmeFile>
     <!-- Set the PackageId explicitly as our different AssemblyNames will cause restore errors otherwise -->
     <PackageId>xunit.runner.visualstudio</PackageId>
   </PropertyGroup>
@@ -33,7 +35,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="$(MicrosoftTestPlatformObjectModelVersion)" PrivateAssets="All" />
-    <PackageReference Include="TunnelVisionLabs.ReferenceAssemblyAnnotator" Version="$(TunnelVisionLabsReferenceAssemblyAnnotatorVersion)" />
+    <PackageReference Include="TunnelVisionLabs.ReferenceAssemblyAnnotator" Version="$(TunnelVisionLabsReferenceAssemblyAnnotatorVersion)" PrivateAssets="All" />
     <PackageReference Include="xunit.runner.reporters" Version="$(XunitVersion)" PrivateAssets="All" />
   </ItemGroup>
 
@@ -48,8 +50,9 @@
     <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\netcoreapp1.0\*.dll" PackagePath="build\net6.0" Pack="true" Visible="false" />
     <None Include="$(NuGetPackageRoot)xunit.abstractions\2.0.3\lib\netstandard2.0\*.dll" PackagePath="build\net6.0" Pack="true" Visible="false" />
 
-    <None Include="..\..\logo-512-transparent.png" PackagePath="logo-512-transparent.png" Pack="true" />
-    <None Include="..\..\License.txt" PackagePath="License.txt" Pack="true" />
+    <None Include="..\..\README.md" PackagePath="_content\README.md" Pack="true" Visible="false" />
+    <None Include="..\..\logo-128-transparent.png" PackagePath="_content\logo-128-transparent.png" Pack="true" Visible="false" />
+    <None Include="..\..\License.txt" PackagePath="License.txt" Pack="true" Visible="false" />
 
     <None Include="build\_._" PackagePath="lib\net462" Pack="true" />
     <None Include="build\_._" PackagePath="lib\net6.0" Pack="true" />
