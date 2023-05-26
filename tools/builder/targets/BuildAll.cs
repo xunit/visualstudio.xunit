@@ -1,5 +1,5 @@
 [Target(
-	BuildTarget.PR,
+	BuildTarget.BuildAll,
 	BuildTarget.AnalyzeSource, BuildTarget.Test
 )]
-public class PR { }
+public class BuildAll { }

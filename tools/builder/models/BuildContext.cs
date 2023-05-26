@@ -59,8 +59,8 @@ public class BuildContext
 	[Option("-s|--skip-dependencies", Description = "Do not run targets' dependencies")]
 	public bool SkipDependencies { get; }
 
-	[Argument(0, "targets", Description = "The target(s) to run (default: 'PR'; common values: 'Build', 'CI', 'PR', 'Restore', 'Test')")]
-	public BuildTarget[] Targets { get; } = new[] { BuildTarget.PR };
+	[Argument(0, "targets", Description = "The target(s) to run (default: 'PR'; common values: 'Build', 'BuildAll', 'Clean', 'Restore', 'Test', 'TestCore', 'TestFx')")]
+	public BuildTarget[] Targets { get; } = new[] { BuildTarget.BuildAll };
 
 	[Option("-t|--timing", Description = "Emit timing information for each target")]
 	public bool Timing { get; }

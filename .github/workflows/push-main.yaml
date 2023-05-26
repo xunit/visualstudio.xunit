@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: "CI Build"
+    name: "Build"
     runs-on: windows-2022
     env:
       DOTNET_NOLOGO: true
@@ -31,12 +31,19 @@ jobs:
       - name: Get .NET information
         run: dotnet --info
 
-      - name: "Build target: CI"
+      - name: "Build target: BuildAll"
+        run: dotnet run --project tools/builder --no-launch-profile -- BuildAll --timing
+
+      - name: "Build target: PublishPackages"
         env:
           PublishToken: ${{ secrets.PublishToken }}
-          SignClientUser: ${{ secrets.SignClientUser }}
-          SignClientSecret: ${{ secrets.SignClientSecret }}
-        run: dotnet run --project tools/builder --no-launch-profile -- CI --timing
+          SIGN_APP_ID: ${{ secrets.SIGN_APP_ID }}
+          SIGN_APP_SECRET: ${{ secrets.SIGN_APP_SECRET }}
+          SIGN_CERT_NAME: ${{ secrets.SIGN_CERT_NAME }}
+          SIGN_SUBSCRIPTION: ${{ secrets.SIGN_SUBSCRIPTION }}
+          SIGN_TENANT: ${{ secrets.SIGN_TENANT }}
+          SIGN_VAULT_URI: ${{ secrets.SIGN_VAULT_URI }}
+        run: dotnet run --project tools/builder --no-launch-profile -- PublishPackages --timing
 
       - name: "Upload artifact: test"
         uses: actions/upload-artifact@v3

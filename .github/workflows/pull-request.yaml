@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    name: "PR Build"
+    name: "Build"
     runs-on: windows-2022
     env:
       DOTNET_NOLOGO: true
@@ -28,8 +28,8 @@ jobs:
       - name: Get .NET information
         run: dotnet --info
 
-      - name: "Build target: PR"
-        run: dotnet run --project tools/builder --no-launch-profile -- PR --timing
+      - name: "Build target: BuildAll"
+        run: dotnet run --project tools/builder --no-launch-profile -- BuildAll --timing
 
       - name: "Upload artifact: test"
         uses: actions/upload-artifact@v3
