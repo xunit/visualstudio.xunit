@@ -1,15 +1,7 @@
-public enum BuildTarget
+namespace Xunit.BuildTools.Models;
+
+public partial class BuildTarget
 {
-	AnalyzeSource,
-	Build,
-	BuildAll,
-	Clean,
-	FormatSource,
-	PublishPackages,
-	Restore,
-	RestoreTools,
-	SignPackages,
-	Test,
-	TestCore,
-	TestFx,
+	public const string TestCore = nameof(TestCore);
+	public const string TestFx = nameof(TestFx);
 }

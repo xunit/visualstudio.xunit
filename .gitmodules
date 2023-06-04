@@ -1,0 +1,3 @@
+[submodule "tools/builder/common"]
+	path = tools/builder/common
+	url = https://github.com/xunit/build-tools-v3
