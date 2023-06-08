@@ -567,6 +567,8 @@ namespace Xunit.Runner.VisualStudio
 				IExecutionSink resultsSink = vsExecutionSink;
 				if (longRunningSeconds > 0)
 					resultsSink = new DelegatingLongRunningTestDetectionSink(resultsSink, TimeSpan.FromSeconds(longRunningSeconds), diagnosticSink);
+				if (configuration.FailSkipsOrDefault)
+					resultsSink = new DelegatingFailSkipSink(resultsSink);
 
 				controller.RunTests(testCases, resultsSink, executionOptions);
 				resultsSink.Finished.WaitOne();
