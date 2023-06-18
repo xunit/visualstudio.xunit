@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
@@ -608,19 +607,19 @@ namespace Xunit.Runner.VisualStudio
 		}
 
 		public static IRunnerReporter GetRunnerReporter(
-			LoggerHelper logger,
+			LoggerHelper? logger,
 			RunSettings runSettings,
 			IReadOnlyList<string> assemblyFileNames)
 		{
 			var reporter = default(IRunnerReporter);
-			var availableReporters = new Lazy<IReadOnlyList<IRunnerReporter>>(() => GetAvailableRunnerReporters(assemblyFileNames));
+			var availableReporters = new Lazy<IReadOnlyList<IRunnerReporter>>(() => GetAvailableRunnerReporters(logger, assemblyFileNames));
 
 			try
 			{
 				if (!string.IsNullOrEmpty(runSettings.ReporterSwitch))
 				{
 					reporter = availableReporters.Value.FirstOrDefault(r => string.Equals(r.RunnerSwitch, runSettings.ReporterSwitch, StringComparison.OrdinalIgnoreCase));
-					if (reporter is null)
+					if (reporter is null && logger is not null)
 						logger.LogWarning("Could not find requested reporter '{0}'", runSettings.ReporterSwitch);
 				}
 
@@ -632,119 +631,30 @@ namespace Xunit.Runner.VisualStudio
 			return reporter ?? new DefaultRunnerReporterWithTypes();
 		}
 
-		static IReadOnlyList<IRunnerReporter> GetAvailableRunnerReporters(IReadOnlyList<string> sources)
+		public static IReadOnlyList<IRunnerReporter> GetAvailableRunnerReporters(
+			LoggerHelper? logger,
+			IReadOnlyList<string> sources)
 		{
-#if NETCOREAPP
-			// Combine all input libs and merge their contexts to find the potential reporters
 			var result = new List<IRunnerReporter>();
-			var dcjr = new DependencyContextJsonReader();
-			var deps =
-				sources
-					.Select(Path.GetFullPath)
-					.Select(s => s.Replace(".dll", ".deps.json"))
-					.Where(File.Exists)
-					.Select(f => new MemoryStream(Encoding.UTF8.GetBytes(File.ReadAllText(f))))
-					.Select(dcjr.Read);
-			var ctx = deps.Aggregate(DependencyContext.Default, (context, dependencyContext) => context.Merge(dependencyContext));
-			dcjr.Dispose();
 
-			var depsAssms = ctx.GetRuntimeAssemblyNames(InternalRuntimeEnvironment.GetRuntimeIdentifier()).ToList();
-
-			// Make sure to also check assemblies within the directory of the sources
-			var dllsInSources =
+			// We need to combine the source folders with our folder to find all potential runners
+			var folders =
 				sources
-					.Select(Path.GetFullPath)
-					.Select(Path.GetDirectoryName)
-					.Distinct(StringComparer.OrdinalIgnoreCase)
+					.Select(s => Path.GetDirectoryName(Path.GetFullPath(s)))
 					.WhereNotNull()
-					.SelectMany(p => Directory.GetFiles(p, "*.dll").Select(f => Path.Combine(p, f)))
-					.Select(f => new AssemblyName { Name = Path.GetFileNameWithoutExtension(f) })
-					.ToList();
+					.Concat(new[] { Path.GetDirectoryName(typeof(VsTestRunner).Assembly.GetLocalCodeBase()) })
+					.Distinct();
 
-			foreach (var assemblyName in depsAssms.Concat(dllsInSources))
+			foreach (var folder in folders)
 			{
-				try
-				{
-					var assembly = Assembly.Load(assemblyName);
-					foreach (var type in assembly.DefinedTypes)
-					{
-#pragma warning disable CS0618
-						if (type == null || type.IsAbstract || type == typeof(DefaultRunnerReporter).GetTypeInfo() || type == typeof(DefaultRunnerReporterWithTypes).GetTypeInfo() || type.ImplementedInterfaces.All(i => i != typeof(IRunnerReporter)))
-							continue;
-#pragma warning restore CS0618
+				result.AddRange(RunnerReporterUtility.GetAvailableRunnerReporters(folder, out var messages));
 
-						var ctor = type.DeclaredConstructors.FirstOrDefault(c => c.GetParameters().Length == 0);
-						if (ctor == null)
-						{
-							ConsoleHelper.SetForegroundColor(ConsoleColor.Yellow);
-							Console.WriteLine($"Type {type.FullName} in assembly {assembly} appears to be a runner reporter, but does not have an empty constructor.");
-							ConsoleHelper.ResetColor();
-							continue;
-						}
-
-						result.Add((IRunnerReporter)ctor.Invoke(Array.Empty<object>()));
-					}
-				}
-				catch
-				{
-					continue;
-				}
+				if (logger is not null)
+					foreach (var message in messages)
+						logger.LogWarning(message);
 			}
 
 			return result;
-#else
-			var result = new List<IRunnerReporter>();
-			var runnerPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetLocalCodeBase());
-			var runnerReporterInterfaceAssemblyFullName = typeof(IRunnerReporter).Assembly.GetName().FullName;
-
-			if (runnerPath != null)
-				foreach (var dllFile in Directory.GetFiles(runnerPath, "*.dll").Select(f => Path.Combine(runnerPath, f)))
-				{
-					Type?[] types;
-
-					try
-					{
-						var assembly = Assembly.LoadFile(dllFile);
-
-						// Calling Assembly.GetTypes can be very expensive, while Assembly.GetReferencedAssemblies
-						// is relatively cheap.  We can avoid loading types for assemblies that couldn't possibly
-						// reference IRunnerReporter.
-						if (!assembly.GetReferencedAssemblies().Where(name => name.FullName == runnerReporterInterfaceAssemblyFullName).Any())
-							continue;
-
-						types = assembly.GetTypes();
-					}
-					catch (ReflectionTypeLoadException ex)
-					{
-						types = ex.Types;
-					}
-					catch
-					{
-						continue;
-					}
-
-					foreach (var type in types)
-					{
-#pragma warning disable CS0618
-						if (type == null || type.IsAbstract || type == typeof(DefaultRunnerReporter) || type == typeof(DefaultRunnerReporterWithTypes) || !type.GetInterfaces().Any(t => t == typeof(IRunnerReporter)))
-							continue;
-#pragma warning restore CS0618
-
-						var ctor = type.GetConstructor(new Type[0]);
-						if (ctor == null)
-						{
-							ConsoleHelper.SetForegroundColor(ConsoleColor.Yellow);
-							Console.WriteLine($"Type {type.FullName} in assembly {dllFile} appears to be a runner reporter, but does not have an empty constructor.");
-							ConsoleHelper.ResetColor();
-							continue;
-						}
-
-						result.Add((IRunnerReporter)ctor.Invoke(new object[0]));
-					}
-				}
-
-			return result;
-#endif
 		}
 
 		static IList<DiscoveredTestCase> GetVsTestCases(

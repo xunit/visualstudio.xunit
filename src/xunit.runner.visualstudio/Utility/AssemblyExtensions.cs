@@ -1,5 +1,3 @@
-#if NETFRAMEWORK
-
 using System;
 using System.IO;
 using System.Reflection;
@@ -8,6 +6,7 @@ internal static class AssemblyExtensions
 {
 	public static string? GetLocalCodeBase(this Assembly assembly)
 	{
+#if NETFRAMEWORK
 		string? codeBase = assembly.CodeBase;
 		if (codeBase == null)
 			return null;
@@ -20,7 +19,9 @@ internal static class AssemblyExtensions
 			return "/" + codeBase;
 
 		return codeBase.Replace('/', Path.DirectorySeparatorChar);
+#else
+		return assembly.Location;
+#endif
 	}
 }
 
-#endif
