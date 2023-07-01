@@ -15,7 +15,6 @@ using Xunit.Internal;
 #if NETCOREAPP
 using System.Text;
 using Internal.Microsoft.Extensions.DependencyModel;
-using InternalRuntimeEnvironment = Internal.Microsoft.DotNet.PlatformAbstractions.RuntimeEnvironment;
 #endif
 
 namespace Xunit.Runner.VisualStudio
@@ -251,9 +250,13 @@ namespace Xunit.Runner.VisualStudio
 					var fileName = Path.GetFileNameWithoutExtension(assemblyFileName);
 					var shadowCopy = configuration.ShadowCopyOrDefault;
 					var diagnosticSink = DiagnosticMessageSink.ForDiagnostics(logger, fileName, configuration.DiagnosticMessagesOrDefault);
+					var appDomain = configuration.AppDomain ?? AppDomainDefaultBehavior;
 
-					using var framework = new XunitFrontController(AppDomainDefaultBehavior, assemblyFileName, shadowCopy: shadowCopy, diagnosticMessageSink: MessageSinkAdapter.Wrap(diagnosticSink));
-					if (!DiscoverTestsInSource(framework, logger, testPlatformContext, runSettings, visitorFactory, visitComplete, assemblyFileName, shadowCopy, configuration))
+					if (runSettings.DisableAppDomain)
+						appDomain = AppDomainSupport.Denied;
+
+					using var framework = new XunitFrontController(appDomain, assemblyFileName, shadowCopy: shadowCopy, diagnosticMessageSink: MessageSinkAdapter.Wrap(diagnosticSink));
+					if (!DiscoverTestsInSource(framework, logger, testPlatformContext, runSettings, visitorFactory, visitComplete, assemblyFileName, shadowCopy, configuration, appDomain))
 						break;
 				}
 			}
@@ -272,7 +275,8 @@ namespace Xunit.Runner.VisualStudio
 			Action<string, ITestFrameworkDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor>? visitComplete,
 			string assemblyFileName,
 			bool shadowCopy,
-			TestAssemblyConfiguration configuration)
+			TestAssemblyConfiguration configuration,
+			AppDomainSupport appDomain)
 				where TVisitor : IVsDiscoverySink, IDisposable
 		{
 			if (cancelled)
@@ -297,7 +301,7 @@ namespace Xunit.Runner.VisualStudio
 
 					using var visitor = visitorFactory(assemblyFileName, framework, discoveryOptions);
 					var totalTests = 0;
-					var usingAppDomains = framework.CanUseAppDomains && AppDomainDefaultBehavior != AppDomainSupport.Denied;
+					var usingAppDomains = framework.CanUseAppDomains && appDomain != AppDomainSupport.Denied;
 					reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryStarting(assembly, usingAppDomains, shadowCopy, discoveryOptions));
 
 					try
@@ -469,7 +473,8 @@ namespace Xunit.Runner.VisualStudio
 						},
 						assemblyFileName,
 						shadowCopy,
-						configuration
+						configuration,
+						appDomain
 					);
 
 					if (assemblyDiscoveredInfo == null || assemblyDiscoveredInfo.DiscoveredTestCases == null || !assemblyDiscoveredInfo.DiscoveredTestCases.Any())
