@@ -264,14 +264,15 @@ public sealed class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposab
 	VsTestResult? MakeVsTestResult(
 		TestOutcome outcome,
 		ITestSkipped skippedResult) =>
-			MakeVsTestResult(outcome, skippedResult.TestCase, skippedResult.Test.DisplayName, (double)skippedResult.ExecutionTime, skippedResult.Reason);
+			MakeVsTestResult(outcome, skippedResult.TestCase, skippedResult.Test.DisplayName, (double)skippedResult.ExecutionTime, errorMessage: skippedResult.Reason);
 
 	VsTestResult? MakeVsTestResult(
 		TestOutcome outcome,
 		ITestCase testCase,
 		string displayName,
 		double executionTime = 0.0,
-		string? output = null)
+		string? output = null,
+		string? errorMessage = null)
 	{
 		var vsTestCase = FindTestCase(testCase);
 		if (vsTestCase == null)
@@ -291,6 +292,9 @@ public sealed class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposab
 
 		if (!string.IsNullOrEmpty(output))
 			result.Messages.Add(new VsTestResultMessage(VsTestResultMessage.StandardOutCategory, output));
+
+		if (!string.IsNullOrEmpty(errorMessage))
+			result.ErrorMessage = errorMessage;
 
 		return result;
 	}
