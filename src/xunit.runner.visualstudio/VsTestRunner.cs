@@ -578,7 +578,7 @@ namespace Xunit.Runner.VisualStudio
 				resultsSink.Finished.WaitOne();
 
 				reporterMessageHandler.OnMessage(new TestAssemblyExecutionFinished(assembly, executionOptions, resultsSink.ExecutionSummary));
-				if (resultsSink.ExecutionSummary.Failed != 0 && executionOptions.GetStopOnTestFailOrDefault())
+				if ((resultsSink.ExecutionSummary.Failed != 0 || resultsSink.ExecutionSummary.Errors != 0) && executionOptions.GetStopOnTestFailOrDefault())
 				{
 					logger.Log("Canceling due to test failure...");
 					cancelled = true;
