@@ -90,6 +90,7 @@
       <PrereleaseSuffix Condition=" '$(GITHUB_ACTIONS)' != 'true' ">-dev</PrereleaseSuffix>
       <!-- Never put the Git hash in the package version -->
       <PackageVersion>$(BuildVersionSimple)$(PrereleaseVersion)$(PrereleaseSuffix)</PackageVersion>
+      <PackageReleaseNotes>https://xunit.net/releases/visualstudio/$(PackageVersion)</PackageReleaseNotes>
       <!-- Pass through values we don't know ahead of time for any hand-crafted .nuspec files -->
       <NuspecProperties>
         Configuration=$(Configuration);
