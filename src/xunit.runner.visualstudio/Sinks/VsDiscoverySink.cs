@@ -79,7 +79,7 @@ public sealed class VsDiscoverySink : IMessageSinkWithTypes, IVsDiscoverySink, I
 			var fqTestMethodName = $"{descriptor.ClassName}.{descriptor.MethodName}";
 			var result = new TestCase(fqTestMethodName, uri, source) { DisplayName = Escape(descriptor.DisplayName) };
 
-			if (testPlatformContext.RequireXunitTestProperty)
+			if (testPlatformContext.RequireSerialization)
 				result.SetPropertyValue(VsTestRunner.SerializedTestCaseProperty, descriptor.Serialization);
 
 			result.Id = GuidFromString(uri + descriptor.UniqueID);
@@ -206,7 +206,7 @@ public sealed class VsDiscoverySink : IMessageSinkWithTypes, IVsDiscoverySink, I
 		if (testCaseBatch.Count == 0)
 			return;
 
-		var descriptors = descriptorProvider.GetTestCaseDescriptors(testCaseBatch, includeSerialization: testPlatformContext.RequireXunitTestProperty);
+		var descriptors = descriptorProvider.GetTestCaseDescriptors(testCaseBatch, includeSerialization: testPlatformContext.RequireSerialization);
 		foreach (var descriptor in descriptors)
 		{
 			var vsTestCase = CreateVsTestCase(source, descriptor, logger, testPlatformContext);

@@ -6,18 +6,17 @@ namespace Xunit.Runner.VisualStudio;
 public class AssemblyRunInfo
 {
 	public AssemblyRunInfo(
+		RunSettings runSettings,
 		string assemblyFileName,
-		TestAssemblyConfiguration configuration,
-		IList<TestCase>? testCases)
+		IList<TestCase>? testCases = null)
 	{
-		AssemblyFileName = assemblyFileName;
-		Configuration = configuration;
+		Assembly = new XunitProjectAssembly { AssemblyFilename = assemblyFileName };
 		TestCases = testCases;
+
+		runSettings.CopyTo(Assembly.Configuration);
 	}
 
-	public string AssemblyFileName { get; }
-
-	public TestAssemblyConfiguration Configuration { get; }
+	public XunitProjectAssembly Assembly { get; }
 
 	public IList<TestCase>? TestCases { get; }
 }
