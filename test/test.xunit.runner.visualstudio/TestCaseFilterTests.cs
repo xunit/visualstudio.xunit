@@ -12,7 +12,7 @@ using Constants = Xunit.Runner.VisualStudio.Constants;
 
 public class TestCaseFilterTests
 {
-	readonly HashSet<string> dummyKnownTraits = new HashSet<string>(new string[3] { "Platform", "Product", "Priority" });
+	readonly HashSet<string> dummyKnownTraits = new() { "Platform", "Product", "Priority" };
 
 	static IReadOnlyList<TestCase> GetDummyTestCases()
 	{
