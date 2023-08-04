@@ -63,8 +63,12 @@ public class TestCaseFilter
 		TestCase testCase,
 		string name)
 	{
+		// Getting traits for current test case for pre-check
+		var traitsKeys = new HashSet<string>();
+		foreach (var traits in GetTraits(testCase)) traitsKeys.Add(traits.Key);
+
 		// Traits filtering
-		if (isDiscovery || knownTraits.Contains(name))
+		if ((isDiscovery && traitsKeys.Contains(name)) || knownTraits.Contains(name))
 		{
 			var result = new List<string>();
 
