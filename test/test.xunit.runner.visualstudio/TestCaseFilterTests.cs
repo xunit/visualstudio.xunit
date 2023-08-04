@@ -12,7 +12,7 @@ using Constants = Xunit.Runner.VisualStudio.Constants;
 
 public class TestCaseFilterTests
 {
-	readonly HashSet<string> dummyKnownTraits = new HashSet<string>(new string[2] { "Platform", "Product" });
+	readonly HashSet<string> dummyKnownTraits = new() { "Platform", "Product", "Priority" };
 
 	static IReadOnlyList<TestCase> GetDummyTestCases()
 	{
@@ -22,6 +22,15 @@ public class TestCaseFilterTests
 			testCaseList.Add(new TestCase("Test" + i, new Uri(Constants.ExecutorUri), "DummyTestSource"));
 
 		return testCaseList;
+	}
+
+	static TestCase GetDummyTestCaseWithTraits()
+	{
+		return new TestCase("propertyProviderTestFullyName", new Uri(Constants.ExecutorUri), "DummyTestSource")
+		{
+			DisplayName = "propertyProviderTestDisplayName",
+			Traits = { new Trait("Priority", "0"), new Trait("Category", "unit_0"), new Trait("Category", "unit_1") }
+		};
 	}
 
 	static LoggerHelper GetLoggerHelper(IMessageLogger messageLogger = null)
@@ -79,5 +88,95 @@ public class TestCaseFilterTests
 			arg => Assert.Equal(TestMessageLevel.Warning, arg),
 			arg => Assert.EndsWith("dummyTestAssembly: Exception filtering tests: Hello from the exception", (string)arg)
 		);
+	}
+
+	[Fact]
+	public void TestCaseFilter_TestPropertyProviderWithDiscoveryContextForTraits()
+	{
+		var dummyTestCase = GetDummyTestCaseWithTraits();
+		var context = Substitute.For<IDiscoveryContext>();
+		var filter = new TestCaseFilter(context, GetLoggerHelper());
+		var targetTraitKey = "Category";
+
+		var propertyResult = filter.PropertyProvider(dummyTestCase, targetTraitKey);
+
+		Assert.NotNull(propertyResult);
+		Assert.IsType<string[]>(propertyResult);
+		Assert.Equal(dummyTestCase.Traits.Where(t => t.Name.Equals(targetTraitKey, StringComparison.OrdinalIgnoreCase)).Count(), ((string[])propertyResult).Count());
+	}
+
+	[Fact]
+	public void TestCaseFilter_TestPropertyProviderWithDiscoveryContextForFullyQualifiedName()
+	{
+		var dummyTestCase = GetDummyTestCaseWithTraits();
+		var context = Substitute.For<IDiscoveryContext>();
+		var filter = new TestCaseFilter(context, GetLoggerHelper());
+		var targetName = "FullyQualifiedName";
+
+		var propertyResult = filter.PropertyProvider(dummyTestCase, targetName);
+
+		Assert.NotNull(propertyResult);
+		Assert.IsType<string>(propertyResult);
+		Assert.Equal("propertyProviderTestFullyName", propertyResult);
+	}
+
+	[Fact]
+	public void TestCaseFilter_TestPropertyProviderWithDiscoveryContextForDisplayName()
+	{
+		var dummyTestCase = GetDummyTestCaseWithTraits();
+		var context = Substitute.For<IDiscoveryContext>();
+		var filter = new TestCaseFilter(context, GetLoggerHelper());
+		var targetName = "DisplayName";
+
+		var propertyResult = filter.PropertyProvider(dummyTestCase, targetName);
+
+		Assert.NotNull(propertyResult);
+		Assert.IsType<string>(propertyResult);
+		Assert.Equal("propertyProviderTestDisplayName", propertyResult);
+	}
+
+	[Fact]
+	public void TestCaseFilter_TestPropertyProviderWithRunContextForTraits()
+	{
+		var dummyTestCase = GetDummyTestCaseWithTraits();
+		var context = Substitute.For<IRunContext>();
+		var filter = new TestCaseFilter(context, GetLoggerHelper(), "dummyTestAssembly", dummyKnownTraits);
+		var targetTraitKey = "Priority";
+
+		var propertyResult = filter.PropertyProvider(dummyTestCase, targetTraitKey);
+
+		Assert.NotNull(propertyResult);
+		Assert.IsType<string[]>(propertyResult);
+		Assert.Equal(dummyTestCase.Traits.Where(t => t.Name.Equals(targetTraitKey, StringComparison.OrdinalIgnoreCase)).Count(), ((string[])propertyResult).Count());
+	}
+
+	[Fact]
+	public void TestCaseFilter_TestPropertyProviderWithRunContextForFullyQualifiedName()
+	{
+		var dummyTestCase = GetDummyTestCaseWithTraits();
+		var context = Substitute.For<IRunContext>();
+		var filter = new TestCaseFilter(context, GetLoggerHelper(), "dummyTestAssembly", dummyKnownTraits);
+		var targetName = "FullyQualifiedName";
+
+		var propertyResult = filter.PropertyProvider(dummyTestCase, targetName);
+
+		Assert.NotNull(propertyResult);
+		Assert.IsType<string>(propertyResult);
+		Assert.Equal("propertyProviderTestFullyName", propertyResult);
+	}
+
+	[Fact]
+	public void TestCaseFilter_TestPropertyProviderWithRunContextForDisplayName()
+	{
+		var dummyTestCase = GetDummyTestCaseWithTraits();
+		var context = Substitute.For<IRunContext>();
+		var filter = new TestCaseFilter(context, GetLoggerHelper(), "dummyTestAssembly", dummyKnownTraits);
+		var targetName = "DisplayName";
+
+		var propertyResult = filter.PropertyProvider(dummyTestCase, targetName);
+
+		Assert.NotNull(propertyResult);
+		Assert.IsType<string>(propertyResult);
+		Assert.Equal("propertyProviderTestDisplayName", propertyResult);
 	}
 }

@@ -63,6 +63,12 @@ public class TestCaseFilter
 		TestCase testCase,
 		string name)
 	{
+		// Special case for "FullyQualifiedName" and "DisplayName"
+		if (string.Equals(name, FullyQualifiedNameString, StringComparison.OrdinalIgnoreCase))
+			return testCase.FullyQualifiedName;
+		if (string.Equals(name, DisplayNameString, StringComparison.OrdinalIgnoreCase))
+			return testCase.DisplayName;
+
 		// Traits filtering
 		if (isDiscovery || knownTraits.Contains(name))
 		{
@@ -74,14 +80,6 @@ public class TestCaseFilter
 
 			if (result.Count > 0)
 				return result.ToArray();
-		}
-		else
-		{
-			// Handle the displayName and fullyQualifierNames independently
-			if (string.Equals(name, FullyQualifiedNameString, StringComparison.OrdinalIgnoreCase))
-				return testCase.FullyQualifiedName;
-			if (string.Equals(name, DisplayNameString, StringComparison.OrdinalIgnoreCase))
-				return testCase.DisplayName;
 		}
 
 		return null;
