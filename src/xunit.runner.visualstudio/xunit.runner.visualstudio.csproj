@@ -7,7 +7,7 @@
     <RootNamespace>Xunit.Runner.VisualStudio</RootNamespace>
     <TargetFrameworks>net462;net6.0</TargetFrameworks>
     <WarningsAsErrors>true</WarningsAsErrors>
-    <Description>Visual Studio 2019 16.8+ Test Explorer runner for the xUnit.net framework. Capable of running xUnit.net v1.9.2 and v2.0+ tests. Supports .NET 4.6.2 or later, and .NET 6 or later.</Description>
+    <Description>Visual Studio 2022+ Test Explorer runner for the xUnit.net framework. Capable of running xUnit.net v1.9.2 and v2.0+ tests. Supports .NET 4.6.2 or later, and .NET 6 or later.</Description>
     <DevelopmentDependency>true</DevelopmentDependency>
     <BuildOutputTargetFolder>build</BuildOutputTargetFolder>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
