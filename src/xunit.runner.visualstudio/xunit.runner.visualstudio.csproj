@@ -1,23 +1,15 @@
 <Project Sdk="Microsoft.Net.SDK">
 
   <PropertyGroup>
-    <Title>xUnit.net [Runner: Visual Studio]</Title>
     <AssemblyTitle>xUnit.net Runner for Visual Studio ($(TargetFramework))</AssemblyTitle>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RootNamespace>Xunit.Runner.VisualStudio</RootNamespace>
     <TargetFrameworks>net462;net6.0</TargetFrameworks>
     <WarningsAsErrors>true</WarningsAsErrors>
-    <Description>Visual Studio 2022+ Test Explorer runner for the xUnit.net framework. Capable of running xUnit.net v1.9.2 and v2.0+ tests. Supports .NET 4.6.2 or later, and .NET 6 or later.</Description>
-    <DevelopmentDependency>true</DevelopmentDependency>
     <BuildOutputTargetFolder>build</BuildOutputTargetFolder>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <CopyLocalLockFileAssemblies Condition=" '$(TargetFramework)' == 'net6.0' ">true</CopyLocalLockFileAssemblies>
     <NoWarn>$(NoWarn);CS0436</NoWarn>
     <Nullable>enable</Nullable>
-    <PackageIcon>_content/logo-128-transparent.png</PackageIcon>
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <PackageReadmeFile>_content/README.md</PackageReadmeFile>
-    <!-- Set the PackageId explicitly as our different AssemblyNames will cause restore errors otherwise -->
-    <PackageId>xunit.runner.visualstudio</PackageId>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net462' ">
@@ -31,6 +23,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageDownload Include="ILRepack.MSBuild.Task" Version="[$(ILRepackVersion)]" />
     <PackageDownload Include="Microsoft.NETCore.App.Ref" Version="[$(MicrosoftNetCoreAppRefVersion)]" />
   </ItemGroup>
 
@@ -39,25 +32,6 @@
     <PackageReference Include="TunnelVisionLabs.ReferenceAssemblyAnnotator" Version="$(TunnelVisionLabsReferenceAssemblyAnnotatorVersion)" PrivateAssets="All" />
     <PackageReference Include="xunit.analyzers" Version="$(XunitAnalyzersVersion)" PrivateAssets="All" />
     <PackageReference Include="xunit.runner.reporters" Version="$(XunitVersion)" PrivateAssets="All" />
-  </ItemGroup>
-
-  <ItemGroup Label="Package">
-    <None Include="build\xunit.runner.visualstudio.desktop.props" PackagePath="build\net462\xunit.runner.visualstudio.props" Pack="true" />
-    <None Include="$(NuGetPackageRoot)xunit.runner.reporters\$(XunitVersion)\lib\net452\*.dll" PackagePath="build\net462" Pack="true" Visible="false" />
-    <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\net452\*.dll" PackagePath="build\net462" Pack="true" Visible="false" />
-    <None Include="$(NuGetPackageRoot)xunit.abstractions\2.0.3\lib\netstandard1.0\*.dll" PackagePath="build\net462" Pack="true" Visible="false" />
-
-    <None Include="build\xunit.runner.visualstudio.dotnetcore.props" PackagePath="build\net6.0\xunit.runner.visualstudio.props" Pack="true" />
-    <None Include="$(NuGetPackageRoot)xunit.runner.reporters\$(XunitVersion)\lib\netcoreapp1.0\*.dll" PackagePath="build\net6.0" Pack="true" Visible="false" />
-    <None Include="$(NuGetPackageRoot)xunit.runner.utility\$(XunitVersion)\lib\netcoreapp1.0\*.dll" PackagePath="build\net6.0" Pack="true" Visible="false" />
-    <None Include="$(NuGetPackageRoot)xunit.abstractions\2.0.3\lib\netstandard2.0\*.dll" PackagePath="build\net6.0" Pack="true" Visible="false" />
-
-    <None Include="..\..\README.md" PackagePath="_content\README.md" Pack="true" Visible="false" />
-    <None Include="..\..\logo-128-transparent.png" PackagePath="_content\logo-128-transparent.png" Pack="true" Visible="false" />
-    <None Include="..\..\License.txt" PackagePath="License.txt" Pack="true" Visible="false" />
-
-    <None Include="build\_._" PackagePath="lib\net462" Pack="true" />
-    <None Include="build\_._" PackagePath="lib\net6.0" Pack="true" />
   </ItemGroup>
 
   <!-- Support deterministic builds (via https://github.com/clairernovotny/DeterministicBuilds) -->
@@ -80,6 +54,82 @@
       <!-- Always put the Git hash in the informational version, even for non-pre-release versions -->
       <AssemblyInformationalVersion>$(BuildVersionSimple)$(PrereleaseVersion)$(PrereleaseSuffix)+$(GitCommitIdShort)</AssemblyInformationalVersion>
     </PropertyGroup>
+  </Target>
+
+  <Target Name="UpdateNuSpecProperties" BeforeTargets="GenerateNuspec" DependsOnTargets="GetBuildVersion">
+    <ReadLinesFromFile File="$(MSBuildThisFileDirectory)..\.git\modules\src\xunit.v3.assert\Asserts\HEAD">
+      <Output TaskParameter="Lines" PropertyName="GitAssertModuleCommitId"/>
+    </ReadLinesFromFile>
+    <PropertyGroup>
+      <!-- Local builds should have a '-dev' suffix on the build number -->
+      <PrereleaseSuffix Condition=" '$(GITHUB_ACTIONS)' != 'true' ">-dev</PrereleaseSuffix>
+      <!-- Pass through values we don't know ahead of time for any hand-crafted .nuspec files -->
+      <NuspecProperties>
+        Configuration=$(Configuration);
+        GitAssertModuleCommitId=$(GitAssertModuleCommitId);
+        GitCommitId=$(GitCommitId);
+        MicrosoftBclAsyncInterfacesVersion=$(MicrosoftBclAsyncInterfacesVersion);
+        MonoCecilVersion=$(MonoCecilVersion);
+        PackageVersion=$(PackageVersion);
+        SystemIoPipelinesVersion=$(SystemIoPipelinesVersion);
+        SystemNetHttpVersion=$(SystemNetHttpVersion);
+        SystemThreadingTasksExtensionsVersion=$(SystemThreadingTasksExtensionsVersion);
+        XunitAbstractionsVersion=$(XunitAbstractionsVersion);
+        XunitAnalyzersVersion=$(XunitAnalyzersVersion);
+      </NuspecProperties>
+    </PropertyGroup>
+  </Target>
+
+  <!-- ILRepack support -->
+  <Target
+      Name="ILRepack"
+      AfterTargets="Build"
+      Condition=" '$(TargetFramework)' != '' ">
+    <PropertyGroup>
+      <OutputAssembly>$([System.IO.Path]::Combine($(TargetDir), "merged", "$(TargetFileName)"))</OutputAssembly>
+    </PropertyGroup>
+
+    <Message Text="$(TargetName) -> $(OutputAssembly)" Importance="High" />
+    <CallTarget Targets="ILRepackConditional" />
+  </Target>
+
+  <Target
+      Name="ILRepackConditional"
+      Inputs="$(TargetPath)"
+      Outputs="$(TargetDir)merged\$(TargetFileName)">
+    <ItemGroup>
+      <ILRepackExclusions Include="$(OutputPath)*.abstractions.dll;$(OutputPath)Microsoft.*.dll;$(OutputPath)netstand*.dll;$(OutputPath)NuGet.*.dll;$(OutputPath)System.*.dll" />
+    </ItemGroup>
+    <ItemGroup>
+      <Assemblies
+          Include="$(TargetDir)*.dll;$(TargetPath)"
+          Exclude="@(ILRepackExclusions)" />
+    </ItemGroup>
+
+    <MakeDir Directories="$(TargetDir)premerge;$(TargetDir)merged" />
+    <!-- We copy assemblies into a 'premerge' folder and merge from there, because of this issue: https://github.com/gluck/il-repack/issues/283 -->
+    <Copy SourceFiles="@(Assemblies)" DestinationFolder="$(TargetDir)premerge" />
+
+    <PropertyGroup>
+      <ILRepackExe>$([System.IO.Path]::Combine($(NuGetPackageRoot), "ilrepack.msbuild.task", $(ILRepackVersion), "tools", "ilrepack.exe"))</ILRepackExe>
+      <ILRepackExe Condition=" '$(OS)' != 'Windows_NT' ">mono $(ILRepackExe)</ILRepackExe>
+      <MainAssembly>$([System.IO.Path]::Combine($(TargetDir), "premerge", "$(TargetFileName)"))</MainAssembly>
+      <OutputAssembly>$([System.IO.Path]::Combine($(TargetDir), "merged", "$(TargetFileName)"))</OutputAssembly>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <OutputsToCopy Include="$(TargetDir)*.config;@(ILRepackExclusions)" />
+      <ILRepackDependencies
+          Include="$(TargetDir)premerge\*.dll"
+          Exclude="$(MainAssembly)"/>
+    </ItemGroup>
+
+    <Copy SourceFiles="@(OutputsToCopy)" DestinationFolder="$(TargetDir)merged" />
+    <Exec
+        StandardOutputImportance="low"
+        Command="$(ILRepackExe) -internalize -ndebug -lib:$(TargetDir) -out:$(OutputAssembly) $(MainAssembly) @(ILRepackDependencies, ' ')" />
+    <Exec Command="chmod +x '$(OutputAssembly)'" Condition=" '$(OS)' != 'Windows_NT' " />
+    <RemoveDir Directories="$(TargetDir)premerge" />
   </Target>
 
 </Project>
