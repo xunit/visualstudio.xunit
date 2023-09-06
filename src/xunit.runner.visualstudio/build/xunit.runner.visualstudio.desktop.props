@@ -6,16 +6,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>False</Visible>
     </None>
-    <None Include="$(MSBuildThisFileDirectory)xunit.runner.reporters.net452.dll">
-      <Link>xunit.runner.reporters.net452.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>False</Visible>
-    </None>
-    <None Include="$(MSBuildThisFileDirectory)xunit.runner.utility.net452.dll">
-      <Link>xunit.runner.utility.net452.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>False</Visible>
-    </None>
     <None Include="$(MSBuildThisFileDirectory)xunit.abstractions.dll">
       <Link>xunit.abstractions.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
