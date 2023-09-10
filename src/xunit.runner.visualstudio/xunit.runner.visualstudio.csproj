@@ -57,25 +57,14 @@
   </Target>
 
   <Target Name="UpdateNuSpecProperties" BeforeTargets="GenerateNuspec" DependsOnTargets="GetBuildVersion">
-    <ReadLinesFromFile File="$(MSBuildThisFileDirectory)..\.git\modules\src\xunit.v3.assert\Asserts\HEAD">
-      <Output TaskParameter="Lines" PropertyName="GitAssertModuleCommitId"/>
-    </ReadLinesFromFile>
     <PropertyGroup>
       <!-- Local builds should have a '-dev' suffix on the build number -->
       <PrereleaseSuffix Condition=" '$(GITHUB_ACTIONS)' != 'true' ">-dev</PrereleaseSuffix>
       <!-- Pass through values we don't know ahead of time for any hand-crafted .nuspec files -->
       <NuspecProperties>
         Configuration=$(Configuration);
-        GitAssertModuleCommitId=$(GitAssertModuleCommitId);
         GitCommitId=$(GitCommitId);
-        MicrosoftBclAsyncInterfacesVersion=$(MicrosoftBclAsyncInterfacesVersion);
-        MonoCecilVersion=$(MonoCecilVersion);
         PackageVersion=$(PackageVersion);
-        SystemIoPipelinesVersion=$(SystemIoPipelinesVersion);
-        SystemNetHttpVersion=$(SystemNetHttpVersion);
-        SystemThreadingTasksExtensionsVersion=$(SystemThreadingTasksExtensionsVersion);
-        XunitAbstractionsVersion=$(XunitAbstractionsVersion);
-        XunitAnalyzersVersion=$(XunitAnalyzersVersion);
       </NuspecProperties>
     </PropertyGroup>
   </Target>
@@ -128,7 +117,6 @@
     <Exec
         StandardOutputImportance="low"
         Command="$(ILRepackExe) -internalize -ndebug -lib:$(TargetDir) -out:$(OutputAssembly) $(MainAssembly) @(ILRepackDependencies, ' ')" />
-    <Exec Command="chmod +x '$(OutputAssembly)'" Condition=" '$(OS)' != 'Windows_NT' " />
     <RemoveDir Directories="$(TargetDir)premerge" />
   </Target>
 

@@ -15,25 +15,25 @@
     <copyright>Copyright (C) .NET Foundation</copyright>
     <repository type="git" url="https://github.com/xunit/xunit" commit="$GitCommitId$" />
     <developmentDependency>true</developmentDependency>
-	<dependencies>
-	  <group targetFramework="net462" />
-	  <group targetFramework="net6.0" />
-	</dependencies>
-	<frameworkAssemblies>
-	  <frameworkAssembly assemblyName="mscorlib" targetFramework="net462" />
-	</frameworkAssemblies>
+    <dependencies>
+      <group targetFramework="net462" />
+      <group targetFramework="net6.0" />
+    </dependencies>
+    <frameworkAssemblies>
+      <frameworkAssembly assemblyName="mscorlib" targetFramework="net462" />
+    </frameworkAssemblies>
   </metadata>
   <files>
     <file target="_content\" src="..\..\logo-128-transparent.png" />
     <file target="_content\" src="..\..\README.md" />
 
-	<file target="build\net462\" src="bin\$Configuration$\net462\merged\xunit.*.dll" />
-	<file target="build\net462\xunit.runner.visualstudio.props" src="build\xunit.runner.visualstudio.desktop.props" />
+    <file target="build\net462\" src="bin\$Configuration$\net462\merged\xunit.*.dll" />
+    <file target="build\net462\xunit.runner.visualstudio.props" src="build\xunit.runner.visualstudio.desktop.props" />
 
     <file target="build\net6.0\" src="bin\$Configuration$\net6.0\merged\xunit.*.dll" />
-	<file target="build\net6.0\xunit.runner.visualstudio.props" src="build\xunit.runner.visualstudio.dotnetcore.props" />
+    <file target="build\net6.0\xunit.runner.visualstudio.props" src="build\xunit.runner.visualstudio.dotnetcore.props" />
 
-	<file target="lib\net462\" src="build\_._" />
+    <file target="lib\net462\" src="build\_._" />
 
     <file target="lib\net6.0\" src="build\_._" />
   </files>
