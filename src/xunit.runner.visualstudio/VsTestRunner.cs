@@ -617,13 +617,14 @@ namespace Xunit.Runner.VisualStudio
 			IReadOnlyList<string> sources)
 		{
 			var result = new List<IRunnerReporter>();
+			var adapterAssembly = typeof(VsTestRunner).Assembly;
 
 			// We need to combine the source folders with our folder to find all potential runners
 			var folders =
 				sources
 					.Select(s => Path.GetDirectoryName(Path.GetFullPath(s)))
 					.WhereNotNull()
-					.Concat(new[] { Path.GetDirectoryName(typeof(VsTestRunner).Assembly.GetLocalCodeBase()) })
+					.Concat(new[] { Path.GetDirectoryName(adapterAssembly.GetLocalCodeBase()) })
 					.Distinct();
 
 			foreach (var folder in folders)
@@ -633,6 +634,30 @@ namespace Xunit.Runner.VisualStudio
 				if (logger is not null)
 					foreach (var message in messages)
 						logger.LogWarning(message);
+			}
+
+			// Look for runners that might be embedded in ourselves (because of ILRepack). This is what the code
+			// in RunnerReporterUtility.GetAvailableRunnerReporters does after it finds a target assembly.
+			foreach (var type in adapterAssembly.GetTypes())
+			{
+				if (type is null || type.IsAbstract || !type.GetInterfaces().Any(t => t == typeof(IRunnerReporter)))
+					continue;
+
+				try
+				{
+					var ctor = type.GetConstructor(new Type[0]);
+					if (ctor == null)
+					{
+						logger?.LogWarning($"Type '{type.FullName ?? type.Name}' in the adapter assembly appears to be a runner reporter, but does not have an empty constructor.");
+						continue;
+					}
+
+					result.Add((IRunnerReporter)ctor.Invoke(new object[0]));
+				}
+				catch (Exception ex)
+				{
+					logger?.LogWarning($"Exception thrown while inspecting type '{type.FullName ?? type.Name}' in the adapter assembly:{Environment.NewLine}{ex}");
+				}
 			}
 
 			return result;
