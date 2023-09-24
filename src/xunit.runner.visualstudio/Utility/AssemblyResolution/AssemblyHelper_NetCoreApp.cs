@@ -33,21 +33,21 @@ class AssemblyHelper : AssemblyLoadContext, IDisposable
 		}
 
 		var assembly = LoadFromAssemblyPath(assemblyFileName);
-		if (assembly == null)
+		if (assembly is null)
 		{
 			internalDiagnosticsMessageSink?.OnMessage(new _DiagnosticMessage($"[AssemblyHelper_NetCoreApp..ctor] Assembly file could not be loaded: '{assemblyFileName}'"));
 			return;
 		}
 
 		var dependencyContext = DependencyContext.Load(assembly);
-		if (dependencyContext == null)
+		if (dependencyContext is null)
 		{
 			internalDiagnosticsMessageSink?.OnMessage(new _DiagnosticMessage($"[AssemblyHelper_NetCoreApp..ctor] Assembly file does not contain dependency manifest: '{assemblyFileName}'"));
 			return;
 		}
 
 		var assemblyFolder = Path.GetDirectoryName(assemblyFileName);
-		if (assemblyFolder == null)
+		if (assemblyFolder is null)
 		{
 			internalDiagnosticsMessageSink?.OnMessage(new _DiagnosticMessage($"[AssemblyHelper_NetCoreApp..ctor] Assembly file does not have an associated folder to watch: '{assemblyFileName}'"));
 			return;
@@ -61,7 +61,7 @@ class AssemblyHelper : AssemblyLoadContext, IDisposable
 	/// <inheritdoc/>
 	public void Dispose()
 	{
-		if (assemblyCache != null)
+		if (assemblyCache is not null)
 			Default.Resolving -= OnResolving;
 	}
 
@@ -74,7 +74,7 @@ class AssemblyHelper : AssemblyLoadContext, IDisposable
 	{
 		var result = default(IntPtr);
 
-		if (assemblyCache != null)
+		if (assemblyCache is not null)
 			result = assemblyCache.LoadUnmanagedLibrary(unmanagedDllName, LoadUnmanagedDllFromPath);
 
 		if (result == default)
@@ -87,7 +87,7 @@ class AssemblyHelper : AssemblyLoadContext, IDisposable
 		AssemblyLoadContext context,
 		AssemblyName name)
 	{
-		if (assemblyCache == null || name.Name == null)
+		if (assemblyCache is null || name.Name is null)
 			return null;
 
 		return assemblyCache.LoadManagedDll(name.Name, LoadFromAssemblyPath);

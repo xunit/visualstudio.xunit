@@ -64,13 +64,13 @@ class DependencyContextAssemblyCache
 				.Select(lib =>
 					compatibleRuntimes
 						.Select(runtime => Tuple.Create(lib, lib.RuntimeAssemblyGroups.FirstOrDefault(libGroup => string.Equals(libGroup.Runtime, runtime))))
-						.FirstOrDefault(tuple => tuple.Item2?.AssetPaths != null)
+						.FirstOrDefault(tuple => tuple.Item2?.AssetPaths is not null)
 				)
 				.WhereNotNull()
-				.Where(tuple => tuple.Item2 != null)
+				.Where(tuple => tuple.Item2 is not null)
 				.SelectMany(tuple =>
 					tuple.Item2!.AssetPaths
-						.Where(x => x != null)
+						.WhereNotNull()
 						.Select(path => Tuple.Create(Path.GetFileNameWithoutExtension(path), Tuple.Create(tuple.Item1, tuple.Item2)))
 				)
 				.ToDictionaryIgnoringDuplicateKeys(tuple => tuple.Item1, tuple => tuple.Item2, StringComparer.OrdinalIgnoreCase);
@@ -85,13 +85,13 @@ class DependencyContextAssemblyCache
 				.Select(lib =>
 					compatibleRuntimes
 						.Select(runtime => Tuple.Create(lib, lib.NativeLibraryGroups.FirstOrDefault(libGroup => string.Equals(libGroup.Runtime, runtime))))
-						.FirstOrDefault(tuple => tuple.Item2?.AssetPaths != null)
+						.FirstOrDefault(tuple => tuple.Item2?.AssetPaths is not null)
 				)
 				.WhereNotNull()
-				.Where(tuple => tuple.Item2 != null)
+				.Where(tuple => tuple.Item2 is not null)
 				.SelectMany(tuple =>
 					tuple.Item2!.AssetPaths
-						.Where(x => x != null)
+						.WhereNotNull()
 						.Select(path => Tuple.Create(Path.GetFileName(path), Tuple.Create(tuple.Item1, tuple.Item2)))
 				)
 				.ToDictionaryIgnoringDuplicateKeys(tuple => tuple.Item1, tuple => tuple.Item2, StringComparer.OrdinalIgnoreCase);
@@ -160,9 +160,9 @@ class DependencyContextAssemblyCache
 			result = tupleResult.Item2;
 			managedAssemblyCache[assemblyName] = result;
 
-			if (internalDiagnosticsMessageSink != null)
+			if (internalDiagnosticsMessageSink is not null)
 			{
-				if (result == null)
+				if (result is null)
 					internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache.LoadManagedDll] Resolution for '{assemblyName}' failed, passed down to next resolver"));
 				else
 					internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache.LoadManagedDll] Resolved '{assemblyName}' to '{resolvedAssemblyPath}'"));
@@ -186,15 +186,15 @@ class DependencyContextAssemblyCache
 			needDiagnostics = true;
 		}
 
-		if (resolvedAssemblyPath != null)
+		if (resolvedAssemblyPath is not null)
 			result = unmanagedAssemblyLoader(resolvedAssemblyPath);
 
-		if (needDiagnostics && internalDiagnosticsMessageSink != null)
+		if (needDiagnostics && internalDiagnosticsMessageSink is not null)
 			if (result != default)
 				internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache.LoadUnmanagedLibrary] Resolved '{unmanagedLibraryName}' to '{resolvedAssemblyPath}'"));
 			else
 			{
-				if (resolvedAssemblyPath != null)
+				if (resolvedAssemblyPath is not null)
 					internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache.LoadUnmanagedLibrary] Resolving '{unmanagedLibraryName}', found assembly path '{resolvedAssemblyPath}' but the assembly would not load"));
 
 				internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache.LoadUnmanagedLibrary] Resolution for '{unmanagedLibraryName}' failed, passed down to next resolver"));
@@ -217,7 +217,7 @@ class DependencyContextAssemblyCache
 				if (fileSystem.File.Exists(resolvedAssemblyPath))
 				{
 					var assembly = managedAssemblyLoader(resolvedAssemblyPath);
-					if (assembly != null)
+					if (assembly is not null)
 						return Tuple.Create<string?, Assembly?>(resolvedAssemblyPath, assembly);
 				}
 			}
@@ -234,12 +234,12 @@ class DependencyContextAssemblyCache
 			if (assemblyResolver.TryResolveAssemblyPaths(wrapper, assemblies))
 			{
 				var resolvedAssemblyPath = assemblies.FirstOrDefault(a => string.Equals(assemblyName, Path.GetFileNameWithoutExtension(a), StringComparison.OrdinalIgnoreCase));
-				if (resolvedAssemblyPath != null)
+				if (resolvedAssemblyPath is not null)
 				{
 					resolvedAssemblyPath = Path.GetFullPath(resolvedAssemblyPath);
 
 					var assembly = managedAssemblyLoader(resolvedAssemblyPath);
-					if (assembly != null)
+					if (assembly is not null)
 						return Tuple.Create<string?, Assembly?>(resolvedAssemblyPath, assembly);
 
 					internalDiagnosticsMessageSink?.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache.ResolveManagedAssembly] Resolving '{assemblyName}', found assembly path '{resolvedAssemblyPath}' but the assembly would not load"));
@@ -274,7 +274,7 @@ class DependencyContextAssemblyCache
 				if (assemblyResolver.TryResolveAssemblyPaths(wrapper, assemblies))
 				{
 					var resolvedAssemblyPath = assemblies.FirstOrDefault(a => string.Equals(formattedUnmanagedDllName, Path.GetFileName(a), StringComparison.OrdinalIgnoreCase));
-					if (resolvedAssemblyPath != null)
+					if (resolvedAssemblyPath is not null)
 						return Path.GetFullPath(resolvedAssemblyPath);
 
 					internalDiagnosticsMessageSink?.OnMessage(new _DiagnosticMessage($"[DependencyContextAssemblyCache.ResolveUnmanagedLibrary] Found a resolved path, but could not map a filename in [{string.Join(",", assemblies.OrderBy(k => k, StringComparer.OrdinalIgnoreCase).Select(k => $"'{k}'"))}]"));

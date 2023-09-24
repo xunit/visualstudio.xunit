@@ -21,7 +21,7 @@ public class LoggerHelper
 		string format,
 		params object?[] args)
 	{
-		if (InnerLogger != null)
+		if (InnerLogger is not null)
 			SendMessage(InnerLogger, TestMessageLevel.Informational, null, string.Format(format, args));
 	}
 
@@ -30,7 +30,7 @@ public class LoggerHelper
 		string format,
 		params object?[] args)
 	{
-		if (InnerLogger != null)
+		if (InnerLogger is not null)
 			SendMessage(InnerLogger, TestMessageLevel.Informational, testCase.TestMethod.TestClass.TestCollection.TestAssembly.Assembly.AssemblyPath, string.Format(format, args));
 	}
 
@@ -39,7 +39,7 @@ public class LoggerHelper
 		string format,
 		params object?[] args)
 	{
-		if (InnerLogger != null)
+		if (InnerLogger is not null)
 			SendMessage(InnerLogger, TestMessageLevel.Informational, source, string.Format(format, args));
 	}
 
@@ -47,7 +47,7 @@ public class LoggerHelper
 		string format,
 		params object?[] args)
 	{
-		if (InnerLogger != null)
+		if (InnerLogger is not null)
 			SendMessage(InnerLogger, TestMessageLevel.Error, null, string.Format(format, args));
 	}
 
@@ -56,7 +56,7 @@ public class LoggerHelper
 		string format,
 		params object?[] args)
 	{
-		if (InnerLogger != null)
+		if (InnerLogger is not null)
 			SendMessage(InnerLogger, TestMessageLevel.Error, testCase.TestMethod.TestClass.TestCollection.TestAssembly.Assembly.AssemblyPath, string.Format(format, args));
 	}
 
@@ -65,7 +65,7 @@ public class LoggerHelper
 		string format,
 		params object?[] args)
 	{
-		if (InnerLogger != null)
+		if (InnerLogger is not null)
 			SendMessage(InnerLogger, TestMessageLevel.Error, source, string.Format(format, args));
 	}
 
@@ -73,7 +73,7 @@ public class LoggerHelper
 		string format,
 		params object?[] args)
 	{
-		if (InnerLogger != null)
+		if (InnerLogger is not null)
 			SendMessage(InnerLogger, TestMessageLevel.Warning, null, string.Format(format, args));
 	}
 
@@ -82,7 +82,7 @@ public class LoggerHelper
 		string format,
 		params object?[] args)
 	{
-		if (InnerLogger != null)
+		if (InnerLogger is not null)
 			SendMessage(InnerLogger, TestMessageLevel.Warning, testCase.TestMethod.TestClass.TestCollection.TestAssembly.Assembly.AssemblyPath, string.Format(format, args));
 	}
 
@@ -91,7 +91,7 @@ public class LoggerHelper
 		string format,
 		params object?[] args)
 	{
-		if (InnerLogger != null)
+		if (InnerLogger is not null)
 			SendMessage(InnerLogger, TestMessageLevel.Warning, source, string.Format(format, args));
 	}
 
@@ -101,7 +101,7 @@ public class LoggerHelper
 		string? assemblyName,
 		string message)
 	{
-		var assemblyText = assemblyName == null ? "" : $"{Path.GetFileNameWithoutExtension(assemblyName)}: ";
+		var assemblyText = assemblyName is null ? "" : $"{Path.GetFileNameWithoutExtension(assemblyName)}: ";
 		logger.SendMessage(level, $"[xUnit.net {Stopwatch.Elapsed:hh\\:mm\\:ss\\.ff}] {assemblyText}{message}");
 	}
 }

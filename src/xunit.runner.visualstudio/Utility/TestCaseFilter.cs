@@ -50,7 +50,7 @@ public class TestCaseFilter
 			// Had an error while getting filter, match no testcase to ensure discovered test list is empty
 			return false;
 		}
-		else if (filterExpression == null)
+		else if (filterExpression is null)
 		{
 			// No filter specified, keep every testcase
 			return true;
@@ -155,7 +155,7 @@ public class TestCaseFilter
 	List<string> GetSupportedPropertyNames()
 	{
 		// Returns the set of well-known property names usually used with the Test Plugins (Used Test Traits + DisplayName + FullyQualifiedName)
-		if (supportedPropertyNames == null)
+		if (supportedPropertyNames is null)
 		{
 			supportedPropertyNames = knownTraits.ToList();
 			supportedPropertyNames.Add(DisplayNameString);
@@ -168,7 +168,7 @@ public class TestCaseFilter
 	static IEnumerable<KeyValuePair<string, string>> GetTraits(TestCase testCase)
 	{
 		var traitProperty = TestProperty.Find("TestObject.Traits");
-		if (traitProperty != null)
+		if (traitProperty is not null)
 			return testCase.GetPropertyValue(traitProperty, Enumerable.Empty<KeyValuePair<string, string>>().ToArray());
 
 		return Enumerable.Empty<KeyValuePair<string, string>>();

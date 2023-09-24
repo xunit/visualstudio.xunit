@@ -23,7 +23,7 @@ public static class Guard
 		[CallerArgumentExpression(nameof(argValue))] string? argName = null)
 			where T : class
 	{
-		if (argValue == null)
+		if (argValue is null)
 			throw new ArgumentNullException(argName?.TrimStart('@'));
 
 		return argValue;

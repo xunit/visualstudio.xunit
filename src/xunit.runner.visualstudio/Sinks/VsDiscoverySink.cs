@@ -86,7 +86,7 @@ public sealed class VsDiscoverySink : IMessageSinkWithTypes, IVsDiscoverySink, I
 			result.CodeFilePath = descriptor.SourceFileName;
 			result.LineNumber = descriptor.SourceLineNumber.GetValueOrDefault();
 
-			if (addTraitThunk != null)
+			if (addTraitThunk is not null)
 			{
 				var traits = descriptor.Traits;
 
@@ -106,7 +106,7 @@ public sealed class VsDiscoverySink : IMessageSinkWithTypes, IVsDiscoverySink, I
 
 	static string Escape(string value)
 	{
-		if (value == null)
+		if (value is null)
 			return string.Empty;
 
 		return Truncate(value.Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t"));
@@ -138,7 +138,7 @@ public sealed class VsDiscoverySink : IMessageSinkWithTypes, IVsDiscoverySink, I
 #else
 			var property = testCaseType.GetProperty("Traits");
 #endif
-			if (property == null)
+			if (property is null)
 				return null;
 
 #if NETCOREAPP
@@ -146,7 +146,7 @@ public sealed class VsDiscoverySink : IMessageSinkWithTypes, IVsDiscoverySink, I
 #else
 			var method = property.PropertyType.GetMethod("Add", new[] { typeof(string), typeof(string) });
 #endif
-			if (method == null)
+			if (method is null)
 				return null;
 
 			var thisParam = Expression.Parameter(testCaseType, "this");
@@ -210,7 +210,7 @@ public sealed class VsDiscoverySink : IMessageSinkWithTypes, IVsDiscoverySink, I
 		foreach (var descriptor in descriptors)
 		{
 			var vsTestCase = CreateVsTestCase(source, descriptor, logger, testPlatformContext);
-			if (vsTestCase != null && testCaseFilter.MatchTestCase(vsTestCase))
+			if (vsTestCase is not null && testCaseFilter.MatchTestCase(vsTestCase))
 			{
 				if (discoveryOptions.GetInternalDiagnosticMessagesOrDefault())
 					logger.LogWithSource(source, "Discovered test case '{0}' (ID = '{1}', VS FQN = '{2}')", descriptor.DisplayName, descriptor.UniqueID, vsTestCase.FullyQualifiedName);

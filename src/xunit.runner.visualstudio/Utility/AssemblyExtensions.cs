@@ -8,7 +8,7 @@ internal static class AssemblyExtensions
 	{
 #if NETFRAMEWORK
 		string? codeBase = assembly.CodeBase;
-		if (codeBase == null)
+		if (codeBase is null)
 			return null;
 
 		if (!codeBase.StartsWith("file:///"))

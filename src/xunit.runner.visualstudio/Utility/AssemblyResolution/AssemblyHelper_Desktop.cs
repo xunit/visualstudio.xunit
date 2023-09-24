@@ -56,9 +56,9 @@ class AssemblyHelper : LongLivedMarshalByRefObject, IDisposable
 		var path = Path.Combine(directory, assemblyName);
 		result = ResolveAndLoadAssembly(path, out var resolvedAssemblyPath);
 
-		if (internalDiagnosticsMessageSink != null)
+		if (internalDiagnosticsMessageSink is not null)
 		{
-			if (result == null)
+			if (result is null)
 				internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[AssemblyHelper_Desktop.LoadAssembly] Resolution for '{assemblyName}' failed, passed down to next resolver"));
 			else
 				internalDiagnosticsMessageSink.OnMessage(new _DiagnosticMessage($"[AssemblyHelper_Desktop.LoadAssembly] Resolved '{assemblyName}' to '{resolvedAssemblyPath}'"));

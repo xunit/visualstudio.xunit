@@ -58,17 +58,17 @@ public class RunSettings
 	{
 		var result = new RunSettings();
 
-		if (settingsXml != null)
+		if (settingsXml is not null)
 		{
 			try
 			{
 				var runSettingsElement = System.Xml.Linq.XDocument.Parse(settingsXml)?.Element("RunSettings");
 
-				if (runSettingsElement != null)
+				if (runSettingsElement is not null)
 				{
 					// Custom settings for xUnit.net
 					var xunitElement = runSettingsElement.Element("xUnit");
-					if (xunitElement != null)
+					if (xunitElement is not null)
 					{
 						var appDomainString = xunitElement.Element(Constants.Xunit.AppDomain)?.Value;
 						if (Enum.TryParse<AppDomainSupport>(appDomainString, ignoreCase: true, out var appDomain))
@@ -119,7 +119,7 @@ public class RunSettings
 							result.PreEnumerateTheories = preEnumerateTheories;
 
 						var reporterSwitchString = xunitElement.Element(Constants.Xunit.ReporterSwitch)?.Value;
-						if (reporterSwitchString != null)
+						if (reporterSwitchString is not null)
 							result.ReporterSwitch = reporterSwitchString;
 
 						var shadowCopyString = xunitElement.Element(Constants.Xunit.ShadowCopy)?.Value;
@@ -133,7 +133,7 @@ public class RunSettings
 
 					// Standard settings from VSTest, which can override the user's configured values
 					var runConfigurationElement = runSettingsElement.Element("RunConfiguration");
-					if (runConfigurationElement != null)
+					if (runConfigurationElement is not null)
 					{
 						var collectSourceInformationString = runConfigurationElement.Element(Constants.RunConfiguration.CollectSourceInformation)?.Value;
 						if (bool.TryParse(collectSourceInformationString, out var collectSourceInformation))
@@ -158,7 +158,7 @@ public class RunSettings
 							}
 
 						var targetFrameworkVersionString = runConfigurationElement.Element(Constants.RunConfiguration.TargetFrameworkVersion)?.Value;
-						if (targetFrameworkVersionString != null)
+						if (targetFrameworkVersionString is not null)
 							result.TargetFrameworkVersion = targetFrameworkVersionString;
 
 						// These values are holdovers that we inappropriately shoved into RunConfiguration. The documentation will
@@ -172,7 +172,7 @@ public class RunSettings
 							result.NoAutoReporters = noAutoReporters;
 
 						var reporterSwitchString = runConfigurationElement.Element(Constants.RunConfiguration.ReporterSwitch)?.Value;
-						if (reporterSwitchString != null)
+						if (reporterSwitchString is not null)
 							result.ReporterSwitch = reporterSwitchString;
 					}
 				}

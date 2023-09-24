@@ -158,7 +158,7 @@ namespace Xunit.Runner.VisualStudio
 			IRunContext? runContext,
 			IFrameworkHandle? frameworkHandle)
 		{
-			if (sources == null)
+			if (sources is null)
 				return;
 
 			var stopwatch = Stopwatch.StartNew();
@@ -187,7 +187,7 @@ namespace Xunit.Runner.VisualStudio
 			IRunContext? runContext,
 			IFrameworkHandle? frameworkHandle)
 		{
-			if (tests == null)
+			if (tests is null)
 				return;
 
 			var stopwatch = Stopwatch.StartNew();
@@ -330,7 +330,7 @@ namespace Xunit.Runner.VisualStudio
 			return IsXunitPackageReferenced(assemblyFileName);
 #else
 			var assemblyFolder = Path.GetDirectoryName(assemblyFileName);
-			if (assemblyFolder == null)
+			if (assemblyFolder is null)
 				return false;
 
 			return File.Exists(Path.Combine(assemblyFolder, "xunit.dll"))
@@ -350,7 +350,7 @@ namespace Xunit.Runner.VisualStudio
 				using var stream = new MemoryStream(Encoding.UTF8.GetBytes(File.ReadAllText(depsFile)));
 				var context = new DependencyContextJsonReader().Read(stream);
 				var xunitLibrary = context.RuntimeLibraries.Where(lib => lib.Name.Equals("xunit") || lib.Name.Equals("xunit.core")).FirstOrDefault();
-				return xunitLibrary != null;
+				return xunitLibrary is not null;
 			}
 			catch
 			{
@@ -430,7 +430,7 @@ namespace Xunit.Runner.VisualStudio
 				using var controller = new XunitFrontController(appDomain, assemblyFileName, shadowCopy: shadowCopy, diagnosticMessageSink: diagnosticMessageSink);
 				var testCasesMap = new Dictionary<string, TestCase>();
 				var testCases = new List<ITestCase>();
-				if (runInfo.TestCases == null || !runInfo.TestCases.Any())
+				if (runInfo.TestCases is null || !runInfo.TestCases.Any())
 				{
 					// Discover tests
 					var assemblyDiscoveredInfo = default(AssemblyDiscoveredInfo);
@@ -448,7 +448,7 @@ namespace Xunit.Runner.VisualStudio
 						runInfo.Assembly
 					);
 
-					if (assemblyDiscoveredInfo == null || assemblyDiscoveredInfo.DiscoveredTestCases == null || !assemblyDiscoveredInfo.DiscoveredTestCases.Any())
+					if (assemblyDiscoveredInfo is null || assemblyDiscoveredInfo.DiscoveredTestCases is null || !assemblyDiscoveredInfo.DiscoveredTestCases.Any())
 					{
 						if (configuration.InternalDiagnosticMessagesOrDefault)
 							logger.LogWarning("Skipping '{0}' since no tests were found during discovery [execution].", assemblyFileName);
@@ -459,14 +459,14 @@ namespace Xunit.Runner.VisualStudio
 					// Filter tests
 					var traitNames = new HashSet<string>(assemblyDiscoveredInfo.DiscoveredTestCases.SelectMany(testCase => testCase.TraitNames));
 					var filter = new TestCaseFilter(runContext, logger, assemblyDiscoveredInfo.AssemblyFileName, traitNames);
-					var filteredTestCases = assemblyDiscoveredInfo.DiscoveredTestCases.Where(dtc => dtc.VSTestCase != null && filter.MatchTestCase(dtc.VSTestCase)).ToList();
+					var filteredTestCases = assemblyDiscoveredInfo.DiscoveredTestCases.Where(dtc => dtc.VSTestCase is not null && filter.MatchTestCase(dtc.VSTestCase)).ToList();
 
 					foreach (var filteredTestCase in filteredTestCases)
 					{
 						var uniqueID = filteredTestCase.UniqueID;
 						if (testCasesMap.ContainsKey(uniqueID))
 							logger.LogWarning(filteredTestCase.TestCase, "Skipping test case with duplicate ID '{0}' ('{1}' and '{2}')", uniqueID, testCasesMap[uniqueID].DisplayName, filteredTestCase.VSTestCase?.DisplayName);
-						else if (filteredTestCase.VSTestCase != null)
+						else if (filteredTestCase.VSTestCase is not null)
 						{
 							testCasesMap.Add(uniqueID, filteredTestCase.VSTestCase);
 							testCases.Add(filteredTestCase.TestCase);
@@ -494,7 +494,7 @@ namespace Xunit.Runner.VisualStudio
 
 						var deserializedTestCasesByUniqueId = controller.BulkDeserialize(serializations);
 
-						if (deserializedTestCasesByUniqueId == null)
+						if (deserializedTestCasesByUniqueId is null)
 							logger.LogErrorWithSource(assemblyFileName, "Received null response from BulkDeserialize");
 						else
 						{
@@ -505,7 +505,7 @@ namespace Xunit.Runner.VisualStudio
 									var kvp = deserializedTestCasesByUniqueId[idx];
 									var vsTestCase = runInfo.TestCases[idx];
 
-									if (kvp.Value == null)
+									if (kvp.Value is null)
 									{
 										logger.LogErrorWithSource(assemblyFileName, "Test case {0} failed to deserialize: {1}", vsTestCase.DisplayName, kvp.Key);
 									}
@@ -646,7 +646,7 @@ namespace Xunit.Runner.VisualStudio
 				try
 				{
 					var ctor = type.GetConstructor(new Type[0]);
-					if (ctor == null)
+					if (ctor is null)
 					{
 						logger?.LogWarning($"Type '{type.FullName ?? type.Name}' in the adapter assembly appears to be a runner reporter, but does not have an empty constructor.");
 						continue;
@@ -678,7 +678,7 @@ namespace Xunit.Runner.VisualStudio
 			for (var idx = 0; idx < descriptors.Count; ++idx)
 			{
 				var testCase = new DiscoveredTestCase(source, descriptors[idx], testCases[idx], logger, testPlatformContext);
-				if (testCase.VSTestCase != null)
+				if (testCase.VSTestCase is not null)
 					results.Add(testCase);
 			}
 

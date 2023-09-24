@@ -114,7 +114,7 @@ public sealed class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposab
 	{
 		var testFailed = args.Message;
 		var result = MakeVsTestResult(TestOutcome.Failed, testFailed);
-		if (result != null)
+		if (result is not null)
 		{
 			result.ErrorMessage = ExceptionUtility.CombineMessages(testFailed);
 			result.ErrorStackTrace = ExceptionUtility.CombineStackTraces(testFailed);
@@ -131,7 +131,7 @@ public sealed class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposab
 	{
 		var testPassed = args.Message;
 		var result = MakeVsTestResult(TestOutcome.Passed, testPassed);
-		if (result != null)
+		if (result is not null)
 			TryAndReport("RecordResult (Pass)", testPassed.TestCase, () => recorder.RecordResult(result));
 		else
 			logger.LogWarning(testPassed.TestCase, "(Pass) Could not find VS test case for {0} (ID = {1})", testPassed.TestCase.DisplayName, testPassed.TestCase.UniqueID);
@@ -143,7 +143,7 @@ public sealed class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposab
 	{
 		var testSkipped = args.Message;
 		var result = MakeVsTestResult(TestOutcome.Skipped, testSkipped);
-		if (result != null)
+		if (result is not null)
 			TryAndReport("RecordResult (Skip)", testSkipped.TestCase, () => recorder.RecordResult(result));
 		else
 			logger.LogWarning(testSkipped.TestCase, "(Skip) Could not find VS test case for {0} (ID = {1})", testSkipped.TestCase.DisplayName, testSkipped.TestCase.UniqueID);
@@ -155,7 +155,7 @@ public sealed class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposab
 	{
 		var testCaseStarting = args.Message;
 		var vsTestCase = FindTestCase(testCaseStarting.TestCase);
-		if (vsTestCase != null)
+		if (vsTestCase is not null)
 			TryAndReport("RecordStart", testCaseStarting.TestCase, () => recorder.RecordStart(vsTestCase));
 		else
 			logger.LogWarning(testCaseStarting.TestCase, "(Starting) Could not find VS test case for {0} (ID = {1})", testCaseStarting.TestCase.DisplayName, testCaseStarting.TestCase.UniqueID);
@@ -167,7 +167,7 @@ public sealed class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposab
 	{
 		var testCaseFinished = args.Message;
 		var vsTestCase = FindTestCase(testCaseFinished.TestCase);
-		if (vsTestCase != null)
+		if (vsTestCase is not null)
 			TryAndReport("RecordEnd", testCaseFinished.TestCase, () => recorder.RecordEnd(vsTestCase, GetAggregatedTestOutcome(testCaseFinished)));
 		else
 			logger.LogWarning(testCaseFinished.TestCase, "(Finished) Could not find VS test case for {0} (ID = {1})", testCaseFinished.TestCase.DisplayName, testCaseFinished.TestCase.UniqueID);
@@ -243,7 +243,7 @@ public sealed class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposab
 		foreach (var testCase in testCases)
 		{
 			var result = MakeVsTestResult(TestOutcome.Failed, testCase, testCase.DisplayName);
-			if (result != null)
+			if (result is not null)
 			{
 				result.ErrorMessage = $"[{failureName}]: {ExceptionUtility.CombineMessages(failureInfo)}";
 				result.ErrorStackTrace = ExceptionUtility.CombineStackTraces(failureInfo);
@@ -275,7 +275,7 @@ public sealed class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposab
 		string? errorMessage = null)
 	{
 		var vsTestCase = FindTestCase(testCase);
-		if (vsTestCase == null)
+		if (vsTestCase is null)
 			return null;
 
 		var result = new VsTestResult(vsTestCase)

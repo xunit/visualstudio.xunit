@@ -22,7 +22,7 @@ static class ExceptionExtensions
 	{
 		while (true)
 		{
-			if (ex is not TargetInvocationException tiex || tiex.InnerException == null)
+			if (ex is not TargetInvocationException tiex || tiex.InnerException is null)
 				return ex;
 
 			ex = tiex.InnerException;
