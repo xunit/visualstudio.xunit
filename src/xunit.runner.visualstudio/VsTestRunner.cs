@@ -240,8 +240,9 @@ namespace Xunit.Runner.VisualStudio
 					var diagnosticSink = DiagnosticMessageSink.ForDiagnostics(logger, fileName, assembly.Configuration.DiagnosticMessagesOrDefault);
 					var appDomain = assembly.Configuration.AppDomain ?? AppDomainDefaultBehavior;
 
-					using var framework = new XunitFrontController(appDomain, assembly.AssemblyFilename, shadowCopy: shadowCopy, diagnosticMessageSink: MessageSinkAdapter.Wrap(diagnosticSink));
-					if (!DiscoverTestsInSource(framework, logger, testPlatformContext, runSettings, visitorFactory, visitComplete, assembly))
+					using var sourceInformationProvider = new VisualStudioSourceInformationProvider(assembly.AssemblyFilename);
+					using var controller = new XunitFrontController(appDomain, assembly.AssemblyFilename, shadowCopy: shadowCopy, sourceInformationProvider: sourceInformationProvider, diagnosticMessageSink: MessageSinkAdapter.Wrap(diagnosticSink));
+					if (!DiscoverTestsInSource(controller, logger, testPlatformContext, runSettings, visitorFactory, visitComplete, assembly))
 						break;
 				}
 			}
@@ -427,7 +428,8 @@ namespace Xunit.Runner.VisualStudio
 
 				var diagnosticSink = DiagnosticMessageSink.ForDiagnostics(logger, assemblyDisplayName, runInfo.Assembly.Configuration.DiagnosticMessagesOrDefault);
 				var diagnosticMessageSink = MessageSinkAdapter.Wrap(diagnosticSink);
-				using var controller = new XunitFrontController(appDomain, assemblyFileName, shadowCopy: shadowCopy, diagnosticMessageSink: diagnosticMessageSink);
+				using var sourceInformationProvider = new VisualStudioSourceInformationProvider(assemblyFileName);
+				using var controller = new XunitFrontController(appDomain, assemblyFileName, shadowCopy: shadowCopy, sourceInformationProvider: sourceInformationProvider, diagnosticMessageSink: diagnosticMessageSink);
 				var testCasesMap = new Dictionary<string, TestCase>();
 				var testCases = new List<ITestCase>();
 				if (runInfo.TestCases is null || !runInfo.TestCases.Any())

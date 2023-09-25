@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Runtime.CompilerServices;
 
 namespace Xunit.Internal;
@@ -48,5 +49,39 @@ public static class Guard
 			throw new ArgumentException("Argument was empty", argName?.TrimStart('@'));
 
 		return argValue;
+	}
+
+	/// <summary>
+	/// Ensures that an argument is valid.
+	/// </summary>
+	/// <param name="message">The exception message to use when the argument is not valid</param>
+	/// <param name="test">The validity test value</param>
+	/// <param name="argName">The name of the argument</param>
+	/// <returns>The argument value as a non-null value</returns>
+	/// <exception cref="ArgumentException">Thrown when the argument is not valid</exception>
+	public static void ArgumentValid(
+		string message,
+		bool test,
+		string? argName = null)
+	{
+		if (!test)
+			throw new ArgumentException(message, argName);
+	}
+
+	/// <summary>
+	/// Ensures that a filename argument is not null or empty, and that the file exists on disk.
+	/// </summary>
+	/// <param name="fileName">The file name value</param>
+	/// <param name="argName">The name of the argument</param>
+	/// <returns>The file name as a non-null value</returns>
+	/// <exception cref="ArgumentException">Thrown when the argument is null, empty, or not on disk</exception>
+	public static string FileExists(
+		[NotNull] string? fileName,
+		[CallerArgumentExpression(nameof(fileName))] string? argName = null)
+	{
+		ArgumentNotNullOrEmpty(fileName, argName);
+		ArgumentValid($"File not found: {fileName}", File.Exists(fileName), argName?.TrimStart('@'));
+
+		return fileName;
 	}
 }
