@@ -638,30 +638,6 @@ namespace Xunit.Runner.VisualStudio
 						logger.LogWarning(message);
 			}
 
-			// Look for runners that might be embedded in ourselves (because of ILRepack). This is what the code
-			// in RunnerReporterUtility.GetAvailableRunnerReporters does after it finds a target assembly.
-			foreach (var type in adapterAssembly.GetTypes())
-			{
-				if (type is null || type.IsAbstract || !type.GetInterfaces().Any(t => t == typeof(IRunnerReporter)))
-					continue;
-
-				try
-				{
-					var ctor = type.GetConstructor(new Type[0]);
-					if (ctor is null)
-					{
-						logger?.LogWarning($"Type '{type.FullName ?? type.Name}' in the adapter assembly appears to be a runner reporter, but does not have an empty constructor.");
-						continue;
-					}
-
-					result.Add((IRunnerReporter)ctor.Invoke(new object[0]));
-				}
-				catch (Exception ex)
-				{
-					logger?.LogWarning($"Exception thrown while inspecting type '{type.FullName ?? type.Name}' in the adapter assembly:{Environment.NewLine}{ex}");
-				}
-			}
-
 			return result;
 		}
 

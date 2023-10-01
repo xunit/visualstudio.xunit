@@ -5,31 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="xunit" Version="$(XunitVersion)" />
+    <ProjectReference Include="..\..\src\xunit.runner.visualstudio\xunit.runner.visualstudio.csproj" />
   </ItemGroup>
 
-  <!--
-    To verify that the tests can run with the ILRepack'd binaries (per the bug in https://github.com/xunit/visualstudio.xunit/issues/384),
-    run the following commands:
-
-      $ dotnet build
-      $ dotnet build test\test.testcasefilter /t:Test
-
-    In the success case, the output should contain JSON messages, like this:
-
-      [xUnit.net 00:00:00.00] {"message":"testCollectionStarting","flowId":"b41f5cce12d44b4aa70bc54778922c35","assembly":"test.testcasefilter, Version=99.99.99.0, Culture=neutral, PublicKeyToken=null","collectionName":"Test collection for test.testcasefilter.Tests","collectionId":"c88827b8-7f3a-43d4-baea-1905ce8b521f"}
-
-    In the failure case, the output will include a warning about an unknown "json" reporter switch:
-
-      [xUnit.net 00:00:00.00] Could not find requested reporter 'json'
-  -->
-
-  <Target Name="Test">
-    <ItemGroup>
-      <RunnerBinaries Include="..\..\src\xunit.runner.visualstudio\bin\Debug\net462\merged\xunit*.dll" />
-    </ItemGroup>
-    <Copy SourceFiles="@(RunnerBinaries)" DestinationFolder="bin\Debug\net462" />
-    <Exec Command="dotnet vstest bin\Debug\net462\test.testcasefilter.dll /logger:console;verbosity=normal -- xUnit.ReporterSwitch=json" />
-  </Target>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNetTestSdkVersion)" />
+    <PackageReference Include="xunit" Version="$(XunitVersion)" />
+  </ItemGroup>
 
 </Project>

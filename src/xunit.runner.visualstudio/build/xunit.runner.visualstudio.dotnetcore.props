@@ -6,6 +6,16 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>False</Visible>
     </None>
+    <None Include="$(MSBuildThisFileDirectory)xunit.runner.reporters.netcoreapp10.dll">
+      <Link>xunit.runner.reporters.netcoreapp10.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>False</Visible>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)xunit.runner.utility.netcoreapp10.dll">
+      <Link>xunit.runner.utility.netcoreapp10.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>False</Visible>
+    </None>
     <ProjectCapability Include="TestContainer" />
   </ItemGroup>
 </Project>

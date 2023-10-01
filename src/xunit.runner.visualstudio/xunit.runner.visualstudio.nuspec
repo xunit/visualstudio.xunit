@@ -27,10 +27,10 @@
     <file target="_content\" src="..\..\logo-128-transparent.png" />
     <file target="_content\" src="..\..\README.md" />
 
-    <file target="build\net462\" src="bin\$Configuration$\net462\merged\xunit.*.dll" />
+    <file target="build\net462\" src="bin\$Configuration$\net462\xunit.*.dll" />
     <file target="build\net462\xunit.runner.visualstudio.props" src="build\xunit.runner.visualstudio.desktop.props" />
 
-    <file target="build\net6.0\" src="bin\$Configuration$\net6.0\merged\xunit.*.dll" />
+    <file target="build\net6.0\" src="bin\$Configuration$\net6.0\xunit.*.dll" />
     <file target="build\net6.0\xunit.runner.visualstudio.props" src="build\xunit.runner.visualstudio.dotnetcore.props" />
 
     <file target="lib\net462\" src="build\_._" />
