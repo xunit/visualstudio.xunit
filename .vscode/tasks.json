@@ -1,0 +1,49 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "tools/builder",
+        "--no-launch-profile",
+        "--",
+        "--configuration",
+        "Debug",
+        "Build"
+      ],
+      "options": {
+        "cwd": "${workspaceRoot}"
+      },
+      "group": "build",
+      "presentation": {
+        "focus": true
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "Pre-PR Build",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "tools/builder",
+        "--no-launch-profile",
+        "--",
+        "BuildAll"
+      ],
+      "options": {
+        "cwd": "${workspaceRoot}"
+      },
+      "group": "build",
+      "presentation": {
+        "focus": true
+      },
+      "problemMatcher": "$msCompile"
+    },
+  ]
+}
