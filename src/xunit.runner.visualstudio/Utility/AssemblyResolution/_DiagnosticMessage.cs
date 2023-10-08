@@ -1,8 +1,9 @@
 using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace Xunit;
 
-class _DiagnosticMessage : IDiagnosticMessage
+class _DiagnosticMessage : LongLivedMarshalByRefObject, IDiagnosticMessage
 {
 	/// <summary>
 	/// Initializes a new instance of the <see cref="DiagnosticMessage"/> class.
