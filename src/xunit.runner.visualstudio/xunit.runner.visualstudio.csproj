@@ -55,8 +55,8 @@
       <NuspecProperties>
         Configuration=$(Configuration);
         GitCommitId=$(GitCommitId);
+        MicrosoftTestPlatformObjectModelVersion=$(MicrosoftTestPlatformObjectModelVersion);
         PackageVersion=$(PackageVersion);
-        XunitVersion=$(XunitVersion);
       </NuspecProperties>
     </PropertyGroup>
   </Target>
