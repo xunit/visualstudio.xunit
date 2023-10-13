@@ -1,6 +1,8 @@
 using System;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Navigation;
+using Xunit.Abstractions;
+using Xunit.Internal;
 
 namespace Xunit.Runner.VisualStudio.Utility;
 
@@ -13,38 +15,65 @@ class DiaSessionWrapper : IDisposable
 	readonly AppDomainManager? appDomainManager;
 #endif
 	readonly DiaSessionWrapperHelper? helper;
-	readonly DiaSession session;
+	readonly DiaSession? session;
+	readonly DiagnosticMessageSink diagnosticMessageSink;
 
-	public DiaSessionWrapper(string assemblyFileName)
+	public DiaSessionWrapper(
+		string assemblyFileName,
+		DiagnosticMessageSink diagnosticMessageSink)
 	{
-		session = new DiaSession(assemblyFileName);
+		this.diagnosticMessageSink = Guard.ArgumentNotNull(diagnosticMessageSink);
 
-#if NETFRAMEWORK
-		var adapterFileName = typeof(DiaSessionWrapperHelper).Assembly.GetLocalCodeBase();
-		if (adapterFileName is not null)
+		try
 		{
-			appDomainManager = new AppDomainManager(assemblyFileName);
-			helper = appDomainManager.CreateObject<DiaSessionWrapperHelper>(typeof(DiaSessionWrapperHelper).Assembly.GetName(), typeof(DiaSessionWrapperHelper).FullName!, adapterFileName);
+			session = new DiaSession(assemblyFileName);
 		}
+		catch (Exception ex)
+		{
+			diagnosticMessageSink.OnMessage(new DiagnosticMessage($"Exception creating DiaSession: {ex}"));
+		}
+
+		try
+		{
+#if NETFRAMEWORK
+			var adapterFileName = typeof(DiaSessionWrapperHelper).Assembly.GetLocalCodeBase();
+			if (adapterFileName is not null)
+			{
+				appDomainManager = new AppDomainManager(assemblyFileName);
+				helper = appDomainManager.CreateObject<DiaSessionWrapperHelper>(typeof(DiaSessionWrapperHelper).Assembly.GetName(), typeof(DiaSessionWrapperHelper).FullName!, adapterFileName);
+			}
 #else
-		helper = new DiaSessionWrapperHelper(assemblyFileName);
+			helper = new DiaSessionWrapperHelper(assemblyFileName);
 #endif
+		}
+		catch (Exception ex)
+		{
+			diagnosticMessageSink.OnMessage(new DiagnosticMessage($"Exception creating DiaSessionWrapperHelper: {ex}"));
+		}
 	}
 
 	public INavigationData? GetNavigationData(
 		string typeName,
 		string methodName)
 	{
-		if (helper is null)
+		if (session is null || helper is null)
 			return null;
 
-		helper.Normalize(ref typeName, ref methodName);
-		return session.GetNavigationDataForMethod(typeName, methodName);
+		try
+		{
+			helper.Normalize(ref typeName, ref methodName);
+			return session.GetNavigationDataForMethod(typeName, methodName);
+		}
+		catch (Exception ex)
+		{
+			diagnosticMessageSink.OnMessage(new DiagnosticMessage($"Exception getting source mapping for {typeName}.{methodName}: {ex}"));
+			return null;
+		}
 	}
 
 	public void Dispose()
 	{
-		session.Dispose();
+		session?.Dispose();
 #if NETFRAMEWORK
 		appDomainManager?.Dispose();
 #endif
