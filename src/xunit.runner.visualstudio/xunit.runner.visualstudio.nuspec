@@ -13,7 +13,7 @@
     <releaseNotes>https://xunit.net/releases/visualstudio/$PackageVersion$</releaseNotes>
     <description>Visual Studio 2022+ Test Explorer runner for the xUnit.net framework. Capable of running xUnit.net v1.9.2 and v2.0+ tests. Supports .NET 4.6.2 or later, and .NET 6 or later.</description>
     <copyright>Copyright (C) .NET Foundation</copyright>
-    <repository type="git" url="https://github.com/xunit/xunit" commit="$GitCommitId$" />
+    <repository type="git" url="https://github.com/xunit/visualstudio.xunit" commit="$GitCommitId$" />
     <developmentDependency>true</developmentDependency>
     <dependencies>
       <group targetFramework="net462">
