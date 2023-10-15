@@ -227,9 +227,9 @@ namespace Xunit.Runner.VisualStudio
 			{
 				RemotingUtility.CleanUpRegisteredChannels();
 
-				var internalDiagnosticsMessageSink = DiagnosticMessageSink.ForInternalDiagnostics(logger, runSettings.InternalDiagnosticMessages ?? false);
+				var internalDiagnosticsSinkLocal = DiagnosticMessageSink.ForInternalDiagnostics(logger, runSettings.InternalDiagnosticMessages ?? false);
+				using var _ = AssemblyHelper.SubscribeResolveForAssembly(typeof(VsTestRunner), MessageSinkAdapter.Wrap(internalDiagnosticsSinkLocal));
 
-				using var _ = AssemblyHelper.SubscribeResolveForAssembly(typeof(VsTestRunner), MessageSinkAdapter.Wrap(internalDiagnosticsMessageSink));
 				foreach (var assemblyFileNameCanBeWithoutAbsolutePath in sources)
 				{
 					var assembly = new XunitProjectAssembly { AssemblyFilename = GetAssemblyFileName(assemblyFileNameCanBeWithoutAbsolutePath) };
@@ -237,11 +237,11 @@ namespace Xunit.Runner.VisualStudio
 
 					var fileName = Path.GetFileNameWithoutExtension(assembly.AssemblyFilename);
 					var shadowCopy = assembly.Configuration.ShadowCopyOrDefault;
-					var diagnosticSink = DiagnosticMessageSink.ForDiagnostics(logger, fileName, assembly.Configuration.DiagnosticMessagesOrDefault);
+					var diagnosticsSinkLocal = DiagnosticMessageSink.ForDiagnostics(logger, fileName, assembly.Configuration.DiagnosticMessagesOrDefault);
 					var appDomain = assembly.Configuration.AppDomain ?? AppDomainDefaultBehavior;
 
-					using var sourceInformationProvider = new VisualStudioSourceInformationProvider(assembly.AssemblyFilename, diagnosticSink);
-					using var controller = new XunitFrontController(appDomain, assembly.AssemblyFilename, shadowCopy: shadowCopy, sourceInformationProvider: sourceInformationProvider, diagnosticMessageSink: MessageSinkAdapter.Wrap(diagnosticSink));
+					using var sourceInformationProvider = new VisualStudioSourceInformationProvider(assembly.AssemblyFilename, internalDiagnosticsSinkLocal);
+					using var controller = new XunitFrontController(appDomain, assembly.AssemblyFilename, shadowCopy: shadowCopy, sourceInformationProvider: sourceInformationProvider, diagnosticMessageSink: MessageSinkAdapter.Wrap(diagnosticsSinkLocal));
 					if (!DiscoverTestsInSource(controller, logger, testPlatformContext, runSettings, visitorFactory, visitComplete, assembly))
 						break;
 				}
@@ -384,18 +384,16 @@ namespace Xunit.Runner.VisualStudio
 				var parallelizeAssemblies = runInfos.All(runInfo => runInfo.Assembly.Configuration.ParallelizeAssemblyOrDefault);
 				var reporter = GetRunnerReporter(logger, runSettings, runInfos.Select(ari => ari.Assembly.AssemblyFilename).ToList());
 				using var reporterMessageHandler = MessageSinkWithTypesAdapter.Wrap(reporter.CreateMessageHandler(new VisualStudioRunnerLogger(logger)));
-				using var internalDiagnosticsMessageSink = DiagnosticMessageSink.ForInternalDiagnostics(logger, runSettings.InternalDiagnosticMessages ?? false);
+				using var internalDiagnosticsSinkLocal = DiagnosticMessageSink.ForInternalDiagnostics(logger, runSettings.InternalDiagnosticMessages ?? false);
+				using var _ = AssemblyHelper.SubscribeResolveForAssembly(typeof(VsTestRunner), MessageSinkAdapter.Wrap(internalDiagnosticsSinkLocal));
 
-				using (AssemblyHelper.SubscribeResolveForAssembly(typeof(VsTestRunner), MessageSinkAdapter.Wrap(internalDiagnosticsMessageSink)))
-				{
-					if (parallelizeAssemblies)
-						runInfos
-							.Select(runInfo => RunTestsInAssemblyAsync(runContext, frameworkHandle, logger, testPlatformContext, runSettings, reporterMessageHandler, runInfo))
-							.ToList()
-							.ForEach(@event => @event.WaitOne());
-					else
-						runInfos.ForEach(runInfo => RunTestsInAssembly(runContext, frameworkHandle, logger, testPlatformContext, runSettings, reporterMessageHandler, runInfo));
-				}
+				if (parallelizeAssemblies)
+					runInfos
+						.Select(runInfo => RunTestsInAssemblyAsync(runContext, frameworkHandle, logger, testPlatformContext, runSettings, reporterMessageHandler, runInfo))
+						.ToList()
+						.ForEach(@event => @event.WaitOne());
+				else
+					runInfos.ForEach(runInfo => RunTestsInAssembly(runContext, frameworkHandle, logger, testPlatformContext, runSettings, reporterMessageHandler, runInfo));
 			}
 			catch (Exception ex)
 			{
@@ -426,10 +424,12 @@ namespace Xunit.Runner.VisualStudio
 				var appDomain = configuration.AppDomain ?? AppDomainDefaultBehavior;
 				var longRunningSeconds = configuration.LongRunningTestSecondsOrDefault;
 
-				var diagnosticSink = DiagnosticMessageSink.ForDiagnostics(logger, assemblyDisplayName, runInfo.Assembly.Configuration.DiagnosticMessagesOrDefault);
-				var diagnosticMessageSink = MessageSinkAdapter.Wrap(diagnosticSink);
-				using var sourceInformationProvider = new VisualStudioSourceInformationProvider(assemblyFileName, diagnosticSink);
-				using var controller = new XunitFrontController(appDomain, assemblyFileName, shadowCopy: shadowCopy, sourceInformationProvider: sourceInformationProvider, diagnosticMessageSink: diagnosticMessageSink);
+				var diagnosticsSinkLocal = DiagnosticMessageSink.ForDiagnostics(logger, assemblyDisplayName, runInfo.Assembly.Configuration.DiagnosticMessagesOrDefault);
+				var diagnosticsSinkRemote = MessageSinkAdapter.Wrap(diagnosticsSinkLocal);
+				var internalDiagnosticsSinkLocal = DiagnosticMessageSink.ForInternalDiagnostics(logger, runInfo.Assembly.Configuration.InternalDiagnosticMessagesOrDefault);
+
+				using var sourceInformationProvider = new VisualStudioSourceInformationProvider(assemblyFileName, internalDiagnosticsSinkLocal);
+				using var controller = new XunitFrontController(appDomain, assemblyFileName, shadowCopy: shadowCopy, sourceInformationProvider: sourceInformationProvider, diagnosticMessageSink: diagnosticsSinkRemote);
 				var testCasesMap = new Dictionary<string, TestCase>();
 				var testCases = new List<ITestCase>();
 				if (runInfo.TestCases is null || !runInfo.TestCases.Any())
@@ -543,7 +543,7 @@ namespace Xunit.Runner.VisualStudio
 				using var vsExecutionSink = new VsExecutionSink(reporterMessageHandler, frameworkHandle, logger, testCasesMap, () => cancelled);
 				IExecutionSink resultsSink = vsExecutionSink;
 				if (longRunningSeconds > 0)
-					resultsSink = new DelegatingLongRunningTestDetectionSink(resultsSink, TimeSpan.FromSeconds(longRunningSeconds), diagnosticSink);
+					resultsSink = new DelegatingLongRunningTestDetectionSink(resultsSink, TimeSpan.FromSeconds(longRunningSeconds), diagnosticsSinkLocal);
 				if (configuration.FailSkipsOrDefault)
 					resultsSink = new DelegatingFailSkipSink(resultsSink);
 

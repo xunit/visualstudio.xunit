@@ -18,12 +18,12 @@ public class VisualStudioSourceInformationProvider : LongLivedMarshalByRefObject
 	/// Initializes a new instance of the <see cref="VisualStudioSourceInformationProvider" /> class.
 	/// </summary>
 	/// <param name="assemblyFileName">The assembly file name.</param>
-	/// <param name="diagnosticMessageSink">The message sink to send internal diagnostic messages to.</param>
+	/// <param name="internalDiagnosticMessageSink">The message sink to send internal diagnostic messages to.</param>
 	public VisualStudioSourceInformationProvider(
 		string assemblyFileName,
-		DiagnosticMessageSink diagnosticMessageSink)
+		DiagnosticMessageSink internalDiagnosticMessageSink)
 	{
-		session = new DiaSessionWrapper(assemblyFileName, diagnosticMessageSink);
+		session = new DiaSessionWrapper(assemblyFileName, internalDiagnosticMessageSink);
 	}
 
 	/// <inheritdoc/>

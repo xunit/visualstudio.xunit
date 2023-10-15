@@ -16,13 +16,13 @@ class DiaSessionWrapper : IDisposable
 #endif
 	readonly DiaSessionWrapperHelper? helper;
 	readonly DiaSession? session;
-	readonly DiagnosticMessageSink diagnosticMessageSink;
+	readonly DiagnosticMessageSink internalDiagnosticMessageSink;
 
 	public DiaSessionWrapper(
 		string assemblyFileName,
-		DiagnosticMessageSink diagnosticMessageSink)
+		DiagnosticMessageSink internalDiagnosticMessageSink)
 	{
-		this.diagnosticMessageSink = Guard.ArgumentNotNull(diagnosticMessageSink);
+		this.internalDiagnosticMessageSink = Guard.ArgumentNotNull(internalDiagnosticMessageSink);
 
 		try
 		{
@@ -30,7 +30,7 @@ class DiaSessionWrapper : IDisposable
 		}
 		catch (Exception ex)
 		{
-			diagnosticMessageSink.OnMessage(new DiagnosticMessage($"Exception creating DiaSession: {ex}"));
+			internalDiagnosticMessageSink.OnMessage(new DiagnosticMessage($"Exception creating DiaSession: {ex}"));
 		}
 
 		try
@@ -48,7 +48,7 @@ class DiaSessionWrapper : IDisposable
 		}
 		catch (Exception ex)
 		{
-			diagnosticMessageSink.OnMessage(new DiagnosticMessage($"Exception creating DiaSessionWrapperHelper: {ex}"));
+			internalDiagnosticMessageSink.OnMessage(new DiagnosticMessage($"Exception creating DiaSessionWrapperHelper: {ex}"));
 		}
 	}
 
@@ -66,7 +66,7 @@ class DiaSessionWrapper : IDisposable
 		}
 		catch (Exception ex)
 		{
-			diagnosticMessageSink.OnMessage(new DiagnosticMessage($"Exception getting source mapping for {typeName}.{methodName}: {ex}"));
+			internalDiagnosticMessageSink.OnMessage(new DiagnosticMessage($"Exception getting source mapping for {typeName}.{methodName}: {ex}"));
 			return null;
 		}
 	}
