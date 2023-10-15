@@ -16,7 +16,9 @@
     <repository type="git" url="https://github.com/xunit/visualstudio.xunit" commit="$GitCommitId$" />
     <developmentDependency>true</developmentDependency>
     <dependencies>
-      <group targetFramework="net462" />
+      <group targetFramework="net462">
+        <dependency id="Microsoft.TestPlatform.ObjectModel" version="$MicrosoftTestPlatformObjectModelVersion$" />
+      </group>
       <group targetFramework="net6.0" />
     </dependencies>
     <frameworkAssemblies>
