@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.Host;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using Xunit.Abstractions;
 using Xunit.Internal;
@@ -228,8 +229,11 @@ namespace Xunit.Runner.VisualStudio
 				RemotingUtility.CleanUpRegisteredChannels();
 
 				var internalDiagnosticsMessageSink = DiagnosticMessageSink.ForInternalDiagnostics(logger, runSettings.InternalDiagnosticMessages ?? false);
+				var wrappedInternalDiagnosticsMessageSink = MessageSinkAdapter.Wrap(internalDiagnosticsMessageSink);
 
-				using var _ = AssemblyHelper.SubscribeResolveForAssembly(typeof(VsTestRunner), MessageSinkAdapter.Wrap(internalDiagnosticsMessageSink));
+				using var _1 = AssemblyHelper.SubscribeResolveForAssembly(typeof(VsTestRunner), wrappedInternalDiagnosticsMessageSink);
+				using var _2 = AssemblyHelper.SubscribeResolveForAssembly(typeof(ITestRuntimeProvider), wrappedInternalDiagnosticsMessageSink);
+
 				foreach (var assemblyFileNameCanBeWithoutAbsolutePath in sources)
 				{
 					var assembly = new XunitProjectAssembly { AssemblyFilename = GetAssemblyFileName(assemblyFileNameCanBeWithoutAbsolutePath) };
@@ -385,17 +389,18 @@ namespace Xunit.Runner.VisualStudio
 				var reporter = GetRunnerReporter(logger, runSettings, runInfos.Select(ari => ari.Assembly.AssemblyFilename).ToList());
 				using var reporterMessageHandler = MessageSinkWithTypesAdapter.Wrap(reporter.CreateMessageHandler(new VisualStudioRunnerLogger(logger)));
 				using var internalDiagnosticsMessageSink = DiagnosticMessageSink.ForInternalDiagnostics(logger, runSettings.InternalDiagnosticMessages ?? false);
+				var wrappedInternalDiagnosticsMessageSink = MessageSinkAdapter.Wrap(internalDiagnosticsMessageSink);
 
-				using (AssemblyHelper.SubscribeResolveForAssembly(typeof(VsTestRunner), MessageSinkAdapter.Wrap(internalDiagnosticsMessageSink)))
-				{
-					if (parallelizeAssemblies)
-						runInfos
-							.Select(runInfo => RunTestsInAssemblyAsync(runContext, frameworkHandle, logger, testPlatformContext, runSettings, reporterMessageHandler, runInfo))
-							.ToList()
-							.ForEach(@event => @event.WaitOne());
-					else
-						runInfos.ForEach(runInfo => RunTestsInAssembly(runContext, frameworkHandle, logger, testPlatformContext, runSettings, reporterMessageHandler, runInfo));
-				}
+				using var _1 = AssemblyHelper.SubscribeResolveForAssembly(typeof(VsTestRunner), wrappedInternalDiagnosticsMessageSink);
+				using var _2 = AssemblyHelper.SubscribeResolveForAssembly(typeof(ITestRuntimeProvider), wrappedInternalDiagnosticsMessageSink);
+
+				if (parallelizeAssemblies)
+					runInfos
+						.Select(runInfo => RunTestsInAssemblyAsync(runContext, frameworkHandle, logger, testPlatformContext, runSettings, reporterMessageHandler, runInfo))
+						.ToList()
+						.ForEach(@event => @event.WaitOne());
+				else
+					runInfos.ForEach(runInfo => RunTestsInAssembly(runContext, frameworkHandle, logger, testPlatformContext, runSettings, reporterMessageHandler, runInfo));
 			}
 			catch (Exception ex)
 			{
