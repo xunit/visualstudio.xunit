@@ -541,11 +541,13 @@ namespace Xunit.Runner.VisualStudio
 				reporterMessageHandler.OnMessage(new TestAssemblyExecutionStarting(runInfo.Assembly, executionOptions));
 
 				using var vsExecutionSink = new VsExecutionSink(reporterMessageHandler, frameworkHandle, logger, testCasesMap, () => cancelled);
-				IExecutionSink resultsSink = vsExecutionSink;
-				if (longRunningSeconds > 0)
-					resultsSink = new DelegatingLongRunningTestDetectionSink(resultsSink, TimeSpan.FromSeconds(longRunningSeconds), diagnosticsSinkLocal);
-				if (configuration.FailSkipsOrDefault)
-					resultsSink = new DelegatingFailSkipSink(resultsSink);
+				var executionSinkOptions = new ExecutionSinkOptions
+				{
+					DiagnosticMessageSink = diagnosticsSinkRemote,
+					FailSkips = configuration.FailSkipsOrDefault,
+					LongRunningTestTime = TimeSpan.FromSeconds(longRunningSeconds),
+				};
+				var resultsSink = new ExecutionSink(vsExecutionSink, executionSinkOptions);
 
 				controller.RunTests(testCases, resultsSink, executionOptions);
 				resultsSink.Finished.WaitOne();

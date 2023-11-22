@@ -9,8 +9,8 @@
     <NerdbankGitVersioningVersion>3.6.133</NerdbankGitVersioningVersion>
     <NSubstituteVersion>5.1.0</NSubstituteVersion>
     <TunnelVisionLabsReferenceAssemblyAnnotatorVersion>1.0.0-alpha.160</TunnelVisionLabsReferenceAssemblyAnnotatorVersion>
-    <XunitAnalyzersVersion>1.6.0</XunitAnalyzersVersion>
-    <XunitVersion>2.6.2</XunitVersion>
+    <XunitAnalyzersVersion>1.7.0-pre.10</XunitAnalyzersVersion>
+    <XunitVersion>2.6.3-pre.3</XunitVersion>
   </PropertyGroup>
 
 </Project>
