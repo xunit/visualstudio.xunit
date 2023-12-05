@@ -8,6 +8,7 @@
     <CopyLocalLockFileAssemblies Condition=" '$(TargetFramework)' == 'net6.0' ">true</CopyLocalLockFileAssemblies>
     <NoWarn>$(NoWarn);CS0436</NoWarn>
     <Nullable>enable</Nullable>
+    <PackageId>$(MSBuildProjectName)</PackageId>
     <RootNamespace>Xunit.Runner.VisualStudio</RootNamespace>
     <TargetFrameworks>net462;net6.0</TargetFrameworks>
     <WarningsAsErrors>true</WarningsAsErrors>
