@@ -2,8 +2,7 @@
 
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyName Condition=" '$(TargetFramework)' == 'net462' ">xunit.runner.visualstudio.testadapter</AssemblyName>
-    <AssemblyName Condition=" '$(TargetFramework)' == 'net6.0' ">xunit.runner.visualstudio.dotnetcore.testadapter</AssemblyName>
+    <AssemblyName>xunit.runner.visualstudio.testadapter</AssemblyName>
     <AssemblyTitle>xUnit.net Runner for Visual Studio ($(TargetFramework))</AssemblyTitle>
     <CopyLocalLockFileAssemblies Condition=" '$(TargetFramework)' == 'net6.0' ">true</CopyLocalLockFileAssemblies>
     <NoWarn>$(NoWarn);CS0436</NoWarn>
