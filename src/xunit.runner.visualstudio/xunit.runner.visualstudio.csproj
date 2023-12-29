@@ -14,7 +14,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageDownload Include="ILRepack.MSBuild.Task" Version="[$(ILRepackVersion)]" />
     <PackageDownload Include="Microsoft.NETCore.App.Ref" Version="[$(MicrosoftNetCoreAppRefVersion)]" />
   </ItemGroup>
 

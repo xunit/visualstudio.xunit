@@ -1,7 +1,6 @@
 <Project>
 
   <PropertyGroup>
-    <ILRepackVersion>2.0.13</ILRepackVersion>
     <MicrosoftNetCoreAppRefVersion>6.0.11</MicrosoftNetCoreAppRefVersion>
     <MicrosoftNetTestSdkVersion>17.8.0</MicrosoftNetTestSdkVersion>
     <MicrosoftSourceLinkGitHubVersion>8.0.0</MicrosoftSourceLinkGitHubVersion>
