@@ -1,3 +1,4 @@
+using System.IO;
 using System.Threading.Tasks;
 using Xunit.BuildTools.Models;
 
@@ -11,5 +12,10 @@ public static partial class Packages
 
 		var packArgs = $"pack --nologo --no-build --configuration {context.ConfigurationText} --output {context.PackageOutputFolder} --verbosity {context.Verbosity} src/xunit.runner.visualstudio -p:NuspecFile=xunit.runner.visualstudio.nuspec";
 		await context.Exec("dotnet", packArgs);
+
+		File.Copy(
+			Path.Join(context.BaseFolder, "src", "xunit.runner.visualstudio", "xunit.runner.visualstudio.sign-file-list"),
+			Path.Join(context.PackageOutputFolder, "xunit.runner.visualstudio.sign-file-list")
+		);
 	}
 }
