@@ -15,7 +15,8 @@ public static partial class Packages
 
 		File.Copy(
 			Path.Join(context.BaseFolder, "src", "xunit.runner.visualstudio", "xunit.runner.visualstudio.sign-file-list"),
-			Path.Join(context.PackageOutputFolder, "xunit.runner.visualstudio.sign-file-list")
+			Path.Join(context.PackageOutputFolder, "xunit.runner.visualstudio.sign-file-list"),
+			overwrite: true
 		);
 	}
 }
