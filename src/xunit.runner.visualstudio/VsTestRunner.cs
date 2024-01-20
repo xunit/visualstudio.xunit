@@ -262,6 +262,9 @@ namespace Xunit.Runner.VisualStudio
 			XunitProjectAssembly assembly)
 				where TVisitor : IVsDiscoverySink, IDisposable
 		{
+			foreach (var warning in assembly.ConfigWarnings)
+				logger.LogWarning("{0}", warning);
+
 			if (cancelled)
 				return false;
 
