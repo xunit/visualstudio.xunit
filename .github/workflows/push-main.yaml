@@ -36,10 +36,7 @@ jobs:
       - name: Get .NET information
         run: dotnet --info
 
-      - name: "Build target: BuildAll"
-        run: dotnet run --project tools/builder --no-launch-profile -- BuildAll --timing
-
-      - name: "Build target: PublishPackages"
+      - name: "Build target: BuildAll & PublishPackages"
         env:
           PUSH_APIKEY: ${{ secrets.PUSH_APIKEY }}
           PUSH_URI: ${{ secrets.PUSH_URI }}
@@ -50,7 +47,7 @@ jobs:
           SIGN_TENANT: ${{ secrets.SIGN_TENANT }}
           SIGN_TIMESTAMP_URI: ${{ secrets.SIGN_TIMESTAMP_URI }}
           SIGN_VAULT_URI: ${{ secrets.SIGN_VAULT_URI }}
-        run: dotnet run --project tools/builder --no-launch-profile -- PublishPackages --timing
+        run: dotnet run --project tools/builder --no-launch-profile -- BuildAll PublishPackages --timing
 
       - name: "Upload artifact: test"
         uses: actions/upload-artifact@v3

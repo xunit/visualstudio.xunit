@@ -46,6 +46,8 @@
 
   <Target Name="UpdateNuSpecProperties" BeforeTargets="GenerateNuspec" DependsOnTargets="GetBuildVersion">
     <PropertyGroup>
+      <SignedPath />
+      <SignedPath Condition=" '$(SIGN_APP_SECRET)' != '' ">signed\</SignedPath>
       <!-- Never put the Git hash in the package version -->
       <PackageVersion>$(BuildVersionSimple)$(PrereleaseVersion)</PackageVersion>
       <!-- Pass through values we don't know ahead of time for any hand-crafted .nuspec files -->
@@ -54,6 +56,7 @@
         GitCommitId=$(GitCommitId);
         MicrosoftTestPlatformObjectModelVersion=$(MicrosoftTestPlatformObjectModelVersion);
         PackageVersion=$(PackageVersion);
+        SignedPath=$(SignedPath);
       </NuspecProperties>
     </PropertyGroup>
   </Target>
