@@ -1,11 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <EnableXunitRunner Condition=" '$(EnableXunitRunner)' == '' ">false</EnableXunitRunner>
+    <IsTestingPlatformApplication>$(EnableXunitRunner)</IsTestingPlatformApplication>
+  </PropertyGroup>
+
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)xunit.runner.visualstudio.testadapter.dll">
-      <Link>xunit.runner.visualstudio.testadapter.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>False</Visible>
-    </None>
+    <!--
+      !!! IMPORTANT !!!
+      DO NOT CHANGE THE GUID, IT'S A WELL KNOWN EXTENSION POINT AND THIS EXTENSION NEEDS TO BE REGISTERED AT THE END
+      WE HAVE CODE INSIDE THE TASK 'TestingPlatformEntryPoint' TO ENSURE THE ORDER OF THE REGISTRATION BASED ON THIS GUID
+    -->
+    <TestingPlatformBuilderHook Include="17E773D9-071C-4C66-97DD-57A450BDB027" Condition=" $(GenerateTestingPlatformEntryPoint) == 'true' " >
+      <DisplayName>xUnit</DisplayName>
+      <TypeFullName>Xunit.Runner.VisualStudio.TestingPlatformBuilderHook</TypeFullName>
+    </TestingPlatformBuilderHook>
+  </ItemGroup>  
+  
+  <ItemGroup>
+    <!-- Adapter dll is included in the .targets -->
     <None Include="$(MSBuildThisFileDirectory)xunit.abstractions.dll">
       <Link>xunit.abstractions.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

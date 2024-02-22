@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="$(MicrosoftTestPlatformObjectModelVersion)" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Testing.Extensions.VSTestBridge" Version="$(MicrosoftTestingPlatformVersion)" />
     <PackageReference Include="TunnelVisionLabs.ReferenceAssemblyAnnotator" Version="$(TunnelVisionLabsReferenceAssemblyAnnotatorVersion)" PrivateAssets="All" />
     <PackageReference Include="xunit.analyzers" Version="$(XunitAnalyzersVersion)" PrivateAssets="All" />
     <PackageReference Include="xunit.runner.reporters" Version="$(XunitVersion)" />
@@ -55,6 +56,7 @@
         Configuration=$(Configuration);
         GitCommitId=$(GitCommitId);
         MicrosoftTestPlatformObjectModelVersion=$(MicrosoftTestPlatformObjectModelVersion);
+        MicrosoftTestingPlatformVersion=$(MicrosoftTestingPlatformVersion);
         PackageVersion=$(PackageVersion);
         SignedPath=$(SignedPath);
       </NuspecProperties>

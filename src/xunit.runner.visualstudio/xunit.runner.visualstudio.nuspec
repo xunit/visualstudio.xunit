@@ -18,8 +18,15 @@
     <dependencies>
       <group targetFramework="net462">
         <dependency id="Microsoft.TestPlatform.ObjectModel" version="$MicrosoftTestPlatformObjectModelVersion$" />
+        <dependency id="Microsoft.Testing.Extensions.Telemetry" version="$MicrosoftTestingPlatformVersion$" />
+		<dependency id="Microsoft.Testing.Extensions.VSTestBridge" version="$MicrosoftTestingPlatformVersion$" />
+        <dependency id="Microsoft.Testing.Platform.MSBuild" version="$MicrosoftTestingPlatformVersion$" />
       </group>
-      <group targetFramework="net6.0" />
+      <group targetFramework="net6.0">
+        <dependency id="Microsoft.Testing.Extensions.Telemetry" version="$MicrosoftTestingPlatformVersion$" />
+		<dependency id="Microsoft.Testing.Extensions.VSTestBridge" version="$MicrosoftTestingPlatformVersion$" />
+        <dependency id="Microsoft.Testing.Platform.MSBuild" version="$MicrosoftTestingPlatformVersion$" />
+	  </group>
     </dependencies>
     <frameworkAssemblies>
       <frameworkAssembly assemblyName="mscorlib" targetFramework="net462" />
@@ -35,12 +42,14 @@
     <file target="build\net462\" src="bin\$Configuration$\net462\xunit.runner.utility.net452.dll" />
     <file target="build\net462\" src="bin\$Configuration$\net462\$SignedPath$xunit.runner.visualstudio.testadapter.dll" />
     <file target="build\net462\xunit.runner.visualstudio.props" src="build\xunit.runner.visualstudio.desktop.props" />
+	<file target="build\net462\xunit.runner.visualstudio.targets" src="build\xunit.runner.visualstudio.targets" />
 
     <file target="build\net6.0\" src="bin\$Configuration$\net6.0\xunit.abstractions.dll" />
     <file target="build\net6.0\" src="bin\$Configuration$\net6.0\xunit.runner.reporters.netcoreapp10.dll" />
     <file target="build\net6.0\" src="bin\$Configuration$\net6.0\xunit.runner.utility.netcoreapp10.dll" />
     <file target="build\net6.0\" src="bin\$Configuration$\net6.0\$SignedPath$xunit.runner.visualstudio.testadapter.dll" />
     <file target="build\net6.0\xunit.runner.visualstudio.props" src="build\xunit.runner.visualstudio.dotnetcore.props" />
+	<file target="build\net6.0\xunit.runner.visualstudio.targets" src="build\xunit.runner.visualstudio.targets" />
 
     <file target="lib\net462\" src="build\_._" />
 
