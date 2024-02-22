@@ -233,9 +233,7 @@ public class RunSettings
 	}
 
 	// This should match .NET versions like 'net6.0' but not .NET Framework version like 'net462'.
-	private static readonly RegexOptions RegexOptions =
-		RegexOptions.Multiline | RegexOptions.Compiled | RegexOptions.IgnoreCase;
-	static readonly Regex regexNet5Plus = new(@"^net\d+\.\d+$", RegexOptions, TimeSpan.FromSeconds(1));
+	static readonly Regex regexNet5Plus = new(@"^net\d+\.\d+$", RegexOptions.Multiline | RegexOptions.Compiled | RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
 
 	static bool IsNetCore(string targetFrameworkVersion) =>
 		targetFrameworkVersion.StartsWith(".NETCoreApp,", StringComparison.OrdinalIgnoreCase) ||
