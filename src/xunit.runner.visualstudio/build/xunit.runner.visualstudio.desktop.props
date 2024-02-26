@@ -5,20 +5,19 @@
     <IsTestingPlatformApplication>$(EnableXunitRunner)</IsTestingPlatformApplication>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(EnableXunitRunner)' == 'true' ">
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
   <ItemGroup>
-    <!--
-      !!! IMPORTANT !!!
-      DO NOT CHANGE THE GUID, IT'S A WELL KNOWN EXTENSION POINT AND THIS EXTENSION NEEDS TO BE REGISTERED AT THE END
-      WE HAVE CODE INSIDE THE TASK 'TestingPlatformEntryPoint' TO ENSURE THE ORDER OF THE REGISTRATION BASED ON THIS GUID
-    -->
-    <TestingPlatformBuilderHook Include="17E773D9-071C-4C66-97DD-57A450BDB027" Condition=" $(GenerateTestingPlatformEntryPoint) == 'true' " >
-      <DisplayName>xUnit</DisplayName>
+    <!-- This GUID comes from Microsoft.Testing.Platform, do not modify -->
+    <TestingPlatformBuilderHook Include="17E773D9-071C-4C66-97DD-57A450BDB027" Condition=" '$(GenerateTestingPlatformEntryPoint)' == 'true' " >
+      <DisplayName>xUnit.net</DisplayName>
       <TypeFullName>Xunit.Runner.VisualStudio.TestingPlatformBuilderHook</TypeFullName>
     </TestingPlatformBuilderHook>
-  </ItemGroup>  
-  
+  </ItemGroup>
+
   <ItemGroup>
-    <!-- Adapter dll is included in the .targets -->
     <None Include="$(MSBuildThisFileDirectory)xunit.abstractions.dll">
       <Link>xunit.abstractions.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
