@@ -113,7 +113,7 @@ namespace Xunit.Runner.VisualStudio
 			cancelled = true;
 		}
 
-		void ITestDiscoverer.DiscoverTests(
+		public void DiscoverTests(
 			IEnumerable<string> sources,
 			IDiscoveryContext discoveryContext,
 			IMessageLogger logger,
@@ -153,7 +153,7 @@ namespace Xunit.Runner.VisualStudio
 				loggerHelper.Log($"xUnit.net VSTest Adapter v{ThisAssembly.AssemblyInformationalVersion} ({IntPtr.Size * 8}-bit {RuntimeInformation.FrameworkDescription})");
 		}
 
-		void ITestExecutor.RunTests(
+		public void RunTests(
 			IEnumerable<string>? sources,
 			IRunContext? runContext,
 			IFrameworkHandle? frameworkHandle)
@@ -182,7 +182,7 @@ namespace Xunit.Runner.VisualStudio
 			);
 		}
 
-		void ITestExecutor.RunTests(
+		public void RunTests(
 			IEnumerable<TestCase>? tests,
 			IRunContext? runContext,
 			IFrameworkHandle? frameworkHandle)
