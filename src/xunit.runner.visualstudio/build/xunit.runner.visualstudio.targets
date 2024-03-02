@@ -5,7 +5,7 @@
   <PropertyGroup>
     <GenerateTestingPlatformEntryPoint Condition=" '$(GenerateTestingPlatformEntryPoint)' == '' ">$(EnableXunitRunner)</GenerateTestingPlatformEntryPoint>
     <GenerateProgramFile Condition=" '$(EnableXunitRunner)' == 'true' ">false</GenerateProgramFile>
-    <DisableTestingPlatformServerCapability Condition=" '$(EnableXunitRunner)' == 'false' or '$(EnableXunitRunner)' == '' " >true</DisableTestingPlatformServerCapability>
+    <DisableTestingPlatformServerCapability Condition=" '$(EnableXunitRunner)' != 'true' " >true</DisableTestingPlatformServerCapability>
   </PropertyGroup>
 
   <Choose>
