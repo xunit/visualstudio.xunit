@@ -2,14 +2,14 @@
 
   <PropertyGroup>
     <MicrosoftNetCoreAppRefVersion>6.0.11</MicrosoftNetCoreAppRefVersion>
-    <MicrosoftNetTestSdkVersion>17.8.0</MicrosoftNetTestSdkVersion>
+    <MicrosoftNetTestSdkVersion>17.9.0</MicrosoftNetTestSdkVersion>
     <MicrosoftSourceLinkGitHubVersion>8.0.0</MicrosoftSourceLinkGitHubVersion>
     <MicrosoftTestPlatformObjectModelVersion>$(MicrosoftNetTestSdkVersion)</MicrosoftTestPlatformObjectModelVersion>
     <NerdbankGitVersioningVersion>3.6.133</NerdbankGitVersioningVersion>
     <NSubstituteVersion>5.1.0</NSubstituteVersion>
     <TunnelVisionLabsReferenceAssemblyAnnotatorVersion>1.0.0-alpha.160</TunnelVisionLabsReferenceAssemblyAnnotatorVersion>
-    <XunitAnalyzersVersion>1.11.0</XunitAnalyzersVersion>
-    <XunitVersion>2.7.0</XunitVersion>
+    <XunitAnalyzersVersion>1.12.0</XunitAnalyzersVersion>
+    <XunitVersion>2.7.1</XunitVersion>
   </PropertyGroup>
 
 </Project>
