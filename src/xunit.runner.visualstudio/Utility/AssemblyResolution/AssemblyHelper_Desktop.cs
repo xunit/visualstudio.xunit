@@ -1,7 +1,7 @@
 #if NETFRAMEWORK
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Reflection;
 using Xunit.Abstractions;
@@ -19,7 +19,7 @@ class AssemblyHelper : LongLivedMarshalByRefObject, IDisposable
 
 	readonly string directory;
 	readonly IMessageSink? internalDiagnosticsMessageSink;
-	readonly Dictionary<string, Assembly?> lookupCache = new();
+	readonly ConcurrentDictionary<string, Assembly?> lookupCache = new();
 
 	/// <summary>
 	/// Constructs an instance using the given <paramref name="directory"/> for resolution.
