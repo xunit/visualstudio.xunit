@@ -9,7 +9,7 @@
     <NSubstituteVersion>5.1.0</NSubstituteVersion>
     <TunnelVisionLabsReferenceAssemblyAnnotatorVersion>1.0.0-alpha.160</TunnelVisionLabsReferenceAssemblyAnnotatorVersion>
     <XunitAnalyzersVersion>1.12.0</XunitAnalyzersVersion>
-    <XunitVersion>2.7.1</XunitVersion>
+    <XunitVersion>2.7.2-pre.17</XunitVersion>
   </PropertyGroup>
 
 </Project>

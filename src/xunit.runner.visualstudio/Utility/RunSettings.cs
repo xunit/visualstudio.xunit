@@ -16,6 +16,7 @@ public class RunSettings
 	public TestMethodDisplay? MethodDisplay { get; set; }
 	public TestMethodDisplayOptions? MethodDisplayOptions { get; set; }
 	public bool? NoAutoReporters { get; set; }
+	public ParallelAlgorithm? ParallelAlgorithm { get; set; }
 	public bool? ParallelizeAssembly { get; set; }
 	public bool? ParallelizeTestCollections { get; set; }
 	public bool? PreEnumerateTheories { get; set; }
@@ -42,6 +43,8 @@ public class RunSettings
 			configuration.MethodDisplay = MethodDisplay;
 		if (MethodDisplayOptions.HasValue)
 			configuration.MethodDisplayOptions = MethodDisplayOptions;
+		if (ParallelAlgorithm.HasValue)
+			configuration.ParallelAlgorithm = ParallelAlgorithm;
 		if (ParallelizeAssembly.HasValue)
 			configuration.ParallelizeAssembly = ParallelizeAssembly;
 		if (ParallelizeTestCollections.HasValue)
@@ -105,6 +108,10 @@ public class RunSettings
 						var noAutoReportersString = xunitElement.Element(Constants.Xunit.NoAutoReporters)?.Value;
 						if (bool.TryParse(noAutoReportersString, out var noAutoReporters))
 							result.NoAutoReporters = noAutoReporters;
+
+						var parallelAlgorithmString = xunitElement.Element(Constants.Xunit.ParallelAlgorithm)?.Value;
+						if (Enum.TryParse<ParallelAlgorithm>(parallelAlgorithmString, ignoreCase: true, out var parallelAlgorithm))
+							result.ParallelAlgorithm = parallelAlgorithm;
 
 						var parallelizeAssemblyString = xunitElement.Element(Constants.Xunit.ParallelizeAssembly)?.Value;
 						if (bool.TryParse(parallelizeAssemblyString, out var parallelizeAssembly))
@@ -209,6 +216,7 @@ public class RunSettings
 			public const string MethodDisplay = "MethodDisplay";
 			public const string MethodDisplayOptions = "MethodDisplayOptions";
 			public const string NoAutoReporters = "NoAutoReporters";
+			public const string ParallelAlgorithm = "ParallelAlgorithm";
 			public const string ParallelizeAssembly = "ParallelizeAssembly";
 			public const string ParallelizeTestCollections = "ParallelizeTestCollections";
 			public const string PreEnumerateTheories = "PreEnumerateTheories";
