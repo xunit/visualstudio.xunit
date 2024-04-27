@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace Xunit.Runner.VisualStudio;
@@ -94,8 +95,28 @@ public class RunSettings
 							result.LongRunningTestSeconds = longRunningTestSeconds;
 
 						var maxParallelThreadsString = xunitElement.Element(Constants.Xunit.MaxParallelThreads)?.Value;
-						if (int.TryParse(maxParallelThreadsString, out var maxParallelThreads) && maxParallelThreads >= -1)
-							result.MaxParallelThreads = maxParallelThreads;
+						if (maxParallelThreadsString is not null)
+							switch (maxParallelThreadsString)
+							{
+								case "default":
+									result.MaxParallelThreads = 0;
+									break;
+
+								case "unlimited":
+									result.MaxParallelThreads = -1;
+									break;
+
+								default:
+									var match = ConfigUtility.MultiplierStyleMaxParallelThreadsRegex.Match(maxParallelThreadsString);
+									// Use invariant format and convert ',' to '.' so we can always support both formats, regardless of locale
+									// If we stick to locale-only parsing, we could break people when moving from one locale to another (for example,
+									// from people running tests on their desktop in a comma locale vs. running them in CI with a decimal locale).
+									if (match.Success && decimal.TryParse(match.Groups[1].Value.Replace(',', '.'), NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var maxThreadMultiplier))
+										result.MaxParallelThreads = (int)(maxThreadMultiplier * Environment.ProcessorCount);
+									else if (int.TryParse(maxParallelThreadsString, out var threadValue) && threadValue >= -1)
+										result.MaxParallelThreads = threadValue;
+									break;
+							}
 
 						var methodDisplayString = xunitElement.Element(Constants.Xunit.MethodDisplay)?.Value;
 						if (Enum.TryParse<TestMethodDisplay>(methodDisplayString, ignoreCase: true, out var methodDisplay))
