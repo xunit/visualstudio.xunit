@@ -1,5 +1,6 @@
 using System;
 using Xunit;
+using Xunit.Abstractions;
 using Xunit.Runner.VisualStudio;
 
 public class RunSettingsTests
@@ -23,6 +24,7 @@ public class RunSettingsTests
 		Assert.Null(runSettings.PreEnumerateTheories);
 		Assert.Null(runSettings.ReporterSwitch);
 		Assert.Null(runSettings.ShadowCopy);
+		Assert.Null(runSettings.ShowLiveOutput);
 		Assert.Null(runSettings.StopOnFail);
 		Assert.Null(runSettings.TargetFrameworkVersion);
 	}
@@ -123,6 +125,7 @@ $@"<?xml version=""1.0"" encoding=""utf-8""?>
 		<ParallelizeTestCollections>{testValueString}</ParallelizeTestCollections>
 		<PreEnumerateTheories>{testValueString}</PreEnumerateTheories>
 		<ShadowCopy>{testValueString}</ShadowCopy>
+		<ShowLiveOutput>{testValueString}</ShowLiveOutput>
 		<StopOnFail>{testValueString}</StopOnFail>
 	</xUnit>
 </RunSettings>";
@@ -140,6 +143,7 @@ $@"<?xml version=""1.0"" encoding=""utf-8""?>
 		Assert.Equal(testValue, runSettings.ParallelizeTestCollections);
 		Assert.Equal(testValue, runSettings.PreEnumerateTheories);
 		Assert.Equal(testValue, runSettings.ShadowCopy);
+		Assert.Equal(testValue, runSettings.ShowLiveOutput);
 		Assert.Equal(testValue, runSettings.StopOnFail);
 	}
 

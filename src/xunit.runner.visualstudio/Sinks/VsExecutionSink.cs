@@ -22,7 +22,8 @@ public sealed class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposab
 		ITestExecutionRecorder recorder,
 		LoggerHelper logger,
 		Dictionary<string, TestCase> testCasesMap,
-		Func<bool> cancelledThunk)
+		Func<bool> cancelledThunk,
+		bool showLiveOutput)
 	{
 		this.innerSink = innerSink;
 		this.recorder = recorder;
@@ -45,6 +46,9 @@ public sealed class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposab
 		Execution.TestMethodCleanupFailureEvent += HandleTestMethodCleanupFailure;
 		Execution.TestPassedEvent += HandleTestPassed;
 		Execution.TestSkippedEvent += HandleTestSkipped;
+
+		if (showLiveOutput)
+			Execution.TestOutputEvent += HandleTestOutput;
 	}
 
 	public ExecutionSummary ExecutionSummary { get; private set; }
@@ -125,6 +129,12 @@ public sealed class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposab
 			logger.LogWarning(testFailed.TestCase, "(Fail) Could not find VS test case for {0} (ID = {1})", testFailed.TestCase.DisplayName, testFailed.TestCase.UniqueID);
 
 		HandleCancellation(args);
+	}
+
+	void HandleTestOutput(MessageHandlerArgs<ITestOutput> args)
+	{
+		var testOutput = args.Message;
+		logger.Log("    {0} [OUTPUT] {1}", testOutput.Test.DisplayName, testOutput.Output.TrimEnd());
 	}
 
 	void HandleTestPassed(MessageHandlerArgs<ITestPassed> args)

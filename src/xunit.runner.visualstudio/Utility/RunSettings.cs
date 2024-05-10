@@ -23,6 +23,7 @@ public class RunSettings
 	public bool? PreEnumerateTheories { get; set; }
 	public string? ReporterSwitch { get; set; }
 	public bool? ShadowCopy { get; set; }
+	public bool? ShowLiveOutput { get; set; }
 	public bool? StopOnFail { get; set; }
 	public string? TargetFrameworkVersion { get; set; }
 
@@ -54,6 +55,8 @@ public class RunSettings
 			configuration.PreEnumerateTheories = PreEnumerateTheories;
 		if (ShadowCopy.HasValue)
 			configuration.ShadowCopy = ShadowCopy;
+		if (ShowLiveOutput.HasValue)
+			configuration.ShowLiveOutput = ShowLiveOutput;
 		if (StopOnFail.HasValue)
 			configuration.StopOnFail = StopOnFail;
 	}
@@ -154,6 +157,10 @@ public class RunSettings
 						if (bool.TryParse(shadowCopyString, out var shadowCopy))
 							result.ShadowCopy = shadowCopy;
 
+						var showLiveOutputString = xunitElement.Element(Constants.Xunit.ShowLiveOutput)?.Value;
+						if (bool.TryParse(showLiveOutputString, out var showLiveOutput))
+							result.ShowLiveOutput = showLiveOutput;
+
 						var stopOnFailString = xunitElement.Element(Constants.Xunit.StopOnFail)?.Value;
 						if (bool.TryParse(stopOnFailString, out var stopOnFail))
 							result.StopOnFail = stopOnFail;
@@ -243,6 +250,7 @@ public class RunSettings
 			public const string PreEnumerateTheories = "PreEnumerateTheories";
 			public const string ReporterSwitch = "ReporterSwitch";
 			public const string ShadowCopy = "ShadowCopy";
+			public const string ShowLiveOutput = "ShowLiveOutput";
 			public const string StopOnFail = "StopOnFail";
 		}
 	}
