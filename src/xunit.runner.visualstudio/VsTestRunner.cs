@@ -543,7 +543,7 @@ namespace Xunit.Runner.VisualStudio
 
 				reporterMessageHandler.OnMessage(new TestAssemblyExecutionStarting(runInfo.Assembly, executionOptions));
 
-				using var vsExecutionSink = new VsExecutionSink(reporterMessageHandler, frameworkHandle, logger, testCasesMap, () => cancelled, executionOptions.GetShowLiveOutputOrDefault());
+				using var vsExecutionSink = new VsExecutionSink(reporterMessageHandler, frameworkHandle, logger, testCasesMap, () => cancelled);
 				var executionSinkOptions = new ExecutionSinkOptions
 				{
 					DiagnosticMessageSink = diagnosticsSinkRemote,
