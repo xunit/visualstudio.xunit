@@ -1,3 +1,5 @@
+using Xunit.Runner.Common;
+
 namespace Xunit.Runner.VisualStudio;
 
 public class VisualStudioRunnerLogger : IRunnerLogger

@@ -7,8 +7,8 @@ as the only supported IDE environment (others like Resharper should work, though
 
 You will need the following software installed:
 
-* .NET Framework 4.6.2 or later (part of the Windows OS)
-* [.NET SDK 7.0](https://dotnet.microsoft.com/download/dotnet/7.0)
+* .NET Framework 4.7.2 or later (part of the Windows OS)
+* [.NET SDK 8.0](https://dotnet.microsoft.com/download/dotnet/8.0)
 * [.NET 6.0 Runtime](https://dotnet.microsoft.com/download/dotnet/6.0)
 * [git](https://git-scm.com/downloads)
 * PowerShell (or [PowerShell Core](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-windows?view=powershell-6))
@@ -43,9 +43,9 @@ Ensure that you have configured PowerShell to be able to run local unsigned scri
 
 ## Debugging
 
-Debugging the VS Adapter is tricky. There are two ways to do it depending on whether you want to do it under `net462` or `net6.0`. In all cases, you'll currently need to build your own test adapter NuGet package using `./build.ps1 Build` first to ensure you have local symbols. The symbols are not in the public package. It's helpful to add it to a local `\packages` directory and then use an entry like `<add key="Local Packages" value=".\packages" />` in your `NuGet.config` file to point to it. Don't forget to eventually delete it from your global profile `.nuget\packages\xunit...` when you're done.
+Debugging the VS Adapter is tricky. There are two ways to do it depending on whether you want to do it under `net472` or `net6.0`. In all cases, you'll currently need to build your own test adapter NuGet package using `./build.ps1 Build` first to ensure you have local symbols. The symbols are not in the public package. It's helpful to add it to a local `\packages` directory and then use an entry like `<add key="Local Packages" value=".\packages" />` in your `NuGet.config` file to point to it. Don't forget to eventually delete it from your global profile `.nuget\packages\xunit...` when you're done.
 
-### `net462`
+### `net472`
 Easiest thing to do is add a `launchSettings.json` file that adds the `vstest.console.exe` as a startup project and point it to an xunit dll. Something like the following (use `/listtests` if you just want to debug the discovery portion):
 
 ```json
@@ -53,7 +53,7 @@ Easiest thing to do is add a `launchSettings.json` file that adds the `vstest.co
   "profiles": {
     "vstest console": {
       "executablePath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow\\vstest.console.exe",
-      "commandLineArgs": ".\\bin\\Debug\\net462\\Tests.System.Reactive.dll /TestAdapterPath:.\\bin\\Debug\\net462 /listtests",
+      "commandLineArgs": ".\\bin\\Debug\\net472\\Tests.System.Reactive.dll /TestAdapterPath:.\\bin\\Debug\\net472 /listtests",
       "workingDirectory": "C:\\dev\\RxNET\\Rx.NET\\Source\\Tests.System.Reactive\\"
     }
   }

@@ -1,8 +1,8 @@
 using System;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Navigation;
-using Xunit.Abstractions;
 using Xunit.Internal;
+using Xunit.v3;
 
 namespace Xunit.Runner.VisualStudio.Utility;
 
@@ -16,13 +16,13 @@ class DiaSessionWrapper : IDisposable
 #endif
 	readonly DiaSessionWrapperHelper? helper;
 	readonly DiaSession? session;
-	readonly DiagnosticMessageSink internalDiagnosticMessageSink;
+	readonly DiagnosticMessageSink diagnosticMessageSink;
 
 	public DiaSessionWrapper(
 		string assemblyFileName,
-		DiagnosticMessageSink internalDiagnosticMessageSink)
+		DiagnosticMessageSink diagnosticMessageSink)
 	{
-		this.internalDiagnosticMessageSink = Guard.ArgumentNotNull(internalDiagnosticMessageSink);
+		this.diagnosticMessageSink = Guard.ArgumentNotNull(diagnosticMessageSink);
 
 		try
 		{
@@ -30,7 +30,7 @@ class DiaSessionWrapper : IDisposable
 		}
 		catch (Exception ex)
 		{
-			internalDiagnosticMessageSink.OnMessage(new DiagnosticMessage($"Exception creating DiaSession: {ex}"));
+			diagnosticMessageSink.OnMessage(new _InternalDiagnosticMessage("Exception creating DiaSession: {0}", ex));
 		}
 
 		try
@@ -48,7 +48,7 @@ class DiaSessionWrapper : IDisposable
 		}
 		catch (Exception ex)
 		{
-			internalDiagnosticMessageSink.OnMessage(new DiagnosticMessage($"Exception creating DiaSessionWrapperHelper: {ex}"));
+			diagnosticMessageSink.OnMessage(new _InternalDiagnosticMessage("Exception creating DiaSessionWrapperHelper: {0}", ex));
 		}
 	}
 
@@ -66,7 +66,7 @@ class DiaSessionWrapper : IDisposable
 		}
 		catch (Exception ex)
 		{
-			internalDiagnosticMessageSink.OnMessage(new DiagnosticMessage($"Exception getting source mapping for {typeName}.{methodName}: {ex}"));
+			diagnosticMessageSink.OnMessage(new _InternalDiagnosticMessage($"Exception getting source mapping for {0}.{1}: {2}", typeName, methodName, ex));
 			return null;
 		}
 	}

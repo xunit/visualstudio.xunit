@@ -1,24 +1,34 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
-using Xunit.Abstractions;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
+using Xunit.Runner.Common;
+using Xunit.Sdk;
+using Xunit.v3;
 using VsTestResult = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestResult;
 using VsTestResultMessage = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestResultMessage;
 
 namespace Xunit.Runner.VisualStudio;
 
-public sealed class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposable
+public sealed class VsExecutionSink : TestMessageSink, IDisposable
 {
 	readonly Func<bool> cancelledThunk;
 	readonly LoggerHelper logger;
-	readonly IMessageSinkWithTypes innerSink;
+	readonly _IMessageSink innerSink;
+	readonly MessageMetadataCache metadataCache = new();
 	readonly ITestExecutionRecorder recorder;
+	readonly ConcurrentDictionary<string, List<_TestCaseStarting>> testCasesByAssemblyID = new();
+	readonly ConcurrentDictionary<string, _TestCaseStarting> testCasesByCaseID = new();
+	readonly ConcurrentDictionary<string, List<_TestCaseStarting>> testCasesByClassID = new();
+	readonly ConcurrentDictionary<string, List<_TestCaseStarting>> testCasesByCollectionID = new();
+	readonly ConcurrentDictionary<string, List<_TestCaseStarting>> testCasesByMethodID = new();
 	readonly Dictionary<string, TestCase> testCasesMap;
 
 	public VsExecutionSink(
-		IMessageSinkWithTypes innerSink,
+		_IMessageSink innerSink,
 		ITestExecutionRecorder recorder,
 		LoggerHelper logger,
 		Dictionary<string, TestCase> testCasesMap,
@@ -33,53 +43,71 @@ public sealed class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposab
 		ExecutionSummary = new ExecutionSummary();
 
 		Diagnostics.ErrorMessageEvent += HandleErrorMessage;
+
+		// Test assemblies
 		Execution.TestAssemblyCleanupFailureEvent += HandleTestAssemblyCleanupFailure;
 		Execution.TestAssemblyFinishedEvent += HandleTestAssemblyFinished;
+		Execution.TestAssemblyStartingEvent += HandleTestAssemblyStarting;
+
+		// Test collections
+		Execution.TestCollectionCleanupFailureEvent += HandleTestCollectionCleanupFailure;
+		Execution.TestCollectionFinishedEvent += HandleTestCollectionFinished;
+		Execution.TestCollectionStartingEvent += HandleTestCollectionStarting;
+
+		// Test classes
+		Execution.TestClassCleanupFailureEvent += HandleTestClassCleanupFailure;
+		Execution.TestClassFinishedEvent += HandleTestClassFinished;
+		Execution.TestClassStartingEvent += HandleTestClassStarting;
+
+		// Test methods
+		Execution.TestMethodCleanupFailureEvent += HandleTestMethodCleanupFailure;
+		Execution.TestMethodFinishedEvent += HandleTestMethodFinished;
+		Execution.TestMethodStartingEvent += HandleTestMethodStarting;
+
+		// Test cases
 		Execution.TestCaseCleanupFailureEvent += HandleTestCaseCleanupFailure;
 		Execution.TestCaseFinishedEvent += HandleTestCaseFinished;
 		Execution.TestCaseStartingEvent += HandleTestCaseStarting;
-		Execution.TestClassCleanupFailureEvent += HandleTestClassCleanupFailure;
+
+		// Tests
 		Execution.TestCleanupFailureEvent += HandleTestCleanupFailure;
-		Execution.TestCollectionCleanupFailureEvent += HandleTestCollectionCleanupFailure;
 		Execution.TestFailedEvent += HandleTestFailed;
-		Execution.TestMethodCleanupFailureEvent += HandleTestMethodCleanupFailure;
+		Execution.TestFinishedEvent += HandleTestFinished;
+		Execution.TestNotRunEvent += HandleTestNotRun;
 		Execution.TestPassedEvent += HandleTestPassed;
 		Execution.TestSkippedEvent += HandleTestSkipped;
+		Execution.TestStartingEvent += HandleTestStarting;
 	}
 
 	public ExecutionSummary ExecutionSummary { get; private set; }
 
 	public ManualResetEvent Finished { get; } = new ManualResetEvent(initialState: false);
 
-	public override void Dispose()
+	public void Dispose()
 	{
 		Finished.Dispose();
-		base.Dispose();
 	}
 
-	TestCase? FindTestCase(ITestCase testCase)
+	TestCase? FindTestCase(string testCaseUniqueID)
 	{
-		if (testCasesMap.TryGetValue(testCase.UniqueID, out var result))
+		if (testCasesMap.TryGetValue(testCaseUniqueID, out var result))
 			return result;
 
-		logger.LogError(testCase, "Result reported for unknown test case: {0}", testCase.DisplayName);
+		var testCaseMetadata = metadataCache.TryGetTestCaseMetadata(testCaseUniqueID);
+		var testCaseDisplayName = testCaseMetadata?.TestCaseDisplayName ?? "<unknown test case>";
+
+		LogError(testCaseUniqueID, "Result reported for unknown test case: {0}", testCaseDisplayName);
 		return null;
 	}
 
-	void TryAndReport(
-		string actionDescription,
-		ITestCase testCase,
-		Action action)
-	{
-		try
+	static TestOutcome GetAggregatedTestOutcome(_TestCaseFinished testCaseFinished) =>
+		testCaseFinished switch
 		{
-			action();
-		}
-		catch (Exception ex)
-		{
-			logger.LogError(testCase, "Error occured while {0} for test case {1}: {2}", actionDescription, testCase.DisplayName, ex);
-		}
-	}
+			{ TestsTotal: 0 } => TestOutcome.NotFound,
+			{ TestsFailed: > 0 } => TestOutcome.Failed,
+			{ TestsSkipped: > 0 } => TestOutcome.Skipped,
+			_ => TestOutcome.Passed,
+		};
 
 	void HandleCancellation(MessageHandlerArgs args)
 	{
@@ -87,7 +115,7 @@ public sealed class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposab
 			args.Stop();
 	}
 
-	void HandleErrorMessage(MessageHandlerArgs<IErrorMessage> args)
+	void HandleErrorMessage(MessageHandlerArgs<_ErrorMessage> args)
 	{
 		ExecutionSummary.Errors++;
 
@@ -96,21 +124,160 @@ public sealed class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposab
 		HandleCancellation(args);
 	}
 
-	void HandleTestAssemblyFinished(MessageHandlerArgs<ITestAssemblyFinished> args)
+	void HandleTestAssemblyCleanupFailure(MessageHandlerArgs<_TestAssemblyCleanupFailure> args)
 	{
-		var assemblyFinished = args.Message;
+		ExecutionSummary.Errors++;
 
-		ExecutionSummary.Failed = assemblyFinished.TestsFailed;
-		ExecutionSummary.Skipped = assemblyFinished.TestsSkipped;
-		ExecutionSummary.Time = assemblyFinished.ExecutionTime;
-		ExecutionSummary.Total = assemblyFinished.TestsRun;
+		var cleanupFailure = args.Message;
 
-		Finished.Set();
+		if (testCasesByAssemblyID.TryGetValue(cleanupFailure.AssemblyUniqueID, out var testCases))
+			WriteError($"Test Assembly Cleanup Failure ({TestAssemblyPath(cleanupFailure)})", cleanupFailure, testCases);
 
 		HandleCancellation(args);
 	}
 
-	void HandleTestFailed(MessageHandlerArgs<ITestFailed> args)
+	void HandleTestAssemblyFinished(MessageHandlerArgs<_TestAssemblyFinished> args)
+	{
+		var assemblyFinished = args.Message;
+
+		testCasesByAssemblyID.TryRemove(assemblyFinished.AssemblyUniqueID, out _);
+
+		try
+		{
+			ExecutionSummary.Failed = assemblyFinished.TestsFailed;
+			ExecutionSummary.Skipped = assemblyFinished.TestsSkipped;
+			ExecutionSummary.Time = assemblyFinished.ExecutionTime;
+			ExecutionSummary.Total = assemblyFinished.TestsTotal;
+
+			Finished.Set();
+
+			HandleCancellation(args);
+		}
+		finally
+		{
+			metadataCache.TryRemove(assemblyFinished);
+		}
+	}
+
+	void HandleTestAssemblyStarting(MessageHandlerArgs<_TestAssemblyStarting> args) =>
+		metadataCache.Set(args.Message);
+
+	void HandleTestCaseCleanupFailure(MessageHandlerArgs<_TestCaseCleanupFailure> args)
+	{
+		ExecutionSummary.Errors++;
+
+		var cleanupFailure = args.Message;
+
+		if (testCasesByCaseID.TryGetValue(cleanupFailure.TestCaseUniqueID, out var testCase))
+			WriteError($"Test Case Cleanup Failure ({TestCaseDisplayName(cleanupFailure)})", cleanupFailure, [testCase]);
+
+		HandleCancellation(args);
+	}
+
+	void HandleTestCaseFinished(MessageHandlerArgs<_TestCaseFinished> args)
+	{
+		var testCaseFinished = args.Message;
+
+		testCasesByCaseID.TryRemove(testCaseFinished.TestCaseUniqueID, out _);
+
+		try
+		{
+			var vsTestCase = FindTestCase(testCaseFinished.TestCaseUniqueID);
+			if (vsTestCase is not null)
+				TryAndReport("RecordEnd", testCaseFinished, () => recorder.RecordEnd(vsTestCase, GetAggregatedTestOutcome(testCaseFinished)));
+			else
+				LogWarning(testCaseFinished, "(Finished) Could not find VS test case for {0} (ID = {1})", TestCaseDisplayName(testCaseFinished), testCaseFinished.TestCaseUniqueID);
+
+			HandleCancellation(args);
+		}
+		finally
+		{
+			metadataCache.TryRemove(testCaseFinished);
+		}
+	}
+
+	void HandleTestCaseStarting(MessageHandlerArgs<_TestCaseStarting> args)
+	{
+		var testCaseStarting = args.Message;
+		metadataCache.Set(testCaseStarting);
+
+		testCasesByAssemblyID.Add(testCaseStarting.AssemblyUniqueID, testCaseStarting);
+		testCasesByCollectionID.Add(testCaseStarting.TestCollectionUniqueID, testCaseStarting);
+		if (testCaseStarting.TestClassUniqueID is not null)
+			testCasesByClassID.Add(testCaseStarting.TestClassUniqueID, testCaseStarting);
+		if (testCaseStarting.TestMethodUniqueID is not null)
+			testCasesByMethodID.Add(testCaseStarting.TestMethodUniqueID, testCaseStarting);
+		testCasesByCaseID[testCaseStarting.TestCaseUniqueID] = testCaseStarting;
+
+		var vsTestCase = FindTestCase(testCaseStarting.TestCaseUniqueID);
+		if (vsTestCase is not null)
+			TryAndReport("RecordStart", testCaseStarting, () => recorder.RecordStart(vsTestCase));
+		else
+			LogWarning(testCaseStarting, "(Starting) Could not find VS test case for {0} (ID = {1})", TestCaseDisplayName(testCaseStarting), testCaseStarting.TestCaseUniqueID);
+
+		HandleCancellation(args);
+	}
+
+	void HandleTestClassCleanupFailure(MessageHandlerArgs<_TestClassCleanupFailure> args)
+	{
+		ExecutionSummary.Errors++;
+
+		var cleanupFailure = args.Message;
+
+		if (cleanupFailure.TestClassUniqueID is not null && testCasesByClassID.TryGetValue(cleanupFailure.TestClassUniqueID, out var testCases))
+			WriteError($"Test Class Cleanup Failure ({TestClassName(cleanupFailure)})", cleanupFailure, testCases);
+
+		HandleCancellation(args);
+	}
+
+	void HandleTestClassFinished(MessageHandlerArgs<_TestClassFinished> args)
+	{
+		var classFinished = args.Message;
+		if (classFinished.TestClassUniqueID is not null)
+			testCasesByClassID.TryRemove(classFinished.TestClassUniqueID, out _);
+
+		metadataCache.TryRemove(classFinished);
+	}
+
+	void HandleTestClassStarting(MessageHandlerArgs<_TestClassStarting> args) =>
+		metadataCache.Set(args.Message);
+
+	void HandleTestCleanupFailure(MessageHandlerArgs<_TestCleanupFailure> args)
+	{
+		ExecutionSummary.Errors++;
+
+		var cleanupFailure = args.Message;
+
+		if (testCasesByCaseID.TryGetValue(cleanupFailure.TestCaseUniqueID, out var testCase))
+			WriteError($"Test Cleanup Failure ({TestDisplayName(cleanupFailure)})", cleanupFailure, [testCase]);
+
+		HandleCancellation(args);
+	}
+
+	void HandleTestCollectionCleanupFailure(MessageHandlerArgs<_TestCollectionCleanupFailure> args)
+	{
+		ExecutionSummary.Errors++;
+
+		var cleanupFailure = args.Message;
+
+		if (testCasesByCollectionID.TryGetValue(cleanupFailure.TestCollectionUniqueID, out var testCases))
+			WriteError($"Test Collection Cleanup Failure ({TestCollectionDisplayName(cleanupFailure)})", cleanupFailure, testCases);
+
+		HandleCancellation(args);
+	}
+
+	void HandleTestCollectionFinished(MessageHandlerArgs<_TestCollectionFinished> args)
+	{
+		var collectionFinished = args.Message;
+		testCasesByCollectionID.TryRemove(collectionFinished.TestCollectionUniqueID, out _);
+
+		metadataCache.TryRemove(collectionFinished);
+	}
+
+	void HandleTestCollectionStarting(MessageHandlerArgs<_TestCollectionStarting> args) =>
+		metadataCache.Set(args.Message);
+
+	void HandleTestFailed(MessageHandlerArgs<_TestFailed> args)
 	{
 		var testFailed = args.Message;
 		var result = MakeVsTestResult(TestOutcome.Failed, testFailed);
@@ -119,162 +286,128 @@ public sealed class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposab
 			result.ErrorMessage = ExceptionUtility.CombineMessages(testFailed);
 			result.ErrorStackTrace = ExceptionUtility.CombineStackTraces(testFailed);
 
-			TryAndReport("RecordResult (Fail)", testFailed.TestCase, () => recorder.RecordResult(result));
+			TryAndReport("RecordResult (Fail)", testFailed, () => recorder.RecordResult(result));
 		}
 		else
-			logger.LogWarning(testFailed.TestCase, "(Fail) Could not find VS test case for {0} (ID = {1})", testFailed.TestCase.DisplayName, testFailed.TestCase.UniqueID);
+			LogWarning(testFailed, "(Fail) Could not find VS test case for {0} (ID = {1})", TestDisplayName(testFailed), testFailed.TestCaseUniqueID);
 
 		HandleCancellation(args);
 	}
 
-	void HandleTestPassed(MessageHandlerArgs<ITestPassed> args)
+	void HandleTestFinished(MessageHandlerArgs<_TestFinished> args) =>
+		metadataCache.TryRemove(args.Message);
+
+	void HandleTestMethodCleanupFailure(MessageHandlerArgs<_TestMethodCleanupFailure> args)
+	{
+		ExecutionSummary.Errors++;
+
+		var cleanupFailure = args.Message;
+
+		if (cleanupFailure.TestMethodUniqueID is not null && testCasesByMethodID.TryGetValue(cleanupFailure.TestMethodUniqueID, out var testCases))
+			WriteError($"Test Method Cleanup Failure ({TestMethodName(cleanupFailure)})", cleanupFailure, testCases);
+
+		HandleCancellation(args);
+	}
+
+	void HandleTestMethodFinished(MessageHandlerArgs<_TestMethodFinished> args)
+	{
+		var methodFinished = args.Message;
+		if (methodFinished.TestMethodUniqueID is not null)
+			testCasesByMethodID.TryRemove(methodFinished.TestMethodUniqueID, out _);
+
+		metadataCache.TryRemove(methodFinished);
+	}
+
+	void HandleTestMethodStarting(MessageHandlerArgs<_TestMethodStarting> args) =>
+		metadataCache.Set(args.Message);
+
+	void HandleTestNotRun(MessageHandlerArgs<_TestNotRun> args)
+	{
+		var testNotRun = args.Message;
+		var result = MakeVsTestResult(TestOutcome.None, testNotRun);
+		if (result is not null)
+			TryAndReport("RecordResult (None)", testNotRun, () => recorder.RecordResult(result));
+		else
+			LogWarning(testNotRun, "(NotRun) Could not find VS test case for {0} (ID = {1})", TestDisplayName(testNotRun), testNotRun.TestCaseUniqueID);
+
+		HandleCancellation(args);
+	}
+
+	void HandleTestPassed(MessageHandlerArgs<_TestPassed> args)
 	{
 		var testPassed = args.Message;
 		var result = MakeVsTestResult(TestOutcome.Passed, testPassed);
 		if (result is not null)
-			TryAndReport("RecordResult (Pass)", testPassed.TestCase, () => recorder.RecordResult(result));
+			TryAndReport("RecordResult (Pass)", testPassed, () => recorder.RecordResult(result));
 		else
-			logger.LogWarning(testPassed.TestCase, "(Pass) Could not find VS test case for {0} (ID = {1})", testPassed.TestCase.DisplayName, testPassed.TestCase.UniqueID);
+			LogWarning(testPassed, "(Pass) Could not find VS test case for {0} (ID = {1})", TestDisplayName(testPassed), testPassed.TestCaseUniqueID);
 
 		HandleCancellation(args);
 	}
 
-	void HandleTestSkipped(MessageHandlerArgs<ITestSkipped> args)
+	void HandleTestSkipped(MessageHandlerArgs<_TestSkipped> args)
 	{
 		var testSkipped = args.Message;
 		var result = MakeVsTestResult(TestOutcome.Skipped, testSkipped);
 		if (result is not null)
-			TryAndReport("RecordResult (Skip)", testSkipped.TestCase, () => recorder.RecordResult(result));
+			TryAndReport("RecordResult (Skip)", testSkipped, () => recorder.RecordResult(result));
 		else
-			logger.LogWarning(testSkipped.TestCase, "(Skip) Could not find VS test case for {0} (ID = {1})", testSkipped.TestCase.DisplayName, testSkipped.TestCase.UniqueID);
+			LogWarning(testSkipped, "(Skip) Could not find VS test case for {0} (ID = {1})", TestDisplayName(testSkipped), testSkipped.TestCaseUniqueID);
 
 		HandleCancellation(args);
 	}
 
-	void HandleTestCaseStarting(MessageHandlerArgs<ITestCaseStarting> args)
+	void HandleTestStarting(MessageHandlerArgs<_TestStarting> args) =>
+		metadataCache.Set(args.Message);
+
+	void LogError(
+		_TestAssemblyMessage msg,
+		string format,
+		params object?[] args) =>
+			LogError(TestAssemblyPath(msg), format, args);
+
+	void LogError(
+		string assemblyPath,
+		string format,
+		params object?[] args) =>
+			logger.SendMessage(TestMessageLevel.Error, assemblyPath, string.Format(format, args));
+
+	public void LogWarning(
+		_TestAssemblyMessage msg,
+		string format,
+		params object?[] args) =>
+			logger.SendMessage(TestMessageLevel.Warning, TestAssemblyPath(msg), string.Format(format, args));
+
+	VsTestResult? MakeVsTestResult(
+		TestOutcome outcome,
+		_TestResultMessage testResult) =>
+			MakeVsTestResult(outcome, testResult.TestCaseUniqueID, TestDisplayName(testResult), (double)testResult.ExecutionTime, testResult.Output);
+
+	VsTestResult? MakeVsTestResult(
+		TestOutcome outcome,
+		_TestSkipped skippedResult) =>
+			MakeVsTestResult(outcome, skippedResult.TestCaseUniqueID, TestDisplayName(skippedResult), (double)skippedResult.ExecutionTime, errorMessage: skippedResult.Reason);
+
+	VsTestResult? MakeVsTestResult(
+		TestOutcome outcome,
+		string testCaseUniqueID)
 	{
-		var testCaseStarting = args.Message;
-		var vsTestCase = FindTestCase(testCaseStarting.TestCase);
-		if (vsTestCase is not null)
-			TryAndReport("RecordStart", testCaseStarting.TestCase, () => recorder.RecordStart(vsTestCase));
-		else
-			logger.LogWarning(testCaseStarting.TestCase, "(Starting) Could not find VS test case for {0} (ID = {1})", testCaseStarting.TestCase.DisplayName, testCaseStarting.TestCase.UniqueID);
+		var testCaseMetadata = metadataCache.TryGetTestCaseMetadata(testCaseUniqueID);
+		if (testCaseMetadata is null)
+			return null;
 
-		HandleCancellation(args);
-	}
-
-	void HandleTestCaseFinished(MessageHandlerArgs<ITestCaseFinished> args)
-	{
-		var testCaseFinished = args.Message;
-		var vsTestCase = FindTestCase(testCaseFinished.TestCase);
-		if (vsTestCase is not null)
-			TryAndReport("RecordEnd", testCaseFinished.TestCase, () => recorder.RecordEnd(vsTestCase, GetAggregatedTestOutcome(testCaseFinished)));
-		else
-			logger.LogWarning(testCaseFinished.TestCase, "(Finished) Could not find VS test case for {0} (ID = {1})", testCaseFinished.TestCase.DisplayName, testCaseFinished.TestCase.UniqueID);
-
-		HandleCancellation(args);
-	}
-
-	void HandleTestAssemblyCleanupFailure(MessageHandlerArgs<ITestAssemblyCleanupFailure> args)
-	{
-		ExecutionSummary.Errors++;
-
-		var cleanupFailure = args.Message;
-		WriteError($"Test Assembly Cleanup Failure ({cleanupFailure.TestAssembly.Assembly.AssemblyPath})", cleanupFailure, cleanupFailure.TestCases);
-
-		HandleCancellation(args);
-	}
-
-	void HandleTestCaseCleanupFailure(MessageHandlerArgs<ITestCaseCleanupFailure> args)
-	{
-		ExecutionSummary.Errors++;
-
-		var cleanupFailure = args.Message;
-		WriteError($"Test Case Cleanup Failure ({cleanupFailure.TestCase.DisplayName})", cleanupFailure, cleanupFailure.TestCases);
-
-		HandleCancellation(args);
-	}
-
-	void HandleTestClassCleanupFailure(MessageHandlerArgs<ITestClassCleanupFailure> args)
-	{
-		ExecutionSummary.Errors++;
-
-		var cleanupFailure = args.Message;
-		WriteError($"Test Class Cleanup Failure ({cleanupFailure.TestClass.Class.Name})", cleanupFailure, cleanupFailure.TestCases);
-
-		HandleCancellation(args);
-	}
-
-	void HandleTestCollectionCleanupFailure(MessageHandlerArgs<ITestCollectionCleanupFailure> args)
-	{
-		ExecutionSummary.Errors++;
-
-		var cleanupFailure = args.Message;
-		WriteError($"Test Collection Cleanup Failure ({cleanupFailure.TestCollection.DisplayName})", cleanupFailure, cleanupFailure.TestCases);
-
-		HandleCancellation(args);
-	}
-
-	void HandleTestCleanupFailure(MessageHandlerArgs<ITestCleanupFailure> args)
-	{
-		ExecutionSummary.Errors++;
-
-		var cleanupFailure = args.Message;
-		WriteError($"Test Cleanup Failure ({cleanupFailure.Test.DisplayName})", cleanupFailure, cleanupFailure.TestCases);
-
-		HandleCancellation(args);
-	}
-
-	void HandleTestMethodCleanupFailure(MessageHandlerArgs<ITestMethodCleanupFailure> args)
-	{
-		ExecutionSummary.Errors++;
-
-		var cleanupFailure = args.Message;
-		WriteError($"Test Method Cleanup Failure ({cleanupFailure.TestMethod.Method.Name})", cleanupFailure, cleanupFailure.TestCases);
-
-		HandleCancellation(args);
-	}
-
-	void WriteError(
-		string failureName,
-		IFailureInformation failureInfo,
-		IEnumerable<ITestCase> testCases)
-	{
-		foreach (var testCase in testCases)
-		{
-			var result = MakeVsTestResult(TestOutcome.Failed, testCase, testCase.DisplayName);
-			if (result is not null)
-			{
-				result.ErrorMessage = $"[{failureName}]: {ExceptionUtility.CombineMessages(failureInfo)}";
-				result.ErrorStackTrace = ExceptionUtility.CombineStackTraces(failureInfo);
-
-				TryAndReport("RecordEnd (Failure)", testCase, () => recorder.RecordEnd(result.TestCase, result.Outcome));
-				TryAndReport("RecordResult (Failure)", testCase, () => recorder.RecordResult(result));
-			}
-			else
-				logger.LogWarning(testCase, "(Failure) Could not find VS test case for {0} (ID = {1})", testCase.DisplayName, testCase.UniqueID);
-		}
+		return MakeVsTestResult(outcome, testCaseUniqueID, testCaseMetadata.TestCaseDisplayName);
 	}
 
 	VsTestResult? MakeVsTestResult(
 		TestOutcome outcome,
-		ITestResultMessage testResult) =>
-			MakeVsTestResult(outcome, testResult.TestCase, testResult.Test.DisplayName, (double)testResult.ExecutionTime, testResult.Output);
-
-	VsTestResult? MakeVsTestResult(
-		TestOutcome outcome,
-		ITestSkipped skippedResult) =>
-			MakeVsTestResult(outcome, skippedResult.TestCase, skippedResult.Test.DisplayName, (double)skippedResult.ExecutionTime, errorMessage: skippedResult.Reason);
-
-	VsTestResult? MakeVsTestResult(
-		TestOutcome outcome,
-		ITestCase testCase,
+		string testCaseUniqueID,
 		string displayName,
 		double executionTime = 0.0,
 		string? output = null,
 		string? errorMessage = null)
 	{
-		var vsTestCase = FindTestCase(testCase);
+		var vsTestCase = FindTestCase(testCaseUniqueID);
 		if (vsTestCase is null)
 			return null;
 
@@ -299,23 +432,76 @@ public sealed class VsExecutionSink : TestMessageSink, IExecutionSink, IDisposab
 		return result;
 	}
 
-	static TestOutcome GetAggregatedTestOutcome(ITestCaseFinished testCaseFinished)
+	public override bool OnMessage(_MessageSinkMessage message)
 	{
-		if (testCaseFinished.TestsRun == 0)
-			return TestOutcome.NotFound;
-		else if (testCaseFinished.TestsFailed > 0)
-			return TestOutcome.Failed;
-		else if (testCaseFinished.TestsSkipped > 0)
-			return TestOutcome.Skipped;
-		else
-			return TestOutcome.Passed;
+		var result = innerSink.OnMessage(message);
+		return base.OnMessage(message) && result;
 	}
 
-	public override bool OnMessageWithTypes(
-		IMessageSinkMessage message,
-		HashSet<string> messageTypes)
+	string TestAssemblyPath(_TestAssemblyMessage msg) =>
+		metadataCache.TryGetAssemblyMetadata(msg)?.AssemblyPath ?? $"<unknown test assembly ID {msg.AssemblyUniqueID}>";
+
+	string TestCaseDisplayName(_TestCaseMessage msg) =>
+		metadataCache.TryGetTestCaseMetadata(msg)?.TestCaseDisplayName ?? $"<unknown test case ID {msg.TestCaseUniqueID}>";
+
+	string TestClassName(_TestClassMessage msg) =>
+		metadataCache.TryGetClassMetadata(msg)?.TestClass ?? $"<unknown test class ID {msg.TestClassUniqueID}>";
+
+	string TestCollectionDisplayName(_TestCollectionMessage msg) =>
+		metadataCache.TryGetCollectionMetadata(msg)?.TestCollectionDisplayName ?? $"<unknown test collection ID {msg.TestCollectionUniqueID}>";
+
+	string TestDisplayName(_TestMessage msg) =>
+		metadataCache.TryGetTestMetadata(msg)?.TestDisplayName ?? $"<unknown test ID {msg.TestUniqueID}>";
+
+	string TestMethodName(_TestMethodMessage msg) =>
+		TestClassName(msg) + "." + metadataCache.TryGetMethodMetadata(msg)?.TestMethod ?? $"<unknown test method ID {msg.TestMethodUniqueID}>";
+
+	void TryAndReport(
+		string actionDescription,
+		_TestCaseMessage testCase,
+		Action action)
 	{
-		var result = innerSink.OnMessageWithTypes(message, messageTypes);
-		return base.OnMessageWithTypes(message, messageTypes) && result;
+		var testCaseMetadata = metadataCache.TryGetTestCaseMetadata(testCase);
+		var testCaseDisplayName = testCaseMetadata?.TestCaseDisplayName ?? $"<unknown test case ID {testCase.TestCaseUniqueID}>";
+
+		var testAssemblyMetadata = metadataCache.TryGetAssemblyMetadata(testCase);
+		var assemblyPath = testAssemblyMetadata?.AssemblyPath ?? $"<unknown assembly ID {testCase.AssemblyUniqueID}>";
+
+		TryAndReport(actionDescription, testCaseDisplayName, assemblyPath, action);
+	}
+
+	void TryAndReport(
+		string actionDescription,
+		string testCaseDisplayName,
+		string assemblyPath,
+		Action action)
+	{
+		try
+		{
+			action();
+		}
+		catch (Exception ex)
+		{
+			LogError(assemblyPath, "Error occured while {0} for test case {1}: {2}", actionDescription, testCaseDisplayName, ex);
+		}
+	}
+
+	void WriteError(
+		string failureName,
+		_IErrorMetadata errorMetadata,
+		IEnumerable<_TestCaseStarting> testCases)
+	{
+		foreach (var testCase in testCases)
+		{
+			var result = MakeVsTestResult(TestOutcome.Failed, testCase.TestCaseUniqueID);
+			if (result is null)
+				continue;
+
+			result.ErrorMessage = $"[{failureName}]: {ExceptionUtility.CombineMessages(errorMetadata)}";
+			result.ErrorStackTrace = ExceptionUtility.CombineStackTraces(errorMetadata);
+
+			TryAndReport("RecordEnd (Failure)", testCase, () => recorder.RecordEnd(result.TestCase, result.Outcome));
+			TryAndReport("RecordResult (Failure)", testCase, () => recorder.RecordResult(result));
+		}
 	}
 }

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
@@ -37,7 +36,7 @@ public class TestCaseFilter
 	{
 		// Traits are not known at discovery time because we load them from tests
 		isDiscovery = true;
-		knownTraits = new HashSet<string>();
+		knownTraits = [];
 		supportedPropertyNames = GetSupportedPropertyNames();
 
 		successfullyGotFilter = GetTestCaseFilterExpressionFromDiscoveryContext(discoveryContext, logger, out filterExpression);
@@ -45,16 +44,13 @@ public class TestCaseFilter
 
 	public bool MatchTestCase(TestCase testCase)
 	{
+		// Had an error while getting filter, match no testcase to ensure discovered test list is empty
 		if (!successfullyGotFilter)
-		{
-			// Had an error while getting filter, match no testcase to ensure discovered test list is empty
 			return false;
-		}
-		else if (filterExpression is null)
-		{
-			// No filter specified, keep every testcase
+
+		// No filter specified, keep every testcase
+		if (filterExpression is null)
 			return true;
-		}
 
 		return filterExpression.MatchTestCase(testCase, (p) => PropertyProvider(testCase, p));
 	}
@@ -132,8 +128,8 @@ public class TestCaseFilter
 				static TestProperty? noop(string name) => null;
 
 				// GetTestCaseFilter is present on DiscoveryContext but not in IDiscoveryContext interface
-				var method = discoveryContext.GetType().GetRuntimeMethod("GetTestCaseFilter", new[] { typeof(IEnumerable<string>), typeof(Func<string, TestProperty?>) });
-				filter = method?.Invoke(discoveryContext, new object[] { supportedPropertyNames, (object)noop }) as ITestCaseFilterExpression;
+				var method = discoveryContext.GetType().GetRuntimeMethod("GetTestCaseFilter", [typeof(IEnumerable<string>), typeof(Func<string, TestProperty?>)]);
+				filter = method?.Invoke(discoveryContext, [supportedPropertyNames, (object)noop]) as ITestCaseFilterExpression;
 				return true;
 			}
 			catch (TargetInvocationException e)
@@ -155,13 +151,7 @@ public class TestCaseFilter
 	List<string> GetSupportedPropertyNames()
 	{
 		// Returns the set of well-known property names usually used with the Test Plugins (Used Test Traits + DisplayName + FullyQualifiedName)
-		if (supportedPropertyNames is null)
-		{
-			supportedPropertyNames = knownTraits.ToList();
-			supportedPropertyNames.Add(DisplayNameString);
-			supportedPropertyNames.Add(FullyQualifiedNameString);
-		}
-
+		supportedPropertyNames ??= [.. knownTraits, DisplayNameString, FullyQualifiedNameString];
 		return supportedPropertyNames;
 	}
 
@@ -169,8 +159,8 @@ public class TestCaseFilter
 	{
 		var traitProperty = TestProperty.Find("TestObject.Traits");
 		if (traitProperty is not null)
-			return testCase.GetPropertyValue(traitProperty, Enumerable.Empty<KeyValuePair<string, string>>().ToArray());
+			return testCase.GetPropertyValue(traitProperty, Array.Empty<KeyValuePair<string, string>>());
 
-		return Enumerable.Empty<KeyValuePair<string, string>>();
+		return [];
 	}
 }

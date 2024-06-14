@@ -6,7 +6,9 @@ using System.Text;
 using System.Threading;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
-using Xunit.Abstractions;
+using Xunit.Runner.Common;
+using Xunit.Sdk;
+using Xunit.v3;
 
 #if NETCOREAPP
 using System.Reflection;
@@ -14,32 +16,31 @@ using System.Reflection;
 
 namespace Xunit.Runner.VisualStudio;
 
-public sealed class VsDiscoverySink : IMessageSinkWithTypes, IVsDiscoverySink, IDisposable
+public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 {
 	static readonly string Ellipsis = new((char)183, 3);
 	const int MaximumDisplayNameLength = 447;
-	const int TestCaseDescriptorBatchSize = 100;
+	const int TestCaseBatchSize = 100;
 
 	static readonly Action<TestCase, string, string>? addTraitThunk = GetAddTraitThunk();
 	static readonly Uri uri = new(Constants.ExecutorUri);
 
 	readonly Func<bool> cancelThunk;
-	readonly ITestCaseDescriptorProvider descriptorProvider;
-	readonly ITestFrameworkDiscoveryOptions discoveryOptions;
+	readonly _ITestFrameworkDiscoveryOptions discoveryOptions;
 	readonly ITestCaseDiscoverySink discoverySink;
 	readonly DiscoveryEventSink discoveryEventSink = new();
 	readonly LoggerHelper logger;
 	readonly string source;
-	readonly List<ITestCase> testCaseBatch = new();
+	readonly List<_TestCaseDiscovered> testCaseBatch = new();
 	readonly TestPlatformContext testPlatformContext;
 	readonly TestCaseFilter testCaseFilter;
 
 	public VsDiscoverySink(
 		string source,
-		ITestFrameworkDiscoverer discoverer,
+		IFrontControllerDiscoverer discoverer,
 		LoggerHelper logger,
 		ITestCaseDiscoverySink discoverySink,
-		ITestFrameworkDiscoveryOptions discoveryOptions,
+		_ITestFrameworkDiscoveryOptions discoveryOptions,
 		TestPlatformContext testPlatformContext,
 		TestCaseFilter testCaseFilter,
 		Func<bool> cancelThunk)
@@ -52,10 +53,8 @@ public sealed class VsDiscoverySink : IMessageSinkWithTypes, IVsDiscoverySink, I
 		this.testCaseFilter = testCaseFilter;
 		this.cancelThunk = cancelThunk;
 
-		descriptorProvider = (discoverer as ITestCaseDescriptorProvider) ?? new DefaultTestCaseDescriptorProvider(discoverer);
-
-		discoveryEventSink.TestCaseDiscoveryMessageEvent += HandleTestCaseDiscoveryMessage;
-		discoveryEventSink.DiscoveryCompleteMessageEvent += HandleDiscoveryCompleteMessage;
+		discoveryEventSink.TestCaseDiscoveredEvent += HandleTestCaseDiscoveredMessage;
+		discoveryEventSink.DiscoveryCompleteEvent += HandleDiscoveryCompleteMessage;
 	}
 
 	public ManualResetEvent Finished { get; } = new ManualResetEvent(initialState: false);
@@ -65,30 +64,35 @@ public sealed class VsDiscoverySink : IMessageSinkWithTypes, IVsDiscoverySink, I
 	public void Dispose()
 	{
 		Finished.Dispose();
-		discoveryEventSink.Dispose();
 	}
 
 	public static TestCase? CreateVsTestCase(
 		string source,
-		TestCaseDescriptor descriptor,
+		_TestCaseDiscovered testCase,
 		LoggerHelper logger,
 		TestPlatformContext testPlatformContext)
 	{
+		if (testCase.TestClassNameWithNamespace is null)
+		{
+			logger.LogErrorWithSource(source, "Error creating Visual Studio test case for {0}: TestClassWithNamespace is null", testCase.TestCaseDisplayName);
+			return null;
+		}
+
 		try
 		{
-			var fqTestMethodName = $"{descriptor.ClassName}.{descriptor.MethodName}";
-			var result = new TestCase(fqTestMethodName, uri, source) { DisplayName = Escape(descriptor.DisplayName) };
+			var result = new TestCase(testCase.TestClassNameWithNamespace, uri, source) { DisplayName = Escape(testCase.TestCaseDisplayName) };
+			result.SetPropertyValue(VsTestRunner.TestCaseUniqueIDProperty, testCase.TestCaseUniqueID);
 
-			if (testPlatformContext.RequireSerialization)
-				result.SetPropertyValue(VsTestRunner.SerializedTestCaseProperty, descriptor.Serialization);
+			if (testPlatformContext.DesignMode)
+				result.SetPropertyValue(VsTestRunner.TestCaseSerializationProperty, testCase.Serialization);
 
-			result.Id = GuidFromString(uri + descriptor.UniqueID);
-			result.CodeFilePath = descriptor.SourceFileName;
-			result.LineNumber = descriptor.SourceLineNumber.GetValueOrDefault();
+			result.Id = GuidFromString(uri + testCase.TestCaseUniqueID);
+			result.CodeFilePath = testCase.SourceFilePath;
+			result.LineNumber = testCase.SourceLineNumber.GetValueOrDefault();
 
 			if (addTraitThunk is not null)
 			{
-				var traits = descriptor.Traits;
+				var traits = testCase.Traits;
 
 				foreach (var key in traits.Keys)
 					foreach (var value in traits[key])
@@ -99,7 +103,7 @@ public sealed class VsDiscoverySink : IMessageSinkWithTypes, IVsDiscoverySink, I
 		}
 		catch (Exception ex)
 		{
-			logger.LogErrorWithSource(source, "Error creating Visual Studio test case for {0}: {1}", descriptor.DisplayName, ex);
+			logger.LogErrorWithSource(source, "Error creating Visual Studio test case for {0}: {1}", testCase.TestCaseDisplayName, ex);
 			return null;
 		}
 	}
@@ -169,18 +173,18 @@ public sealed class VsDiscoverySink : IMessageSinkWithTypes, IVsDiscoverySink, I
 			args.Stop();
 	}
 
-	void HandleTestCaseDiscoveryMessage(MessageHandlerArgs<ITestCaseDiscoveryMessage> args)
+	void HandleTestCaseDiscoveredMessage(MessageHandlerArgs<_TestCaseDiscovered> args)
 	{
-		testCaseBatch.Add(args.Message.TestCase);
+		testCaseBatch.Add(args.Message);
 		TotalTests++;
 
-		if (testCaseBatch.Count == TestCaseDescriptorBatchSize)
+		if (testCaseBatch.Count == TestCaseBatchSize)
 			SendExistingTestCases();
 
 		HandleCancellation(args);
 	}
 
-	void HandleDiscoveryCompleteMessage(MessageHandlerArgs<IDiscoveryCompleteMessage> args)
+	void HandleDiscoveryCompleteMessage(MessageHandlerArgs<_DiscoveryComplete> args)
 	{
 		try
 		{
@@ -196,24 +200,21 @@ public sealed class VsDiscoverySink : IMessageSinkWithTypes, IVsDiscoverySink, I
 		HandleCancellation(args);
 	}
 
-	bool IMessageSinkWithTypes.OnMessageWithTypes(
-		IMessageSinkMessage message,
-		HashSet<string> messageTypes) =>
-			discoveryEventSink.OnMessageWithTypes(message, messageTypes);
+	bool _IMessageSink.OnMessage(_MessageSinkMessage message) =>
+		discoveryEventSink.OnMessage(message);
 
 	private void SendExistingTestCases()
 	{
 		if (testCaseBatch.Count == 0)
 			return;
 
-		var descriptors = descriptorProvider.GetTestCaseDescriptors(testCaseBatch, includeSerialization: testPlatformContext.RequireSerialization);
-		foreach (var descriptor in descriptors)
+		foreach (var testCase in testCaseBatch)
 		{
-			var vsTestCase = CreateVsTestCase(source, descriptor, logger, testPlatformContext);
+			var vsTestCase = CreateVsTestCase(source, testCase, logger, testPlatformContext);
 			if (vsTestCase is not null && testCaseFilter.MatchTestCase(vsTestCase))
 			{
 				if (discoveryOptions.GetInternalDiagnosticMessagesOrDefault())
-					logger.LogWithSource(source, "Discovered test case '{0}' (ID = '{1}', VS FQN = '{2}')", descriptor.DisplayName, descriptor.UniqueID, vsTestCase.FullyQualifiedName);
+					logger.LogWithSource(source, "Discovered test case '{0}' (ID = '{1}', VS FQN = '{2}')", testCase.TestCaseDisplayName, testCase.TestCaseUniqueID, vsTestCase.FullyQualifiedName);
 
 				discoverySink.SendTestCase(vsTestCase);
 			}

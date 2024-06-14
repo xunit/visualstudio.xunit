@@ -1,16 +1,16 @@
 using System;
 using Xunit;
-using Xunit.Abstractions;
+using Xunit.Runner.Common;
 using Xunit.Runner.VisualStudio;
+using Xunit.v3;
 
 public class RunSettingsTests
 {
 	void AssertDefaultValues(RunSettings runSettings)
 	{
 		Assert.Null(runSettings.AppDomain);
-		Assert.True(runSettings.CollectSourceInformation);
+		Assert.False(runSettings.DesignMode);
 		Assert.Null(runSettings.DiagnosticMessages);
-		Assert.False(runSettings.DisableSerialization);
 		Assert.Null(runSettings.FailSkips);
 		Assert.Null(runSettings.InternalDiagnosticMessages);
 		Assert.Null(runSettings.LongRunningTestSeconds);
@@ -132,9 +132,7 @@ $@"<?xml version=""1.0"" encoding=""utf-8""?>
 
 		var runSettings = RunSettings.Parse(settingsXml);
 
-		Assert.Equal(testValue, runSettings.CollectSourceInformation);
-		Assert.Equal(testValue, runSettings.DiagnosticMessages);
-		Assert.Equal(!testValue, runSettings.DisableSerialization);  // DisableSerialization is the inversion of DesignMode
+		Assert.Equal(testValue, runSettings.DesignMode);
 		Assert.Equal(testValue, runSettings.DiagnosticMessages);
 		Assert.Equal(testValue, runSettings.FailSkips);
 		Assert.Equal(testValue, runSettings.InternalDiagnosticMessages);

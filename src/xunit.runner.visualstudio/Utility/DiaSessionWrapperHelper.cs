@@ -4,11 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Xunit.Sdk;
+using Xunit.Internal;
 
 namespace Xunit.Runner.VisualStudio.Utility;
 
-class DiaSessionWrapperHelper : LongLivedMarshalByRefObject
+class DiaSessionWrapperHelper : MarshalByRefObject
 {
 	readonly Assembly? assembly;
 	readonly Dictionary<string, Type> typeNameMap;
@@ -80,6 +80,11 @@ class DiaSessionWrapperHelper : LongLivedMarshalByRefObject
 
 		typeNameMap ??= new();
 	}
+
+#if NETFRAMEWORK
+	// We override this so that our object is allowed to live forever in the remote AppDomain
+	public override object InitializeLifetimeService() => null!;
+#endif
 
 	public void Normalize(
 		ref string typeName,

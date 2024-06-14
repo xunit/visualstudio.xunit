@@ -5,7 +5,6 @@ using Xunit.Runner.VisualStudio;
 
 public class VsTestRunnerTests
 {
-
 	[Fact]
 	public void VSTestRunnerShouldHaveCategoryAttribute_WithValueManaged()
 	{

@@ -11,18 +11,18 @@
     <icon>_content/logo-128-transparent.png</icon>
     <readme>_content/README.md</readme>
     <releaseNotes>https://xunit.net/releases/visualstudio/$PackageVersion$</releaseNotes>
-    <description>Visual Studio 2022+ Test Explorer runner for the xUnit.net framework. Capable of running xUnit.net v1.9.2 and v2.0+ tests. Supports .NET 4.6.2 or later, and .NET 6 or later.</description>
+    <description>Visual Studio 2022+ Test Explorer runner for the xUnit.net framework. Capable of running xUnit.net v1, v2, and v3 tests. Supports .NET 4.7.2 or later, and .NET 6 or later.</description>
     <copyright>Copyright (C) .NET Foundation</copyright>
     <repository type="git" url="https://github.com/xunit/visualstudio.xunit" commit="$GitCommitId$" />
     <developmentDependency>true</developmentDependency>
     <dependencies>
-      <group targetFramework="net462">
+      <group targetFramework="net472">
         <dependency id="Microsoft.TestPlatform.ObjectModel" version="$MicrosoftTestPlatformObjectModelVersion$" />
       </group>
       <group targetFramework="net6.0" />
     </dependencies>
     <frameworkAssemblies>
-      <frameworkAssembly assemblyName="mscorlib" targetFramework="net462" />
+      <frameworkAssembly assemblyName="mscorlib" targetFramework="net472" />
     </frameworkAssemblies>
   </metadata>
   <!-- Remember to update tools\builder\targets\SignAssemblies.cs when assemblies are added or removed -->
@@ -30,19 +30,15 @@
     <file target="_content\" src="..\..\logo-128-transparent.png" />
     <file target="_content\" src="..\..\README.md" />
 
-    <file target="build\net462\" src="bin\$Configuration$\net462\xunit.abstractions.dll" />
-    <file target="build\net462\" src="bin\$Configuration$\net462\xunit.runner.reporters.net452.dll" />
-    <file target="build\net462\" src="bin\$Configuration$\net462\xunit.runner.utility.net452.dll" />
-    <file target="build\net462\" src="bin\$Configuration$\net462\$SignedPath$xunit.runner.visualstudio.testadapter.dll" />
-    <file target="build\net462\xunit.runner.visualstudio.props" src="build\xunit.runner.visualstudio.desktop.props" />
+    <file target="build\net472\" src="bin\$Configuration$\net472\xunit.abstractions.dll" />
+    <file target="build\net472\" src="bin\$Configuration$\net472\merged\$SignedPath$xunit.runner.visualstudio.testadapter.dll" />
+    <file target="build\net472\xunit.runner.visualstudio.props" src="build\xunit.runner.visualstudio.props" />
 
     <file target="build\net6.0\" src="bin\$Configuration$\net6.0\xunit.abstractions.dll" />
-    <file target="build\net6.0\" src="bin\$Configuration$\net6.0\xunit.runner.reporters.netcoreapp10.dll" />
-    <file target="build\net6.0\" src="bin\$Configuration$\net6.0\xunit.runner.utility.netcoreapp10.dll" />
-    <file target="build\net6.0\" src="bin\$Configuration$\net6.0\$SignedPath$xunit.runner.visualstudio.testadapter.dll" />
-    <file target="build\net6.0\xunit.runner.visualstudio.props" src="build\xunit.runner.visualstudio.dotnetcore.props" />
+    <file target="build\net6.0\" src="bin\$Configuration$\net6.0\merged\$SignedPath$xunit.runner.visualstudio.testadapter.dll" />
+    <file target="build\net6.0\xunit.runner.visualstudio.props" src="build\xunit.runner.visualstudio.props" />
 
-    <file target="lib\net462\" src="build\_._" />
+    <file target="lib\net472\" src="build\_._" />
 
     <file target="lib\net6.0\" src="build\_._" />
   </files>

@@ -1,4 +1,5 @@
 using System;
+using Xunit.Runner.Common;
 
 namespace Xunit.Runner.VisualStudio;
 

@@ -2,36 +2,11 @@
   <Import Project="Versions.props"/>
 
   <PropertyGroup>
-    <Authors>.NET Foundation and Contributors</Authors>
-    <Company>.NET Foundation</Company>
-    <Copyright>Copyright (c) .NET Foundation and Contributors.</Copyright>
     <DebugType>embedded</DebugType>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <LangVersion>12.0</LangVersion>
     <MSBuildCopyContentTransitively>false</MSBuildCopyContentTransitively>
-    <PackageIcon>logo-512-transparent.png</PackageIcon>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/xunit/visualstudio.xunit</PackageProjectUrl>
-    <Product>xUnit.net Testing Framework</Product>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Nerdbank.GitVersioning" Version="$(NerdbankGitVersioningVersion)" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="$(MicrosoftSourceLinkGitHubVersion)" PrivateAssets="All"/>
-  </ItemGroup>
-
-  <PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-  </PropertyGroup>
-
-  <Target Name="AddCommitHashToAssemblyAttributes" BeforeTargets="GetAssemblyAttributes">
-    <ItemGroup>
-      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute" Condition=" '$(SourceRevisionId)' != '' ">
-        <_Parameter1>CommitHash</_Parameter1>
-        <_Parameter2>$(SourceRevisionId)</_Parameter2>
-      </AssemblyAttribute>
-    </ItemGroup>
-  </Target>
 
 </Project>

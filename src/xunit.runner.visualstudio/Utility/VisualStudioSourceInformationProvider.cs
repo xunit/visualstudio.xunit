@@ -1,6 +1,6 @@
-using Xunit.Abstractions;
+using System.Threading.Tasks;
+using Xunit.Runner.Common;
 using Xunit.Runner.VisualStudio.Utility;
-using Xunit.Sdk;
 
 namespace Xunit.Runner.VisualStudio;
 
@@ -8,41 +8,39 @@ namespace Xunit.Runner.VisualStudio;
 /// An implementation of <see cref="ISourceInformationProvider"/> that will provide source information
 /// when running inside of Visual Studio (via the DiaSession class).
 /// </summary>
-public class VisualStudioSourceInformationProvider : LongLivedMarshalByRefObject, ISourceInformationProvider
+public sealed class VisualStudioSourceInformationProvider : _ISourceInformationProvider
 {
-	static readonly SourceInformation EmptySourceInformation = new();
-
 	readonly DiaSessionWrapper session;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="VisualStudioSourceInformationProvider" /> class.
 	/// </summary>
 	/// <param name="assemblyFileName">The assembly file name.</param>
-	/// <param name="internalDiagnosticMessageSink">The message sink to send internal diagnostic messages to.</param>
+	/// <param name="diagnosticMessageSink">The message sink to send diagnostic messages to.</param>
 	public VisualStudioSourceInformationProvider(
 		string assemblyFileName,
-		DiagnosticMessageSink internalDiagnosticMessageSink)
-	{
-		session = new DiaSessionWrapper(assemblyFileName, internalDiagnosticMessageSink);
-	}
+		DiagnosticMessageSink diagnosticMessageSink) =>
+			session = new DiaSessionWrapper(assemblyFileName, diagnosticMessageSink);
 
 	/// <inheritdoc/>
-	public ISourceInformation GetSourceInformation(ITestCase testCase)
+	public (string? sourceFile, int? sourceLine) GetSourceInformation(
+		string? testClassName,
+		string? testMethodName)
 	{
-		var navData = session.GetNavigationData(testCase.TestMethod.TestClass.Class.Name, testCase.TestMethod.Method.Name);
+		if (testClassName is null || testMethodName is null)
+			return (null, null);
+
+		var navData = session.GetNavigationData(testClassName, testMethodName);
 		if (navData is null || navData.FileName is null)
-			return EmptySourceInformation;
+			return (null, null);
 
-		return new SourceInformation
-		{
-			FileName = navData.FileName,
-			LineNumber = navData.MinLineNumber
-		};
+		return (navData.FileName, navData.MinLineNumber);
 	}
 
 	/// <inheritdoc/>
-	public void Dispose()
+	public ValueTask DisposeAsync()
 	{
 		session.Dispose();
+		return default;
 	}
 }

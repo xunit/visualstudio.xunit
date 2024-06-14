@@ -3,7 +3,7 @@ using System.Diagnostics;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using NSubstitute;
 using Xunit;
-using Xunit.Runner.Reporters;
+using Xunit.Runner.Common;
 using Xunit.Runner.VisualStudio;
 
 public class RunnerReporterTests
@@ -14,9 +14,9 @@ public class RunnerReporterTests
 		using var _ = EnvironmentHelper.NullifyEnvironmentalReporters();
 		var settings = new RunSettings { NoAutoReporters = true };
 
-		var runnerReporter = VsTestRunner.GetRunnerReporter(null, settings, Array.Empty<string>());
+		var runnerReporter = VsTestRunner.GetRunnerReporter(null, settings, [typeof(RunnerReporterTests).Assembly.Location]);
 
-		Assert.Equal(typeof(DefaultRunnerReporterWithTypes).AssemblyQualifiedName, runnerReporter.GetType().AssemblyQualifiedName);
+		Assert.Equal(typeof(DefaultRunnerReporter).AssemblyQualifiedName, runnerReporter.GetType().AssemblyQualifiedName);
 	}
 
 	[Fact]
@@ -26,7 +26,7 @@ public class RunnerReporterTests
 		Environment.SetEnvironmentVariable("TEAMCITY_PROJECT_NAME", "foo");  // Force TeamCityReporter to surface environmentally
 		var settings = new RunSettings { NoAutoReporters = false };
 
-		var runnerReporter = VsTestRunner.GetRunnerReporter(null, settings, Array.Empty<string>());
+		var runnerReporter = VsTestRunner.GetRunnerReporter(null, settings, [typeof(RunnerReporterTests).Assembly.Location]);
 
 		Assert.Equal(typeof(TeamCityReporter).AssemblyQualifiedName, runnerReporter.GetType().AssemblyQualifiedName);
 	}
@@ -37,7 +37,7 @@ public class RunnerReporterTests
 		using var _ = EnvironmentHelper.NullifyEnvironmentalReporters();
 		var settings = new RunSettings { NoAutoReporters = true, ReporterSwitch = "json" };
 
-		var runnerReporter = VsTestRunner.GetRunnerReporter(null, settings, Array.Empty<string>());
+		var runnerReporter = VsTestRunner.GetRunnerReporter(null, settings, [typeof(RunnerReporterTests).Assembly.Location]);
 
 		Assert.Equal(typeof(JsonReporter).AssemblyQualifiedName, runnerReporter.GetType().AssemblyQualifiedName);
 	}
@@ -50,9 +50,10 @@ public class RunnerReporterTests
 		var logger = Substitute.For<IMessageLogger>();
 		var loggerHelper = new LoggerHelper(logger, new Stopwatch());
 
-		var runnerReporter = VsTestRunner.GetRunnerReporter(loggerHelper, settings, Array.Empty<string>());
+		var runnerReporter = VsTestRunner.GetRunnerReporter(loggerHelper, settings, [typeof(RunnerReporterTests).Assembly.Location]);
 
-		Assert.Equal(typeof(DefaultRunnerReporterWithTypes).AssemblyQualifiedName, runnerReporter.GetType().AssemblyQualifiedName);
+
+		Assert.Equal(typeof(DefaultRunnerReporter).AssemblyQualifiedName, runnerReporter.GetType().AssemblyQualifiedName);
 		logger.Received(1).SendMessage(TestMessageLevel.Warning, "[xUnit.net 00:00:00.00] Could not find requested reporter 'thisnotavalidreporter'");
 	}
 }

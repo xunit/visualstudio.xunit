@@ -1,15 +1,17 @@
 using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Xunit.Runner.Common;
+using Xunit.Sdk;
+using Xunit.v3;
 
 namespace Xunit.Runner.VisualStudio;
 
 public class RunSettings
 {
 	public AppDomainSupport? AppDomain { get; set; }
-	public bool CollectSourceInformation { get; set; } = true;
+	public bool DesignMode { get; set; } = false;
 	public bool? DiagnosticMessages { get; set; }
-	public bool DisableSerialization { get; set; } = false;
 	public bool? FailSkips { get; set; }
 	public bool? InternalDiagnosticMessages { get; set; }
 	public int? LongRunningTestSeconds { get; set; }
@@ -170,14 +172,9 @@ public class RunSettings
 					var runConfigurationElement = runSettingsElement.Element("RunConfiguration");
 					if (runConfigurationElement is not null)
 					{
-						var collectSourceInformationString = runConfigurationElement.Element(Constants.RunConfiguration.CollectSourceInformation)?.Value;
-						if (bool.TryParse(collectSourceInformationString, out var collectSourceInformation))
-							result.CollectSourceInformation = collectSourceInformation;
-
 						var designModeString = runConfigurationElement.Element(Constants.RunConfiguration.DesignMode)?.Value;
 						if (bool.TryParse(designModeString, out var designMode))
-							// Design mode == running inside the IDE (where we need serialization)
-							result.DisableSerialization = !designMode;
+							result.DesignMode = designMode;
 
 						var disableAppDomainString = runConfigurationElement.Element(Constants.RunConfiguration.DisableAppDomain)?.Value;
 						if (bool.TryParse(disableAppDomainString, out var disableAppDomain))

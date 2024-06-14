@@ -7,12 +7,7 @@ namespace Xunit.Runner.VisualStudio;
 public struct TestPlatformContext
 {
 	/// <summary>
-	/// Indicates if the test case needs to be serialized in VSTestCase instance.
+	/// Indicates if the test runner is running in design mode (meaning, inside the Visual Studio IDE).
 	/// </summary>
-	public bool RequireSerialization { get; set; }
-
-	/// <summary>
-	/// Indicates if VSTestCase object must have FileName or LineNumber information.
-	/// </summary>
-	public bool RequireSourceInformation { get; set; }
+	public bool DesignMode { get; set; }
 }

@@ -6,11 +6,10 @@
     <AssemblyTitle>xUnit.net Runner for Visual Studio ($(TargetFramework))</AssemblyTitle>
     <CopyLocalLockFileAssemblies Condition=" '$(TargetFramework)' == 'net6.0' ">true</CopyLocalLockFileAssemblies>
     <NoWarn>$(NoWarn);CS0436</NoWarn>
-    <Nullable>enable</Nullable>
     <PackageId>$(MSBuildProjectName)</PackageId>
     <RootNamespace>Xunit.Runner.VisualStudio</RootNamespace>
-    <TargetFrameworks>net462;net6.0</TargetFrameworks>
-    <WarningsAsErrors>true</WarningsAsErrors>
+    <TargetFrameworks>net472;net6.0</TargetFrameworks>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,10 +17,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="ILRepack" Version="$(ILRepackVersion)">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="$(MicrosoftSourceLinkGitHubVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="$(MicrosoftTestPlatformObjectModelVersion)" PrivateAssets="All" />
+    <PackageReference Include="Nerdbank.GitVersioning" Version="$(NerdbankGitVersioningVersion)" PrivateAssets="all" />
     <PackageReference Include="TunnelVisionLabs.ReferenceAssemblyAnnotator" Version="$(TunnelVisionLabsReferenceAssemblyAnnotatorVersion)" PrivateAssets="All" />
     <PackageReference Include="xunit.analyzers" Version="$(XunitAnalyzersVersion)" PrivateAssets="All" />
-    <PackageReference Include="xunit.runner.reporters" Version="$(XunitVersion)" />
+    <PackageReference Include="xunit.v3.runner.utility" Version="$(XunitV3Version)" />
   </ItemGroup>
 
   <!-- Support deterministic builds (via https://github.com/clairernovotny/DeterministicBuilds) -->
@@ -32,6 +37,48 @@
   <ItemGroup>
     <EmbeddedFiles Include="$(GeneratedAssemblyInfoFile)" />
   </ItemGroup>
+
+  <!-- Use ILRepack to pack in most dependencies rather than ship them separately -->
+  <Target
+      Name="ILRepack"
+      AfterTargets="Build"
+      Condition=" '$(TargetFramework)' != '' ">
+    <PropertyGroup>
+      <OutputAssembly>$([System.IO.Path]::Combine($(TargetDir), "merged", "$(TargetFileName)"))</OutputAssembly>
+    </PropertyGroup>
+
+    <Message Text="$(TargetName) -> $(OutputAssembly)" Importance="High" />
+    <CallTarget Targets="ILRepackConditional" />
+  </Target>
+
+  <Target
+      Name="ILRepackConditional"
+      Inputs="$(TargetPath)"
+      Outputs="$(TargetDir)merged\$(TargetFileName)">
+
+    <MakeDir Directories="$(TargetDir)merged" />
+
+    <PropertyGroup>
+      <MainAssembly>$([System.IO.Path]::Combine($(TargetDir), "$(TargetFileName)"))</MainAssembly>
+      <OutputAssembly>$([System.IO.Path]::Combine($(TargetDir), "merged", "$(TargetFileName)"))</OutputAssembly>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ILRepackExclusions Include="$(TargetDir)xunit.abstractions.dll;$(TargetDir)Microsoft.TestPlatform.*.dll;$(TargetDir)Microsoft.VisualStudio.*.dll" />
+      <ILRepackDependencies
+          Include="$(TargetDir)*.dll"
+          Exclude="$(MainAssembly);@(ILRepackExclusions)"/>
+      <ILRepackLibPaths Include="$(TargetDir)" />
+      <ILRepackLibPaths Include="$(TargetFrameworkRootPath)$(TargetFrameworkIdentifier)\$(TargetFrameworkVersion)\" Condition=" '$(TargetFrameworkRootPath)' != '' " />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(ILRepackExclusions)" DestinationFolder="$(TargetDir)merged" />
+    <Exec
+        StandardOutputImportance="low"
+        IgnoreStandardErrorWarningFormat="true"
+        Command="dotnet &quot;$(ILRepack)&quot; -internalize -ndebug @(ILRepackLibPaths->'-lib:%(FullPath)', ' ') -out:$(OutputAssembly) $(MainAssembly) @(ILRepackDependencies, ' ')" />
+    <Exec Command="chmod +x '$(OutputAssembly)'" Condition=" '$(OS)' != 'Windows_NT' AND $(OutputAssembly.EndsWith('.exe')) " />
+  </Target>
 
   <!-- Supplement Nerdbank.GitVersioning version calculations -->
   <Target Name="UpdateAssemblyVersionInfo" BeforeTargets="GenerateAssemblyNBGVVersionInfo" DependsOnTargets="GetBuildVersion">
