@@ -105,6 +105,7 @@
       <NuspecProperties>
         Configuration=$(Configuration);
         GitCommitId=$(GitCommitId);
+        MicrosoftNetTestSdkVersion=$(MicrosoftNetTestSdkVersion);
         MicrosoftTestPlatformObjectModelVersion=$(MicrosoftTestPlatformObjectModelVersion);
         PackageVersion=$(PackageVersion);
         SignedPath=$(SignedPath);
