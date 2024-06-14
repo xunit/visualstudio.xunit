@@ -1,9 +1,8 @@
-name: CI Build
+name: "CI Build (main)"
 on:
   push:
     branches:
       - main
-      - 'rel/**'
   workflow_dispatch:
 
 jobs:
