@@ -11,7 +11,7 @@
     <TunnelVisionLabsReferenceAssemblyAnnotatorVersion>1.0.0-alpha.160</TunnelVisionLabsReferenceAssemblyAnnotatorVersion>
     <XunitAnalyzersVersion>1.15.0-pre.10</XunitAnalyzersVersion>
     <XunitV2Version>2.8.2-pre.12</XunitV2Version>
-    <XunitV3Version>0.1.1-pre.470</XunitV3Version>
+    <XunitV3Version>0.1.1-pre.475</XunitV3Version>
   </PropertyGroup>
 
 </Project>
