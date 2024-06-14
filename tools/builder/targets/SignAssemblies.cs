@@ -19,8 +19,8 @@ public static partial class SignAssemblies
 		// Note that any changes to .nuspec files means this list needs to be updated
 		var binaries =
 			new[] {
-				Path.Combine(context.BaseFolder, "src", "xunit.runner.visualstudio", "bin", context.ConfigurationText, "net472", "xunit.runner.visualstudio.testadapter.dll"),
-				Path.Combine(context.BaseFolder, "src", "xunit.runner.visualstudio", "bin", context.ConfigurationText, "net6.0", "xunit.runner.visualstudio.testadapter.dll"),
+				Path.Combine(context.BaseFolder, "src", "xunit.runner.visualstudio", "bin", context.ConfigurationText, "net472", "merged", "xunit.runner.visualstudio.testadapter.dll"),
+				Path.Combine(context.BaseFolder, "src", "xunit.runner.visualstudio", "bin", context.ConfigurationText, "net6.0", "merged", "xunit.runner.visualstudio.testadapter.dll"),
 			}.Select(unsignedPath =>
 			{
 				var unsignedFolder = Path.GetDirectoryName(unsignedPath) ?? throw new InvalidOperationException($"Path '{unsignedPath}' did not have a folder");
