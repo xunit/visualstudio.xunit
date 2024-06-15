@@ -6,17 +6,14 @@ namespace Xunit.Runner.VisualStudio;
 
 public class AssemblyRunInfo
 {
-	public AssemblyRunInfo(
+	AssemblyRunInfo(
 		XunitProject project,
 		RunSettings runSettings,
 		string assemblyFileName,
-		IList<TestCase>? testCases = null)
+		AssemblyMetadata assemblyMetadata,
+		IList<TestCase>? testCases)
 	{
-		Assembly = new XunitProjectAssembly(project)
-		{
-			AssemblyFileName = assemblyFileName,
-			AssemblyMetadata = AssemblyUtility.GetAssemblyMetadata(assemblyFileName),
-		};
+		Assembly = new XunitProjectAssembly(project, assemblyFileName, assemblyMetadata);
 		TestCases = testCases;
 
 		runSettings.CopyTo(Assembly.Configuration);
@@ -25,4 +22,17 @@ public class AssemblyRunInfo
 	public XunitProjectAssembly Assembly { get; }
 
 	public IList<TestCase>? TestCases { get; }
+
+	public static AssemblyRunInfo? Create(
+		XunitProject project,
+		RunSettings runSettings,
+		string assemblyFileName,
+		IList<TestCase>? testCases = null)
+	{
+		var metadata = AssemblyUtility.GetAssemblyMetadata(assemblyFileName);
+		if (metadata is null || metadata.XunitVersion == 0)
+			return null;
+
+		return new(project, runSettings, assemblyFileName, metadata, testCases);
+	}
 }

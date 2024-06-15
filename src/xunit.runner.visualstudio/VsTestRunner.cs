@@ -182,11 +182,15 @@ namespace Xunit.Runner.VisualStudio
 				foreach (var assemblyFileNameCanBeWithoutAbsolutePath in sources)
 				{
 					var assemblyFileName = Path.GetFullPath(assemblyFileNameCanBeWithoutAbsolutePath);
-					var assembly = new XunitProjectAssembly(project)
-					{
-						AssemblyFileName = assemblyFileName,
-						AssemblyMetadata = AssemblyUtility.GetAssemblyMetadata(assemblyFileName),
-					};
+					var metadata = AssemblyUtility.GetAssemblyMetadata(assemblyFileName);
+					// Silently ignore anything which doesn't look like a test project, because reporting it just throws
+					// lots of warnings into the test output window as Test Explorer asks you to enumerate tests for every
+					// assembly you build in your solution, not just the ones with references to this runner.
+					if (metadata is null || metadata.XunitVersion == 0)
+						return;
+
+					var assembly = new XunitProjectAssembly(project, assemblyFileName, metadata);
+
 					var configWarnings = new List<string>();
 					ConfigReader.Load(assembly.Configuration, assembly.AssemblyFileName, assembly.ConfigFileName, configWarnings);
 					runSettings.CopyTo(assembly.Configuration);
@@ -203,6 +207,9 @@ namespace Xunit.Runner.VisualStudio
 
 					await using var sourceInformationProvider = new VisualStudioSourceInformationProvider(assembly.AssemblyFileName, diagnosticMessageSink);
 					await using var controller = XunitFrontController.ForDiscoveryAndExecution(assembly, sourceInformationProvider, diagnosticMessageSink);
+					if (controller is null)
+						return;
+
 					var discoveryOptions = _TestFrameworkOptions.ForDiscovery(assembly.Configuration);
 					discoveryOptions.SetIncludeSourceInformation(true);
 					if (!await DiscoverTestsInAssembly(controller, logger, testPlatformContext, runSettings, visitorFactory, visitComplete, assembly, discoveryOptions))
@@ -239,40 +246,35 @@ namespace Xunit.Runner.VisualStudio
 				var reporterMessageHandler = await GetRunnerReporter(logger, runSettings, [assembly.AssemblyFileName]).CreateMessageHandler(new VisualStudioRunnerLogger(logger), diagnosticMessageSink);
 				fileName = Path.GetFileNameWithoutExtension(assembly.AssemblyFileName);
 
-				if (assembly.AssemblyMetadata.XunitVersion == 0)
-					diagnosticMessageSink.OnMessage(new _DiagnosticMessage("Skipping: {0} (no reference to xUnit.net)", fileName));
-				else
+				using var visitor = visitorFactory(assembly.AssemblyFileName, controller, discoveryOptions);
+				var totalTests = 0;
+				var appDomain = assembly.Configuration.AppDomain ?? AppDomainDefaultBehavior;
+				var usingAppDomains = controller.CanUseAppDomains && appDomain != AppDomainSupport.Denied;
+				reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryStarting
 				{
-					using var visitor = visitorFactory(assembly.AssemblyFileName, controller, discoveryOptions);
-					var totalTests = 0;
-					var appDomain = assembly.Configuration.AppDomain ?? AppDomainDefaultBehavior;
-					var usingAppDomains = controller.CanUseAppDomains && appDomain != AppDomainSupport.Denied;
-					reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryStarting
+					AppDomain = usingAppDomains ? AppDomainOption.Enabled : AppDomainOption.Disabled,
+					Assembly = assembly,
+					DiscoveryOptions = discoveryOptions,
+					ShadowCopy = assembly.Configuration.ShadowCopyOrDefault,
+				});
+
+				try
+				{
+					var findSettings = new FrontControllerFindSettings(discoveryOptions);
+					controller.Find(visitor, findSettings);
+
+					totalTests = visitor.Finish();
+
+					visitComplete?.Invoke(assembly.AssemblyFileName, controller, discoveryOptions, visitor);
+				}
+				finally
+				{
+					reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryFinished
 					{
-						AppDomain = usingAppDomains ? AppDomainOption.Enabled : AppDomainOption.Disabled,
 						Assembly = assembly,
 						DiscoveryOptions = discoveryOptions,
-						ShadowCopy = assembly.Configuration.ShadowCopyOrDefault,
+						TestCasesToRun = totalTests,
 					});
-
-					try
-					{
-						var findSettings = new FrontControllerFindSettings(discoveryOptions);
-						controller.Find(visitor, findSettings);
-
-						totalTests = visitor.Finish();
-
-						visitComplete?.Invoke(assembly.AssemblyFileName, controller, discoveryOptions, visitor);
-					}
-					finally
-					{
-						reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryFinished
-						{
-							Assembly = assembly,
-							DiscoveryOptions = discoveryOptions,
-							TestCasesToRun = totalTests,
-						});
-					}
 				}
 			}
 			catch (Exception e)
@@ -394,7 +396,8 @@ namespace Xunit.Runner.VisualStudio
 				() =>
 					tests
 						.GroupBy(testCase => testCase.Source)
-						.Select(group => new AssemblyRunInfo(project, runSettings, group.Key, group.ToList()))
+						.Select(group => AssemblyRunInfo.Create(project, runSettings, group.Key, group.ToList()))
+						.WhereNotNull()
 						.ToList()
 			).GetAwaiter().GetResult();
 		}
@@ -425,7 +428,7 @@ namespace Xunit.Runner.VisualStudio
 			// before returning from this function.
 			RunTests(
 				runContext, frameworkHandle, logger, testPlatformContext, runSettings,
-				() => sources.Select(source => new AssemblyRunInfo(project, runSettings, Path.GetFullPath(source))).ToList()
+				() => sources.Select(source => AssemblyRunInfo.Create(project, runSettings, Path.GetFullPath(source))).WhereNotNull().ToList()
 			).GetAwaiter().GetResult();
 		}
 
@@ -499,6 +502,9 @@ namespace Xunit.Runner.VisualStudio
 
 				await using var sourceInformationProvider = new VisualStudioSourceInformationProvider(assemblyFileName, diagnosticSink);
 				await using var controller = XunitFrontController.ForDiscoveryAndExecution(runInfo.Assembly, sourceInformationProvider, diagnosticSink);
+				if (controller is null)
+					return;
+
 				var testCasesMap = new Dictionary<string, TestCase>();
 				var testCaseSerializations = new List<string>();
 				if (runInfo.TestCases is null || !runInfo.TestCases.Any())
