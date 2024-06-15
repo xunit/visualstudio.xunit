@@ -17,12 +17,9 @@
 		<developmentDependency>true</developmentDependency>
 		<dependencies>
 			<group targetFramework="net472">
-				<dependency id="Microsoft.NET.Test.Sdk" version="$MicrosoftNetTestSdkVersion$" />
 				<dependency id="Microsoft.TestPlatform.ObjectModel" version="$MicrosoftTestPlatformObjectModelVersion$" />
 			</group>
-			<group targetFramework="net6.0">
-				<dependency id="Microsoft.NET.Test.Sdk" version="$MicrosoftNetTestSdkVersion$" />
-			</group>
+			<group targetFramework="net6.0"/>
 		</dependencies>
 		<frameworkAssemblies>
 			<frameworkAssembly assemblyName="mscorlib" targetFramework="net472" />
