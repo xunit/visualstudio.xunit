@@ -17,12 +17,10 @@
     <dependencies>
       <group targetFramework="net462">
         <dependency id="Microsoft.TestPlatform.ObjectModel" version="$MicrosoftTestPlatformObjectModelVersion$" />
-        <dependency id="Microsoft.Testing.Extensions.Telemetry" version="$MicrosoftTestingPlatformVersion$" />
         <dependency id="Microsoft.Testing.Extensions.VSTestBridge" version="$MicrosoftTestingPlatformVersion$" />
         <dependency id="Microsoft.Testing.Platform.MSBuild" version="$MicrosoftTestingPlatformVersion$" />
       </group>
       <group targetFramework="net6.0">
-        <dependency id="Microsoft.Testing.Extensions.Telemetry" version="$MicrosoftTestingPlatformVersion$" />
         <dependency id="Microsoft.Testing.Extensions.VSTestBridge" version="$MicrosoftTestingPlatformVersion$" />
         <dependency id="Microsoft.Testing.Platform.MSBuild" version="$MicrosoftTestingPlatformVersion$" />
       </group>

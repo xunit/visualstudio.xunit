@@ -4,7 +4,7 @@
     <MicrosoftNetCoreAppRefVersion>6.0.11</MicrosoftNetCoreAppRefVersion>
     <MicrosoftNetTestSdkVersion>17.10.0</MicrosoftNetTestSdkVersion>
     <MicrosoftSourceLinkGitHubVersion>8.0.0</MicrosoftSourceLinkGitHubVersion>
-    <MicrosoftTestingPlatformVersion>1.0.2</MicrosoftTestingPlatformVersion>
+    <MicrosoftTestingPlatformVersion>1.2.1</MicrosoftTestingPlatformVersion>
     <MicrosoftTestPlatformObjectModelVersion>$(MicrosoftNetTestSdkVersion)</MicrosoftTestPlatformObjectModelVersion>
     <NerdbankGitVersioningVersion>3.6.133</NerdbankGitVersioningVersion>
     <NSubstituteVersion>5.1.0</NSubstituteVersion>
