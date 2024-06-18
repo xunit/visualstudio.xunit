@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace Xunit.Runner.VisualStudio;
@@ -16,11 +17,13 @@ public class RunSettings
 	public TestMethodDisplay? MethodDisplay { get; set; }
 	public TestMethodDisplayOptions? MethodDisplayOptions { get; set; }
 	public bool? NoAutoReporters { get; set; }
+	public ParallelAlgorithm? ParallelAlgorithm { get; set; }
 	public bool? ParallelizeAssembly { get; set; }
 	public bool? ParallelizeTestCollections { get; set; }
 	public bool? PreEnumerateTheories { get; set; }
 	public string? ReporterSwitch { get; set; }
 	public bool? ShadowCopy { get; set; }
+	public bool? ShowLiveOutput { get; set; }
 	public bool? StopOnFail { get; set; }
 	public string? TargetFrameworkVersion { get; set; }
 
@@ -42,6 +45,8 @@ public class RunSettings
 			configuration.MethodDisplay = MethodDisplay;
 		if (MethodDisplayOptions.HasValue)
 			configuration.MethodDisplayOptions = MethodDisplayOptions;
+		if (ParallelAlgorithm.HasValue)
+			configuration.ParallelAlgorithm = ParallelAlgorithm;
 		if (ParallelizeAssembly.HasValue)
 			configuration.ParallelizeAssembly = ParallelizeAssembly;
 		if (ParallelizeTestCollections.HasValue)
@@ -50,6 +55,8 @@ public class RunSettings
 			configuration.PreEnumerateTheories = PreEnumerateTheories;
 		if (ShadowCopy.HasValue)
 			configuration.ShadowCopy = ShadowCopy;
+		if (ShowLiveOutput.HasValue)
+			configuration.ShowLiveOutput = ShowLiveOutput;
 		if (StopOnFail.HasValue)
 			configuration.StopOnFail = StopOnFail;
 	}
@@ -91,8 +98,28 @@ public class RunSettings
 							result.LongRunningTestSeconds = longRunningTestSeconds;
 
 						var maxParallelThreadsString = xunitElement.Element(Constants.Xunit.MaxParallelThreads)?.Value;
-						if (int.TryParse(maxParallelThreadsString, out var maxParallelThreads) && maxParallelThreads >= -1)
-							result.MaxParallelThreads = maxParallelThreads;
+						if (maxParallelThreadsString is not null)
+							switch (maxParallelThreadsString)
+							{
+								case "default":
+									result.MaxParallelThreads = 0;
+									break;
+
+								case "unlimited":
+									result.MaxParallelThreads = -1;
+									break;
+
+								default:
+									var match = ConfigUtility.MultiplierStyleMaxParallelThreadsRegex.Match(maxParallelThreadsString);
+									// Use invariant format and convert ',' to '.' so we can always support both formats, regardless of locale
+									// If we stick to locale-only parsing, we could break people when moving from one locale to another (for example,
+									// from people running tests on their desktop in a comma locale vs. running them in CI with a decimal locale).
+									if (match.Success && decimal.TryParse(match.Groups[1].Value.Replace(',', '.'), NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var maxThreadMultiplier))
+										result.MaxParallelThreads = (int)(maxThreadMultiplier * Environment.ProcessorCount);
+									else if (int.TryParse(maxParallelThreadsString, out var threadValue) && threadValue >= -1)
+										result.MaxParallelThreads = threadValue;
+									break;
+							}
 
 						var methodDisplayString = xunitElement.Element(Constants.Xunit.MethodDisplay)?.Value;
 						if (Enum.TryParse<TestMethodDisplay>(methodDisplayString, ignoreCase: true, out var methodDisplay))
@@ -105,6 +132,10 @@ public class RunSettings
 						var noAutoReportersString = xunitElement.Element(Constants.Xunit.NoAutoReporters)?.Value;
 						if (bool.TryParse(noAutoReportersString, out var noAutoReporters))
 							result.NoAutoReporters = noAutoReporters;
+
+						var parallelAlgorithmString = xunitElement.Element(Constants.Xunit.ParallelAlgorithm)?.Value;
+						if (Enum.TryParse<ParallelAlgorithm>(parallelAlgorithmString, ignoreCase: true, out var parallelAlgorithm))
+							result.ParallelAlgorithm = parallelAlgorithm;
 
 						var parallelizeAssemblyString = xunitElement.Element(Constants.Xunit.ParallelizeAssembly)?.Value;
 						if (bool.TryParse(parallelizeAssemblyString, out var parallelizeAssembly))
@@ -125,6 +156,10 @@ public class RunSettings
 						var shadowCopyString = xunitElement.Element(Constants.Xunit.ShadowCopy)?.Value;
 						if (bool.TryParse(shadowCopyString, out var shadowCopy))
 							result.ShadowCopy = shadowCopy;
+
+						var showLiveOutputString = xunitElement.Element(Constants.Xunit.ShowLiveOutput)?.Value;
+						if (bool.TryParse(showLiveOutputString, out var showLiveOutput))
+							result.ShowLiveOutput = showLiveOutput;
 
 						var stopOnFailString = xunitElement.Element(Constants.Xunit.StopOnFail)?.Value;
 						if (bool.TryParse(stopOnFailString, out var stopOnFail))
@@ -209,11 +244,13 @@ public class RunSettings
 			public const string MethodDisplay = "MethodDisplay";
 			public const string MethodDisplayOptions = "MethodDisplayOptions";
 			public const string NoAutoReporters = "NoAutoReporters";
+			public const string ParallelAlgorithm = "ParallelAlgorithm";
 			public const string ParallelizeAssembly = "ParallelizeAssembly";
 			public const string ParallelizeTestCollections = "ParallelizeTestCollections";
 			public const string PreEnumerateTheories = "PreEnumerateTheories";
 			public const string ReporterSwitch = "ReporterSwitch";
 			public const string ShadowCopy = "ShadowCopy";
+			public const string ShowLiveOutput = "ShowLiveOutput";
 			public const string StopOnFail = "StopOnFail";
 		}
 	}
@@ -233,7 +270,7 @@ public class RunSettings
 	}
 
 	// This should match .NET versions like 'net6.0' but not .NET Framework version like 'net462'.
-	static readonly Regex regexNet5Plus = new(@"^net\d+\.\d+$");
+	static readonly Regex regexNet5Plus = new(@"^net\d+\.\d+$", RegexOptions.Multiline | RegexOptions.Compiled | RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
 
 	static bool IsNetCore(string targetFrameworkVersion) =>
 		targetFrameworkVersion.StartsWith(".NETCoreApp,", StringComparison.OrdinalIgnoreCase) ||

@@ -1,4 +1,6 @@
+using System;
 using Xunit;
+using Xunit.Abstractions;
 using Xunit.Runner.VisualStudio;
 
 public class RunSettingsTests
@@ -16,11 +18,13 @@ public class RunSettingsTests
 		Assert.Null(runSettings.MethodDisplay);
 		Assert.Null(runSettings.MethodDisplayOptions);
 		Assert.Null(runSettings.NoAutoReporters);
+		Assert.Null(runSettings.ParallelAlgorithm);
 		Assert.Null(runSettings.ParallelizeAssembly);
 		Assert.Null(runSettings.ParallelizeTestCollections);
 		Assert.Null(runSettings.PreEnumerateTheories);
 		Assert.Null(runSettings.ReporterSwitch);
 		Assert.Null(runSettings.ShadowCopy);
+		Assert.Null(runSettings.ShowLiveOutput);
 		Assert.Null(runSettings.StopOnFail);
 		Assert.Null(runSettings.TargetFrameworkVersion);
 	}
@@ -121,6 +125,7 @@ $@"<?xml version=""1.0"" encoding=""utf-8""?>
 		<ParallelizeTestCollections>{testValueString}</ParallelizeTestCollections>
 		<PreEnumerateTheories>{testValueString}</PreEnumerateTheories>
 		<ShadowCopy>{testValueString}</ShadowCopy>
+		<ShowLiveOutput>{testValueString}</ShowLiveOutput>
 		<StopOnFail>{testValueString}</StopOnFail>
 	</xUnit>
 </RunSettings>";
@@ -138,6 +143,7 @@ $@"<?xml version=""1.0"" encoding=""utf-8""?>
 		Assert.Equal(testValue, runSettings.ParallelizeTestCollections);
 		Assert.Equal(testValue, runSettings.PreEnumerateTheories);
 		Assert.Equal(testValue, runSettings.ShadowCopy);
+		Assert.Equal(testValue, runSettings.ShowLiveOutput);
 		Assert.Equal(testValue, runSettings.StopOnFail);
 	}
 
@@ -182,11 +188,21 @@ $@"<?xml version=""1.0"" encoding=""utf-8""?>
 		Assert.Equal(expected, runSettings.LongRunningTestSeconds);
 	}
 
+	public static readonly TheoryData<string, int?> MaxParallelThreadData = new()
+	{
+		{ "blarch", null },
+		{ "-2", null },
+		{ "-1", -1 },
+		{ "0", 0 },
+		{ "42", 42 },
+		{ "unlimited", -1 },
+		{ "default", 0 },
+		{ "2.0x", Environment.ProcessorCount * 2 },
+	};
+
 	[Theory]
-	[InlineData(-2, null)]
-	[InlineData(-1, -1)]
-	[InlineData(42, 42)]
-	public void MaxParallelThreads(int value, int? expected)
+	[MemberData(nameof(MaxParallelThreadData))]
+	public void MaxParallelThreads(string value, int? expected)
 	{
 		string settingsXml =
 $@"<?xml version=""1.0"" encoding=""utf-8""?>
