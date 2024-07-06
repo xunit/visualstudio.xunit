@@ -583,13 +583,6 @@ namespace Xunit.Runner.VisualStudio
 					executionOptions.SetDisableParallelization(true);
 				}
 
-				reporterMessageHandler.OnMessage(new TestAssemblyExecutionStarting
-				{
-					Assembly = runInfo.Assembly,
-					ExecutionOptions = executionOptions,
-					Seed = executionOptions.GetSeed(),
-				});
-
 				using var vsExecutionSink = new VsExecutionSink(reporterMessageHandler, frameworkHandle, logger, testCasesMap, () => cancelled);
 				var executionSinkOptions = new ExecutionSinkOptions
 				{
@@ -614,12 +607,6 @@ namespace Xunit.Runner.VisualStudio
 
 				resultsSink.Finished.WaitOne();
 
-				reporterMessageHandler.OnMessage(new TestAssemblyExecutionFinished
-				{
-					Assembly = runInfo.Assembly,
-					ExecutionOptions = executionOptions,
-					ExecutionSummary = resultsSink.ExecutionSummary,
-				});
 				if ((resultsSink.ExecutionSummary.Failed != 0 || resultsSink.ExecutionSummary.Errors != 0) && executionOptions.GetStopOnTestFailOrDefault())
 				{
 					logger.Log("Canceling due to test failure...");
