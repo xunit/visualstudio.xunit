@@ -13,7 +13,6 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using Xunit.Internal;
 using Xunit.Runner.Common;
 using Xunit.Sdk;
-using Xunit.v3;
 
 namespace Xunit.Runner.VisualStudio
 {
@@ -169,8 +168,8 @@ namespace Xunit.Runner.VisualStudio
 			LoggerHelper logger,
 			TestPlatformContext testPlatformContext,
 			RunSettings runSettings,
-			Func<string, IFrontControllerDiscoverer, _ITestFrameworkDiscoveryOptions, TVisitor> visitorFactory,
-			Action<string, IFrontControllerDiscoverer, _ITestFrameworkDiscoveryOptions, TVisitor>? visitComplete = null)
+			Func<string, IFrontControllerDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor> visitorFactory,
+			Action<string, IFrontControllerDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor>? visitComplete = null)
 				where TVisitor : IVsDiscoverySink, IDisposable
 		{
 			try
@@ -206,11 +205,11 @@ namespace Xunit.Runner.VisualStudio
 					var diagnosticMessageSink = new DiagnosticMessageSink(logger, assemblyDisplayName, assembly.Configuration.DiagnosticMessagesOrDefault, assembly.Configuration.InternalDiagnosticMessagesOrDefault);
 
 					await using var sourceInformationProvider = new VisualStudioSourceInformationProvider(assembly.AssemblyFileName, diagnosticMessageSink);
-					await using var controller = XunitFrontController.ForDiscoveryAndExecution(assembly, sourceInformationProvider, diagnosticMessageSink);
+					await using var controller = XunitFrontController.Create(assembly, sourceInformationProvider, diagnosticMessageSink);
 					if (controller is null)
 						return;
 
-					var discoveryOptions = _TestFrameworkOptions.ForDiscovery(assembly.Configuration);
+					var discoveryOptions = TestFrameworkOptions.ForDiscovery(assembly.Configuration);
 					discoveryOptions.SetIncludeSourceInformation(true);
 					if (!await DiscoverTestsInAssembly(controller, logger, testPlatformContext, runSettings, visitorFactory, visitComplete, assembly, discoveryOptions))
 						break;
@@ -227,10 +226,10 @@ namespace Xunit.Runner.VisualStudio
 			LoggerHelper logger,
 			TestPlatformContext testPlatformContext,
 			RunSettings runSettings,
-			Func<string, IFrontControllerDiscoverer, _ITestFrameworkDiscoveryOptions, TVisitor> visitorFactory,
-			Action<string, IFrontControllerDiscoverer, _ITestFrameworkDiscoveryOptions, TVisitor>? visitComplete,
+			Func<string, IFrontControllerDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor> visitorFactory,
+			Action<string, IFrontControllerDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor>? visitComplete,
 			XunitProjectAssembly assembly,
-			_ITestFrameworkDiscoveryOptions discoveryOptions)
+			ITestFrameworkDiscoveryOptions discoveryOptions)
 				where TVisitor : IVsDiscoverySink, IDisposable
 		{
 			if (cancelled || assembly.AssemblyFileName is null || assembly.AssemblyMetadata is null)
@@ -477,7 +476,7 @@ namespace Xunit.Runner.VisualStudio
 			LoggerHelper logger,
 			TestPlatformContext testPlatformContext,
 			RunSettings runSettings,
-			_IMessageSink reporterMessageHandler,
+			IMessageSink reporterMessageHandler,
 			AssemblyRunInfo runInfo)
 		{
 			if (cancelled)
@@ -498,10 +497,10 @@ namespace Xunit.Runner.VisualStudio
 				var longRunningSeconds = configuration.LongRunningTestSecondsOrDefault;
 
 				var diagnosticSink = new DiagnosticMessageSink(logger, assemblyDisplayName, runInfo.Assembly.Configuration.DiagnosticMessagesOrDefault, runInfo.Assembly.Configuration.InternalDiagnosticMessagesOrDefault);
-				var discoveryOptions = _TestFrameworkOptions.ForDiscovery(runInfo.Assembly.Configuration);
+				var discoveryOptions = TestFrameworkOptions.ForDiscovery(runInfo.Assembly.Configuration);
 
 				await using var sourceInformationProvider = new VisualStudioSourceInformationProvider(assemblyFileName, diagnosticSink);
-				await using var controller = XunitFrontController.ForDiscoveryAndExecution(runInfo.Assembly, sourceInformationProvider, diagnosticSink);
+				await using var controller = XunitFrontController.Create(runInfo.Assembly, sourceInformationProvider, diagnosticSink);
 				if (controller is null)
 					return;
 
@@ -577,7 +576,7 @@ namespace Xunit.Runner.VisualStudio
 				}
 
 				// Execute tests
-				var executionOptions = _TestFrameworkOptions.ForExecution(runInfo.Assembly.Configuration);
+				var executionOptions = TestFrameworkOptions.ForExecution(runInfo.Assembly.Configuration);
 				if (!runInfo.Assembly.Configuration.ParallelizeTestCollectionsOrDefault)
 				{
 					executionOptions.SetSynchronousMessageReporting(true);
@@ -639,7 +638,7 @@ namespace Xunit.Runner.VisualStudio
 			LoggerHelper logger,
 			TestPlatformContext testPlatformContext,
 			RunSettings runSettings,
-			_IMessageSink reporterMessageHandler,
+			IMessageSink reporterMessageHandler,
 			AssemblyRunInfo runInfo)
 		{
 			var @event = new ManualResetEvent(initialState: false);
@@ -682,17 +681,17 @@ namespace Xunit.Runner.VisualStudio
 
 			public TestCase? VSTestCase { get; }
 
-			public _TestCaseDiscovered TestCase { get; }
+			public TestCaseDiscovered TestCase { get; }
 
 			public string UniqueID { get; }
 
 			public DiscoveredTestCase(
 				string source,
-				_TestCaseDiscovered testCase,
+				TestCaseDiscovered testCase,
 				LoggerHelper logger,
 				TestPlatformContext testPlatformContext)
 			{
-				Name = $"{testCase.TestClassNameWithNamespace}.{testCase.TestMethodName} ({testCase.TestCaseUniqueID})";
+				Name = $"{testCase.TestClassName}.{testCase.TestMethodName} ({testCase.TestCaseUniqueID})";
 				TestCase = testCase;
 				UniqueID = testCase.TestCaseUniqueID;
 				VSTestCase = VsDiscoverySink.CreateVsTestCase(source, testCase, logger, testPlatformContext);

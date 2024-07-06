@@ -8,7 +8,7 @@ namespace Xunit.Runner.VisualStudio;
 /// An implementation of <see cref="ISourceInformationProvider"/> that will provide source information
 /// when running inside of Visual Studio (via the DiaSession class).
 /// </summary>
-public sealed class VisualStudioSourceInformationProvider : _ISourceInformationProvider
+public sealed class VisualStudioSourceInformationProvider : ISourceInformationProvider
 {
 	readonly DiaSessionWrapper session;
 

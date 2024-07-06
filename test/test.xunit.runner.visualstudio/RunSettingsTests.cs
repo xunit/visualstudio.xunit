@@ -2,7 +2,7 @@ using System;
 using Xunit;
 using Xunit.Runner.Common;
 using Xunit.Runner.VisualStudio;
-using Xunit.v3;
+using Xunit.Sdk;
 
 public class RunSettingsTests
 {

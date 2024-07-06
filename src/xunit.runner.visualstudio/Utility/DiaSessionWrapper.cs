@@ -2,7 +2,7 @@ using System;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Navigation;
 using Xunit.Internal;
-using Xunit.v3;
+using Xunit.Sdk;
 
 namespace Xunit.Runner.VisualStudio.Utility;
 
@@ -30,7 +30,7 @@ class DiaSessionWrapper : IDisposable
 		}
 		catch (Exception ex)
 		{
-			diagnosticMessageSink.OnMessage(new _InternalDiagnosticMessage("Exception creating DiaSession: {0}", ex));
+			diagnosticMessageSink.OnMessage(new InternalDiagnosticMessage("Exception creating DiaSession: {0}", ex));
 		}
 
 		try
@@ -48,7 +48,7 @@ class DiaSessionWrapper : IDisposable
 		}
 		catch (Exception ex)
 		{
-			diagnosticMessageSink.OnMessage(new _InternalDiagnosticMessage("Exception creating DiaSessionWrapperHelper: {0}", ex));
+			diagnosticMessageSink.OnMessage(new InternalDiagnosticMessage("Exception creating DiaSessionWrapperHelper: {0}", ex));
 		}
 	}
 
@@ -66,7 +66,7 @@ class DiaSessionWrapper : IDisposable
 		}
 		catch (Exception ex)
 		{
-			diagnosticMessageSink.OnMessage(new _InternalDiagnosticMessage($"Exception getting source mapping for {0}.{1}: {2}", typeName, methodName, ex));
+			diagnosticMessageSink.OnMessage(new InternalDiagnosticMessage($"Exception getting source mapping for {0}.{1}: {2}", typeName, methodName, ex));
 			return null;
 		}
 	}

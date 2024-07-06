@@ -1,9 +1,9 @@
 using System;
-using Xunit.v3;
+using Xunit.Sdk;
 
 namespace Xunit.Runner.VisualStudio;
 
-internal interface IVsDiscoverySink : _IMessageSink, IDisposable
+internal interface IVsDiscoverySink : IMessageSink, IDisposable
 {
 	int Finish();
 }

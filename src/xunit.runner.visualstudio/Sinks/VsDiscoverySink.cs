@@ -8,7 +8,6 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Xunit.Runner.Common;
 using Xunit.Sdk;
-using Xunit.v3;
 
 #if NETCOREAPP
 using System.Reflection;
@@ -26,12 +25,12 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 	static readonly Uri uri = new(Constants.ExecutorUri);
 
 	readonly Func<bool> cancelThunk;
-	readonly _ITestFrameworkDiscoveryOptions discoveryOptions;
+	readonly ITestFrameworkDiscoveryOptions discoveryOptions;
 	readonly ITestCaseDiscoverySink discoverySink;
 	readonly DiscoveryEventSink discoveryEventSink = new();
 	readonly LoggerHelper logger;
 	readonly string source;
-	readonly List<_TestCaseDiscovered> testCaseBatch = new();
+	readonly List<TestCaseDiscovered> testCaseBatch = [];
 	readonly TestPlatformContext testPlatformContext;
 	readonly TestCaseFilter testCaseFilter;
 
@@ -40,7 +39,7 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 		IFrontControllerDiscoverer discoverer,
 		LoggerHelper logger,
 		ITestCaseDiscoverySink discoverySink,
-		_ITestFrameworkDiscoveryOptions discoveryOptions,
+		ITestFrameworkDiscoveryOptions discoveryOptions,
 		TestPlatformContext testPlatformContext,
 		TestCaseFilter testCaseFilter,
 		Func<bool> cancelThunk)
@@ -61,18 +60,16 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 
 	public int TotalTests { get; private set; }
 
-	public void Dispose()
-	{
+	public void Dispose() =>
 		Finished.Dispose();
-	}
 
 	public static TestCase? CreateVsTestCase(
 		string source,
-		_TestCaseDiscovered testCase,
+		TestCaseDiscovered testCase,
 		LoggerHelper logger,
 		TestPlatformContext testPlatformContext)
 	{
-		if (testCase.TestClassNameWithNamespace is null)
+		if (testCase.TestClassName is null)
 		{
 			logger.LogErrorWithSource(source, "Error creating Visual Studio test case for {0}: TestClassWithNamespace is null", testCase.TestCaseDisplayName);
 			return null;
@@ -80,7 +77,7 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 
 		try
 		{
-			var fqTestMethodName = $"{testCase.TestClassNameWithNamespace}.{testCase.TestMethodName}";
+			var fqTestMethodName = $"{testCase.TestClassName}.{testCase.TestMethodName}";
 			var result = new TestCase(fqTestMethodName, uri, source) { DisplayName = Escape(testCase.TestCaseDisplayName) };
 			result.SetPropertyValue(VsTestRunner.TestCaseUniqueIDProperty, testCase.TestCaseUniqueID);
 
@@ -174,7 +171,7 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 			args.Stop();
 	}
 
-	void HandleTestCaseDiscoveredMessage(MessageHandlerArgs<_TestCaseDiscovered> args)
+	void HandleTestCaseDiscoveredMessage(MessageHandlerArgs<TestCaseDiscovered> args)
 	{
 		testCaseBatch.Add(args.Message);
 		TotalTests++;
@@ -185,7 +182,7 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 		HandleCancellation(args);
 	}
 
-	void HandleDiscoveryCompleteMessage(MessageHandlerArgs<_DiscoveryComplete> args)
+	void HandleDiscoveryCompleteMessage(MessageHandlerArgs<DiscoveryComplete> args)
 	{
 		try
 		{
@@ -201,7 +198,7 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 		HandleCancellation(args);
 	}
 
-	bool _IMessageSink.OnMessage(_MessageSinkMessage message) =>
+	bool IMessageSink.OnMessage(MessageSinkMessage message) =>
 		discoveryEventSink.OnMessage(message);
 
 	private void SendExistingTestCases()

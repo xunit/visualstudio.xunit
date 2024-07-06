@@ -7,9 +7,9 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using Xunit.Runner.Common;
 using Xunit.Sdk;
-using Xunit.v3;
 using VsTestResult = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestResult;
 using VsTestResultMessage = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestResultMessage;
+using XunitTestResultMessage = Xunit.Sdk.TestResultMessage;
 
 namespace Xunit.Runner.VisualStudio;
 
@@ -17,18 +17,18 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 {
 	readonly Func<bool> cancelledThunk;
 	readonly LoggerHelper logger;
-	readonly _IMessageSink innerSink;
+	readonly IMessageSink innerSink;
 	readonly MessageMetadataCache metadataCache = new();
 	readonly ITestExecutionRecorder recorder;
-	readonly ConcurrentDictionary<string, List<_TestCaseStarting>> testCasesByAssemblyID = new();
-	readonly ConcurrentDictionary<string, _TestCaseStarting> testCasesByCaseID = new();
-	readonly ConcurrentDictionary<string, List<_TestCaseStarting>> testCasesByClassID = new();
-	readonly ConcurrentDictionary<string, List<_TestCaseStarting>> testCasesByCollectionID = new();
-	readonly ConcurrentDictionary<string, List<_TestCaseStarting>> testCasesByMethodID = new();
+	readonly ConcurrentDictionary<string, List<TestCaseStarting>> testCasesByAssemblyID = [];
+	readonly ConcurrentDictionary<string, TestCaseStarting> testCasesByCaseID = new();
+	readonly ConcurrentDictionary<string, List<TestCaseStarting>> testCasesByClassID = [];
+	readonly ConcurrentDictionary<string, List<TestCaseStarting>> testCasesByCollectionID = [];
+	readonly ConcurrentDictionary<string, List<TestCaseStarting>> testCasesByMethodID = [];
 	readonly Dictionary<string, TestCase> testCasesMap;
 
 	public VsExecutionSink(
-		_IMessageSink innerSink,
+		IMessageSink innerSink,
 		ITestExecutionRecorder recorder,
 		LoggerHelper logger,
 		Dictionary<string, TestCase> testCasesMap,
@@ -100,7 +100,7 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 		return null;
 	}
 
-	static TestOutcome GetAggregatedTestOutcome(_TestCaseFinished testCaseFinished) =>
+	static TestOutcome GetAggregatedTestOutcome(TestCaseFinished testCaseFinished) =>
 		testCaseFinished switch
 		{
 			{ TestsTotal: 0 } => TestOutcome.NotFound,
@@ -115,7 +115,7 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 			args.Stop();
 	}
 
-	void HandleErrorMessage(MessageHandlerArgs<_ErrorMessage> args)
+	void HandleErrorMessage(MessageHandlerArgs<ErrorMessage> args)
 	{
 		ExecutionSummary.Errors++;
 
@@ -124,7 +124,7 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 		HandleCancellation(args);
 	}
 
-	void HandleTestAssemblyCleanupFailure(MessageHandlerArgs<_TestAssemblyCleanupFailure> args)
+	void HandleTestAssemblyCleanupFailure(MessageHandlerArgs<TestAssemblyCleanupFailure> args)
 	{
 		ExecutionSummary.Errors++;
 
@@ -136,7 +136,7 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 		HandleCancellation(args);
 	}
 
-	void HandleTestAssemblyFinished(MessageHandlerArgs<_TestAssemblyFinished> args)
+	void HandleTestAssemblyFinished(MessageHandlerArgs<TestAssemblyFinished> args)
 	{
 		var assemblyFinished = args.Message;
 
@@ -159,10 +159,10 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 		}
 	}
 
-	void HandleTestAssemblyStarting(MessageHandlerArgs<_TestAssemblyStarting> args) =>
+	void HandleTestAssemblyStarting(MessageHandlerArgs<TestAssemblyStarting> args) =>
 		metadataCache.Set(args.Message);
 
-	void HandleTestCaseCleanupFailure(MessageHandlerArgs<_TestCaseCleanupFailure> args)
+	void HandleTestCaseCleanupFailure(MessageHandlerArgs<TestCaseCleanupFailure> args)
 	{
 		ExecutionSummary.Errors++;
 
@@ -174,7 +174,7 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 		HandleCancellation(args);
 	}
 
-	void HandleTestCaseFinished(MessageHandlerArgs<_TestCaseFinished> args)
+	void HandleTestCaseFinished(MessageHandlerArgs<TestCaseFinished> args)
 	{
 		var testCaseFinished = args.Message;
 
@@ -196,7 +196,7 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 		}
 	}
 
-	void HandleTestCaseStarting(MessageHandlerArgs<_TestCaseStarting> args)
+	void HandleTestCaseStarting(MessageHandlerArgs<TestCaseStarting> args)
 	{
 		var testCaseStarting = args.Message;
 		metadataCache.Set(testCaseStarting);
@@ -218,7 +218,7 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 		HandleCancellation(args);
 	}
 
-	void HandleTestClassCleanupFailure(MessageHandlerArgs<_TestClassCleanupFailure> args)
+	void HandleTestClassCleanupFailure(MessageHandlerArgs<TestClassCleanupFailure> args)
 	{
 		ExecutionSummary.Errors++;
 
@@ -230,7 +230,7 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 		HandleCancellation(args);
 	}
 
-	void HandleTestClassFinished(MessageHandlerArgs<_TestClassFinished> args)
+	void HandleTestClassFinished(MessageHandlerArgs<TestClassFinished> args)
 	{
 		var classFinished = args.Message;
 		if (classFinished.TestClassUniqueID is not null)
@@ -239,10 +239,10 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 		metadataCache.TryRemove(classFinished);
 	}
 
-	void HandleTestClassStarting(MessageHandlerArgs<_TestClassStarting> args) =>
+	void HandleTestClassStarting(MessageHandlerArgs<TestClassStarting> args) =>
 		metadataCache.Set(args.Message);
 
-	void HandleTestCleanupFailure(MessageHandlerArgs<_TestCleanupFailure> args)
+	void HandleTestCleanupFailure(MessageHandlerArgs<TestCleanupFailure> args)
 	{
 		ExecutionSummary.Errors++;
 
@@ -254,7 +254,7 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 		HandleCancellation(args);
 	}
 
-	void HandleTestCollectionCleanupFailure(MessageHandlerArgs<_TestCollectionCleanupFailure> args)
+	void HandleTestCollectionCleanupFailure(MessageHandlerArgs<TestCollectionCleanupFailure> args)
 	{
 		ExecutionSummary.Errors++;
 
@@ -266,7 +266,7 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 		HandleCancellation(args);
 	}
 
-	void HandleTestCollectionFinished(MessageHandlerArgs<_TestCollectionFinished> args)
+	void HandleTestCollectionFinished(MessageHandlerArgs<TestCollectionFinished> args)
 	{
 		var collectionFinished = args.Message;
 		testCasesByCollectionID.TryRemove(collectionFinished.TestCollectionUniqueID, out _);
@@ -274,10 +274,10 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 		metadataCache.TryRemove(collectionFinished);
 	}
 
-	void HandleTestCollectionStarting(MessageHandlerArgs<_TestCollectionStarting> args) =>
+	void HandleTestCollectionStarting(MessageHandlerArgs<TestCollectionStarting> args) =>
 		metadataCache.Set(args.Message);
 
-	void HandleTestFailed(MessageHandlerArgs<_TestFailed> args)
+	void HandleTestFailed(MessageHandlerArgs<TestFailed> args)
 	{
 		var testFailed = args.Message;
 		var result = MakeVsTestResult(TestOutcome.Failed, testFailed);
@@ -294,10 +294,10 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 		HandleCancellation(args);
 	}
 
-	void HandleTestFinished(MessageHandlerArgs<_TestFinished> args) =>
+	void HandleTestFinished(MessageHandlerArgs<TestFinished> args) =>
 		metadataCache.TryRemove(args.Message);
 
-	void HandleTestMethodCleanupFailure(MessageHandlerArgs<_TestMethodCleanupFailure> args)
+	void HandleTestMethodCleanupFailure(MessageHandlerArgs<TestMethodCleanupFailure> args)
 	{
 		ExecutionSummary.Errors++;
 
@@ -309,7 +309,7 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 		HandleCancellation(args);
 	}
 
-	void HandleTestMethodFinished(MessageHandlerArgs<_TestMethodFinished> args)
+	void HandleTestMethodFinished(MessageHandlerArgs<TestMethodFinished> args)
 	{
 		var methodFinished = args.Message;
 		if (methodFinished.TestMethodUniqueID is not null)
@@ -318,10 +318,10 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 		metadataCache.TryRemove(methodFinished);
 	}
 
-	void HandleTestMethodStarting(MessageHandlerArgs<_TestMethodStarting> args) =>
+	void HandleTestMethodStarting(MessageHandlerArgs<TestMethodStarting> args) =>
 		metadataCache.Set(args.Message);
 
-	void HandleTestNotRun(MessageHandlerArgs<_TestNotRun> args)
+	void HandleTestNotRun(MessageHandlerArgs<TestNotRun> args)
 	{
 		var testNotRun = args.Message;
 		var result = MakeVsTestResult(TestOutcome.None, testNotRun);
@@ -333,7 +333,7 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 		HandleCancellation(args);
 	}
 
-	void HandleTestPassed(MessageHandlerArgs<_TestPassed> args)
+	void HandleTestPassed(MessageHandlerArgs<TestPassed> args)
 	{
 		var testPassed = args.Message;
 		var result = MakeVsTestResult(TestOutcome.Passed, testPassed);
@@ -345,7 +345,7 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 		HandleCancellation(args);
 	}
 
-	void HandleTestSkipped(MessageHandlerArgs<_TestSkipped> args)
+	void HandleTestSkipped(MessageHandlerArgs<TestSkipped> args)
 	{
 		var testSkipped = args.Message;
 		var result = MakeVsTestResult(TestOutcome.Skipped, testSkipped);
@@ -357,14 +357,14 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 		HandleCancellation(args);
 	}
 
-	void HandleTestStarting(MessageHandlerArgs<_TestStarting> args) =>
+	void HandleTestStarting(MessageHandlerArgs<TestStarting> args) =>
 		metadataCache.Set(args.Message);
 
-	void LogError(
-		_TestAssemblyMessage msg,
-		string format,
-		params object?[] args) =>
-			LogError(TestAssemblyPath(msg), format, args);
+	//void LogError(
+	//	TestAssemblyMessage msg,
+	//	string format,
+	//	params object?[] args) =>
+	//		LogError(TestAssemblyPath(msg), format, args);
 
 	void LogError(
 		string assemblyPath,
@@ -373,19 +373,19 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 			logger.SendMessage(TestMessageLevel.Error, assemblyPath, string.Format(format, args));
 
 	public void LogWarning(
-		_TestAssemblyMessage msg,
+		TestAssemblyMessage msg,
 		string format,
 		params object?[] args) =>
 			logger.SendMessage(TestMessageLevel.Warning, TestAssemblyPath(msg), string.Format(format, args));
 
 	VsTestResult? MakeVsTestResult(
 		TestOutcome outcome,
-		_TestResultMessage testResult) =>
+		XunitTestResultMessage testResult) =>
 			MakeVsTestResult(outcome, testResult.TestCaseUniqueID, TestDisplayName(testResult), (double)testResult.ExecutionTime, testResult.Output);
 
 	VsTestResult? MakeVsTestResult(
 		TestOutcome outcome,
-		_TestSkipped skippedResult) =>
+		TestSkipped skippedResult) =>
 			MakeVsTestResult(outcome, skippedResult.TestCaseUniqueID, TestDisplayName(skippedResult), (double)skippedResult.ExecutionTime, errorMessage: skippedResult.Reason);
 
 	VsTestResult? MakeVsTestResult(
@@ -432,33 +432,33 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 		return result;
 	}
 
-	public override bool OnMessage(_MessageSinkMessage message)
+	public override bool OnMessage(MessageSinkMessage message)
 	{
 		var result = innerSink.OnMessage(message);
 		return base.OnMessage(message) && result;
 	}
 
-	string TestAssemblyPath(_TestAssemblyMessage msg) =>
+	string TestAssemblyPath(TestAssemblyMessage msg) =>
 		metadataCache.TryGetAssemblyMetadata(msg)?.AssemblyPath ?? $"<unknown test assembly ID {msg.AssemblyUniqueID}>";
 
-	string TestCaseDisplayName(_TestCaseMessage msg) =>
+	string TestCaseDisplayName(TestCaseMessage msg) =>
 		metadataCache.TryGetTestCaseMetadata(msg)?.TestCaseDisplayName ?? $"<unknown test case ID {msg.TestCaseUniqueID}>";
 
-	string TestClassName(_TestClassMessage msg) =>
-		metadataCache.TryGetClassMetadata(msg)?.TestClass ?? $"<unknown test class ID {msg.TestClassUniqueID}>";
+	string TestClassName(TestClassMessage msg) =>
+		metadataCache.TryGetClassMetadata(msg)?.TestClassName ?? $"<unknown test class ID {msg.TestClassUniqueID}>";
 
-	string TestCollectionDisplayName(_TestCollectionMessage msg) =>
+	string TestCollectionDisplayName(TestCollectionMessage msg) =>
 		metadataCache.TryGetCollectionMetadata(msg)?.TestCollectionDisplayName ?? $"<unknown test collection ID {msg.TestCollectionUniqueID}>";
 
-	string TestDisplayName(_TestMessage msg) =>
+	string TestDisplayName(TestMessage msg) =>
 		metadataCache.TryGetTestMetadata(msg)?.TestDisplayName ?? $"<unknown test ID {msg.TestUniqueID}>";
 
-	string TestMethodName(_TestMethodMessage msg) =>
-		TestClassName(msg) + "." + metadataCache.TryGetMethodMetadata(msg)?.TestMethod ?? $"<unknown test method ID {msg.TestMethodUniqueID}>";
+	string TestMethodName(TestMethodMessage msg) =>
+		TestClassName(msg) + "." + metadataCache.TryGetMethodMetadata(msg)?.MethodName ?? $"<unknown test method ID {msg.TestMethodUniqueID}>";
 
 	void TryAndReport(
 		string actionDescription,
-		_TestCaseMessage testCase,
+		TestCaseMessage testCase,
 		Action action)
 	{
 		var testCaseMetadata = metadataCache.TryGetTestCaseMetadata(testCase);
@@ -488,8 +488,8 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 
 	void WriteError(
 		string failureName,
-		_IErrorMetadata errorMetadata,
-		IEnumerable<_TestCaseStarting> testCases)
+		IErrorMetadata errorMetadata,
+		IEnumerable<TestCaseStarting> testCases)
 	{
 		foreach (var testCase in testCases)
 		{
