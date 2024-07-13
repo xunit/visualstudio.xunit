@@ -20,8 +20,9 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 	readonly IMessageSink innerSink;
 	readonly MessageMetadataCache metadataCache = new();
 	readonly ITestExecutionRecorder recorder;
+	readonly ConcurrentDictionary<string, DateTimeOffset> startTimeByTestID = [];
 	readonly ConcurrentDictionary<string, List<TestCaseStarting>> testCasesByAssemblyID = [];
-	readonly ConcurrentDictionary<string, TestCaseStarting> testCasesByCaseID = new();
+	readonly ConcurrentDictionary<string, TestCaseStarting> testCasesByCaseID = [];
 	readonly ConcurrentDictionary<string, List<TestCaseStarting>> testCasesByClassID = [];
 	readonly ConcurrentDictionary<string, List<TestCaseStarting>> testCasesByCollectionID = [];
 	readonly ConcurrentDictionary<string, List<TestCaseStarting>> testCasesByMethodID = [];
@@ -280,7 +281,8 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 	void HandleTestFailed(MessageHandlerArgs<TestFailed> args)
 	{
 		var testFailed = args.Message;
-		var result = MakeVsTestResult(TestOutcome.Failed, testFailed);
+		startTimeByTestID.TryRemove(testFailed.TestUniqueID, out var startTime);
+		var result = MakeVsTestResult(TestOutcome.Failed, testFailed, startTime);
 		if (result is not null)
 		{
 			result.ErrorMessage = ExceptionUtility.CombineMessages(testFailed);
@@ -324,7 +326,8 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 	void HandleTestNotRun(MessageHandlerArgs<TestNotRun> args)
 	{
 		var testNotRun = args.Message;
-		var result = MakeVsTestResult(TestOutcome.None, testNotRun);
+		startTimeByTestID.TryRemove(testNotRun.TestUniqueID, out var startTime);
+		var result = MakeVsTestResult(TestOutcome.None, testNotRun, startTime);
 		if (result is not null)
 			TryAndReport("RecordResult (None)", testNotRun, () => recorder.RecordResult(result));
 		else
@@ -336,7 +339,8 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 	void HandleTestPassed(MessageHandlerArgs<TestPassed> args)
 	{
 		var testPassed = args.Message;
-		var result = MakeVsTestResult(TestOutcome.Passed, testPassed);
+		startTimeByTestID.TryRemove(testPassed.TestUniqueID, out var startTime);
+		var result = MakeVsTestResult(TestOutcome.Passed, testPassed, startTime);
 		if (result is not null)
 			TryAndReport("RecordResult (Pass)", testPassed, () => recorder.RecordResult(result));
 		else
@@ -348,7 +352,8 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 	void HandleTestSkipped(MessageHandlerArgs<TestSkipped> args)
 	{
 		var testSkipped = args.Message;
-		var result = MakeVsTestResult(TestOutcome.Skipped, testSkipped);
+		startTimeByTestID.TryRemove(testSkipped.TestUniqueID, out var startTime);
+		var result = MakeVsTestResult(TestOutcome.Skipped, testSkipped, startTime);
 		if (result is not null)
 			TryAndReport("RecordResult (Skip)", testSkipped, () => recorder.RecordResult(result));
 		else
@@ -357,14 +362,13 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 		HandleCancellation(args);
 	}
 
-	void HandleTestStarting(MessageHandlerArgs<TestStarting> args) =>
-		metadataCache.Set(args.Message);
+	void HandleTestStarting(MessageHandlerArgs<TestStarting> args)
+	{
+		var starting = args.Message;
 
-	//void LogError(
-	//	TestAssemblyMessage msg,
-	//	string format,
-	//	params object?[] args) =>
-	//		LogError(TestAssemblyPath(msg), format, args);
+		metadataCache.Set(starting);
+		startTimeByTestID.TryAdd(starting.TestUniqueID, starting.StartTime);
+	}
 
 	void LogError(
 		string assemblyPath,
@@ -380,13 +384,15 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 
 	VsTestResult? MakeVsTestResult(
 		TestOutcome outcome,
-		XunitTestResultMessage testResult) =>
-			MakeVsTestResult(outcome, testResult.TestCaseUniqueID, TestDisplayName(testResult), (double)testResult.ExecutionTime, testResult.Output);
+		XunitTestResultMessage testResult,
+		DateTimeOffset? startTime) =>
+			MakeVsTestResult(outcome, testResult.TestCaseUniqueID, TestDisplayName(testResult), (double)testResult.ExecutionTime, testResult.Output, startTime: startTime, finishTime: testResult.FinishTime);
 
 	VsTestResult? MakeVsTestResult(
 		TestOutcome outcome,
-		TestSkipped skippedResult) =>
-			MakeVsTestResult(outcome, skippedResult.TestCaseUniqueID, TestDisplayName(skippedResult), (double)skippedResult.ExecutionTime, errorMessage: skippedResult.Reason);
+		TestSkipped skippedResult,
+		DateTimeOffset? startTime) =>
+			MakeVsTestResult(outcome, skippedResult.TestCaseUniqueID, TestDisplayName(skippedResult), (double)skippedResult.ExecutionTime, errorMessage: skippedResult.Reason, startTime: startTime, finishTime: skippedResult.FinishTime);
 
 	VsTestResult? MakeVsTestResult(
 		TestOutcome outcome,
@@ -405,7 +411,9 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 		string displayName,
 		double executionTime = 0.0,
 		string? output = null,
-		string? errorMessage = null)
+		string? errorMessage = null,
+		DateTimeOffset? startTime = null,
+		DateTimeOffset? finishTime = null)
 	{
 		var vsTestCase = FindTestCase(testCaseUniqueID);
 		if (vsTestCase is null)
@@ -418,6 +426,12 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 			Duration = TimeSpan.FromSeconds(executionTime),
 			Outcome = outcome,
 		};
+
+		if (startTime.HasValue && finishTime.HasValue)
+		{
+			result.StartTime = startTime.Value;
+			result.EndTime = finishTime.Value;
+		}
 
 		// Work around VS considering a test "not run" when the duration is 0
 		if (result.Duration.TotalMilliseconds == 0)
