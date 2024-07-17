@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -61,7 +62,14 @@ public class LoggerHelper(IMessageLogger? logger, Stopwatch stopwatch)
 		if (logger is null)
 			return;
 
-		var assemblyText = assemblyName is null ? "" : $"{Path.GetFileNameWithoutExtension(assemblyName)}: ";
-		logger.SendMessage(level, $"[xUnit.net {Stopwatch.Elapsed:hh\\:mm\\:ss\\.ff}] {assemblyText}{string.Format(CultureInfo.CurrentCulture, format, args)}");
+		try
+		{
+			var assemblyText = assemblyName is null ? "" : $"{Path.GetFileNameWithoutExtension(assemblyName)}: ";
+			logger.SendMessage(level, $"[xUnit.net {Stopwatch.Elapsed:hh\\:mm\\:ss\\.ff}] {assemblyText}{string.Format(CultureInfo.CurrentCulture, format, args)}");
+		}
+		catch (Exception ex)
+		{
+			logger.SendMessage(TestMessageLevel.Warning, $"Exception formatting {level} message '{format}': {ex}");
+		}
 	}
 }
