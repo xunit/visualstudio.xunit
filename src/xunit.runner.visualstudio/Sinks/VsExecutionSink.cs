@@ -386,13 +386,13 @@ public sealed class VsExecutionSink : TestMessageSink, IDisposable
 		string assemblyPath,
 		string format,
 		params object?[] args) =>
-			logger.SendMessage(TestMessageLevel.Error, assemblyPath, string.Format(format, args));
+			logger.SendMessage(TestMessageLevel.Error, assemblyPath, format, args);
 
 	public void LogWarning(
 		TestAssemblyMessage msg,
 		string format,
 		params object?[] args) =>
-			logger.SendMessage(TestMessageLevel.Warning, TestAssemblyPath(msg), string.Format(format, args));
+			logger.SendMessage(TestMessageLevel.Warning, TestAssemblyPath(msg), format, args);
 
 	VsTestResult? MakeVsTestResult(
 		TestOutcome outcome,

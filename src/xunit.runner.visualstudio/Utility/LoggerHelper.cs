@@ -14,50 +14,57 @@ public class LoggerHelper(IMessageLogger? logger, Stopwatch stopwatch)
 
 	public void Log(
 		string format,
+		object? first,
 		params object?[] args) =>
-			SendMessage(InnerLogger, TestMessageLevel.Informational, null, string.Format(format, args));
+			SendMessage(InnerLogger, TestMessageLevel.Informational, null, format, [first, .. args]);
 
 	public void LogWithSource(
 		string? source,
 		string format,
+		object? first,
 		params object?[] args) =>
-			SendMessage(InnerLogger, TestMessageLevel.Informational, source, string.Format(format, args));
+			SendMessage(InnerLogger, TestMessageLevel.Informational, source, format, [first, .. args]);
 
 	public void LogError(
 		string format,
+		object? first,
 		params object?[] args) =>
-			SendMessage(InnerLogger, TestMessageLevel.Error, null, string.Format(format, args));
+			SendMessage(InnerLogger, TestMessageLevel.Error, null, format, [first, .. args]);
 
 	public void LogErrorWithSource(
 		string? source,
 		string format,
+		object? first,
 		params object?[] args) =>
-			SendMessage(InnerLogger, TestMessageLevel.Error, source, string.Format(format, args));
+			SendMessage(InnerLogger, TestMessageLevel.Error, source, format, [first, .. args]);
 
 	public void LogWarning(
 		string format,
+		object? first,
 		params object?[] args) =>
-			SendMessage(InnerLogger, TestMessageLevel.Warning, null, string.Format(format, args));
+			SendMessage(InnerLogger, TestMessageLevel.Warning, null, format, [first, .. args]);
 
 	public void LogWarningWithSource(
 		string? source,
 		string format,
+		object? first,
 		params object?[] args) =>
-			SendMessage(InnerLogger, TestMessageLevel.Warning, source, string.Format(format, args));
+			SendMessage(InnerLogger, TestMessageLevel.Warning, source, format, [first, .. args]);
 
 	public void SendMessage(
 		TestMessageLevel level,
 		string? assemblyName,
 		string format,
+		object? first,
 		params object?[] args) =>
-			SendMessage(InnerLogger, level, assemblyName, format, args);
+			SendMessage(InnerLogger, level, assemblyName, format, [first, .. args]);
 
 	void SendMessage(
 		IMessageLogger? logger,
 		TestMessageLevel level,
 		string? assemblyName,
 		string format,
-		params object?[] args)
+		object?[] args)
 	{
 		if (logger is null)
 			return;

@@ -366,7 +366,7 @@ namespace Xunit.Runner.VisualStudio
 		static void PrintHeader(LoggerHelper loggerHelper)
 		{
 			if (Interlocked.Exchange(ref printedHeader, 1) == 0)
-				loggerHelper.Log($"xUnit.net VSTest Adapter v{ThisAssembly.AssemblyInformationalVersion} ({IntPtr.Size * 8}-bit {RuntimeInformation.FrameworkDescription})");
+				loggerHelper.Log("xUnit.net VSTest Adapter v{0} ({1}-bit {2})", ThisAssembly.AssemblyInformationalVersion, IntPtr.Size * 8, RuntimeInformation.FrameworkDescription);
 		}
 
 		public void RunTests(
@@ -613,7 +613,7 @@ namespace Xunit.Runner.VisualStudio
 
 				if ((resultsSink.ExecutionSummary.Failed != 0 || resultsSink.ExecutionSummary.Errors != 0) && executionOptions.GetStopOnTestFailOrDefault())
 				{
-					logger.Log("Canceling due to test failure...");
+					logger.Log("{0}", "Canceling due to test failure...");
 					cancelled = true;
 				}
 			}
