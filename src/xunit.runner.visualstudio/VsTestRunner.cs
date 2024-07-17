@@ -312,7 +312,7 @@ namespace Xunit.Runner.VisualStudio
 
 				if (logger is not null)
 					foreach (var message in messages)
-						logger.LogWarning(message);
+						logger.LogWarning("{0}", message);
 			}
 
 			return result;
@@ -508,8 +508,6 @@ namespace Xunit.Runner.VisualStudio
 				var testCaseSerializations = new List<string>();
 				if (runInfo.TestCases is null || !runInfo.TestCases.Any())
 				{
-					logger.LogWithSource(assemblyFileName, "Discovering tests for full assembly execution");
-
 					// Discover tests
 					var assemblyDiscoveredInfo = default(AssemblyDiscoveredInfo);
 					await DiscoverTestsInAssembly(
@@ -556,18 +554,16 @@ namespace Xunit.Runner.VisualStudio
 							testCaseSerializations.Add(filteredTestCase.TestCase.Serialization);
 						}
 					}
-
-					logger.LogWithSource(assemblyFileName, "Discovery complete");
 				}
 				else
 				{
-					logger.LogWithSource(assemblyFileName, "Selective execution requested for the following test case serializations:");
-
 					foreach (var testCase in runInfo.TestCases)
 					{
 						var uniqueID = testCase.GetPropertyValue<string>(TestCaseUniqueIDProperty, null);
 						var serialization = testCase.GetPropertyValue<string>(TestCaseSerializationProperty, null);
-						logger.LogWithSource(assemblyFileName, "  {0} :: {1}", uniqueID ?? "(null)", serialization ?? "(null)");
+
+						if (discoveryOptions.GetInternalDiagnosticMessagesOrDefault())
+							logger.LogWithSource(assemblyFileName, "Selective execution requested for test case ID '{0}' (serialization = '{1}')", uniqueID ?? "(null)", serialization ?? "(null)");
 
 						if (uniqueID is null)
 							logger.LogWarningWithSource(assemblyFileName, "VSTestCase {0} did not have an associated unique ID", testCase.DisplayName);
