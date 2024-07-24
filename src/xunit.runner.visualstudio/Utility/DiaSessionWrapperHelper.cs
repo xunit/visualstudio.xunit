@@ -78,7 +78,7 @@ class DiaSessionWrapperHelper : MarshalByRefObject
 						.ToDictionaryIgnoringDuplicateKeys(k => k.FullName!);
 		}
 
-		typeNameMap ??= new();
+		typeNameMap ??= [];
 	}
 
 #if NETFRAMEWORK

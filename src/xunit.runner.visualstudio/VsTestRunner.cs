@@ -159,7 +159,7 @@ namespace Xunit.Runner.VisualStudio
 			// before returning from this function.
 			DiscoverTests(
 				sources, loggerHelper, testPlatformContext, runSettings,
-				(source, discoverer, discoveryOptions) => new VsDiscoverySink(source, discoverer, loggerHelper, discoverySink, discoveryOptions, testPlatformContext, testCaseFilter, () => cancelled)
+				(source, discoverer, discoveryOptions) => new VsDiscoverySink(source, loggerHelper, discoverySink, discoveryOptions, testPlatformContext, testCaseFilter, () => cancelled)
 			).GetAwaiter().GetResult();
 		}
 
@@ -211,7 +211,7 @@ namespace Xunit.Runner.VisualStudio
 
 					var discoveryOptions = TestFrameworkOptions.ForDiscovery(assembly.Configuration);
 					discoveryOptions.SetIncludeSourceInformation(true);
-					if (!await DiscoverTestsInAssembly(controller, logger, testPlatformContext, runSettings, visitorFactory, visitComplete, assembly, discoveryOptions))
+					if (!await DiscoverTestsInAssembly(controller, logger, runSettings, visitorFactory, visitComplete, assembly, discoveryOptions))
 						break;
 				}
 			}
@@ -224,7 +224,6 @@ namespace Xunit.Runner.VisualStudio
 		async Task<bool> DiscoverTestsInAssembly<TVisitor>(
 			IFrontControllerDiscoverer controller,
 			LoggerHelper logger,
-			TestPlatformContext testPlatformContext,
 			RunSettings runSettings,
 			Func<string, IFrontControllerDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor> visitorFactory,
 			Action<string, IFrontControllerDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor>? visitComplete,
@@ -245,35 +244,38 @@ namespace Xunit.Runner.VisualStudio
 				var reporterMessageHandler = await GetRunnerReporter(logger, runSettings, [assembly.AssemblyFileName]).CreateMessageHandler(new VisualStudioRunnerLogger(logger), diagnosticMessageSink);
 				fileName = Path.GetFileNameWithoutExtension(assembly.AssemblyFileName);
 
-				using var visitor = visitorFactory(assembly.AssemblyFileName, controller, discoveryOptions);
-				var totalTests = 0;
-				var appDomain = assembly.Configuration.AppDomain ?? AppDomainDefaultBehavior;
-				var usingAppDomains = controller.CanUseAppDomains && appDomain != AppDomainSupport.Denied;
-				reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryStarting
+				if (!PlatformAssemblies.Contains(Path.GetFileName(assembly.AssemblyFileName)))
 				{
-					AppDomain = usingAppDomains ? AppDomainOption.Enabled : AppDomainOption.Disabled,
-					Assembly = assembly,
-					DiscoveryOptions = discoveryOptions,
-					ShadowCopy = assembly.Configuration.ShadowCopyOrDefault,
-				});
-
-				try
-				{
-					var findSettings = new FrontControllerFindSettings(discoveryOptions);
-					controller.Find(visitor, findSettings);
-
-					totalTests = visitor.Finish();
-
-					visitComplete?.Invoke(assembly.AssemblyFileName, controller, discoveryOptions, visitor);
-				}
-				finally
-				{
-					reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryFinished
+					using var visitor = visitorFactory(assembly.AssemblyFileName, controller, discoveryOptions);
+					var totalTests = 0;
+					var appDomain = assembly.Configuration.AppDomain ?? AppDomainDefaultBehavior;
+					var usingAppDomains = controller.CanUseAppDomains && appDomain != AppDomainSupport.Denied;
+					reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryStarting
 					{
+						AppDomain = usingAppDomains ? AppDomainOption.Enabled : AppDomainOption.Disabled,
 						Assembly = assembly,
 						DiscoveryOptions = discoveryOptions,
-						TestCasesToRun = totalTests,
+						ShadowCopy = assembly.Configuration.ShadowCopyOrDefault,
 					});
+
+					try
+					{
+						var findSettings = new FrontControllerFindSettings(discoveryOptions);
+						controller.Find(visitor, findSettings);
+
+						totalTests = visitor.Finish();
+
+						visitComplete?.Invoke(assembly.AssemblyFileName, controller, discoveryOptions, visitor);
+					}
+					finally
+					{
+						reporterMessageHandler.OnMessage(new TestAssemblyDiscoveryFinished
+						{
+							Assembly = assembly,
+							DiscoveryOptions = discoveryOptions,
+							TestCasesToRun = totalTests,
+						});
+					}
 				}
 			}
 			catch (Exception e)
@@ -345,7 +347,6 @@ namespace Xunit.Runner.VisualStudio
 
 		static IList<DiscoveredTestCase> GetVsTestCases(
 			string source,
-			IFrontControllerDiscoverer discoverer,
 			VsExecutionDiscoverySink visitor,
 			LoggerHelper logger,
 			TestPlatformContext testPlatformContext)
@@ -395,7 +396,7 @@ namespace Xunit.Runner.VisualStudio
 				() =>
 					tests
 						.GroupBy(testCase => testCase.Source)
-						.Select(group => AssemblyRunInfo.Create(project, runSettings, group.Key, group.ToList()))
+						.Select(group => AssemblyRunInfo.Create(project, runSettings, group.Key, [.. group]))
 						.WhereNotNull()
 						.ToList()
 			).GetAwaiter().GetResult();
@@ -513,7 +514,6 @@ namespace Xunit.Runner.VisualStudio
 					await DiscoverTestsInAssembly(
 						controller,
 						logger,
-						testPlatformContext,
 						runSettings,
 						(source, discoverer, discoveryOptions) => new VsExecutionDiscoverySink(() => cancelled),
 						(source, discoverer, discoveryOptions, visitor) =>
@@ -522,7 +522,7 @@ namespace Xunit.Runner.VisualStudio
 								foreach (var testCase in visitor.TestCases)
 									logger.LogWithSource(assemblyFileName, "Discovered [execution] test case '{0}' (ID = '{1}')", testCase.TestCaseDisplayName, testCase.TestCaseUniqueID);
 
-							assemblyDiscoveredInfo = new AssemblyDiscoveredInfo(source, GetVsTestCases(source, discoverer, visitor, logger, testPlatformContext));
+							assemblyDiscoveredInfo = new AssemblyDiscoveredInfo(source, GetVsTestCases(source, visitor, logger, testPlatformContext));
 						},
 						runInfo.Assembly,
 						discoveryOptions
@@ -649,45 +649,30 @@ namespace Xunit.Runner.VisualStudio
 			return @event;
 		}
 
-		class AssemblyDiscoveredInfo
+		class AssemblyDiscoveredInfo(
+			string assemblyFileName,
+			IList<DiscoveredTestCase> discoveredTestCases)
 		{
-			public AssemblyDiscoveredInfo(
-				string assemblyFileName,
-				IList<DiscoveredTestCase> discoveredTestCases)
-			{
-				AssemblyFileName = assemblyFileName;
-				DiscoveredTestCases = discoveredTestCases;
-			}
+			public string AssemblyFileName { get; } = assemblyFileName;
 
-			public string AssemblyFileName { get; }
-
-			public IList<DiscoveredTestCase> DiscoveredTestCases { get; }
+			public IList<DiscoveredTestCase> DiscoveredTestCases { get; } = discoveredTestCases;
 		}
 
-		class DiscoveredTestCase
+		class DiscoveredTestCase(
+			string source,
+			ITestCaseDiscovered testCase,
+			LoggerHelper logger,
+			TestPlatformContext testPlatformContext)
 		{
-			public string Name { get; }
+			public string Name { get; } = $"{testCase.TestClassName}.{testCase.TestMethodName} ({testCase.TestCaseUniqueID})";
 
-			public IEnumerable<string> TraitNames { get; }
+			public IEnumerable<string> TraitNames { get; } = testCase.Traits.Keys;
 
-			public TestCase? VSTestCase { get; }
+			public TestCase? VSTestCase { get; } = VsDiscoverySink.CreateVsTestCase(source, testCase, logger, testPlatformContext);
 
-			public TestCaseDiscovered TestCase { get; }
+			public ITestCaseDiscovered TestCase { get; } = testCase;
 
-			public string UniqueID { get; }
-
-			public DiscoveredTestCase(
-				string source,
-				TestCaseDiscovered testCase,
-				LoggerHelper logger,
-				TestPlatformContext testPlatformContext)
-			{
-				Name = $"{testCase.TestClassName}.{testCase.TestMethodName} ({testCase.TestCaseUniqueID})";
-				TestCase = testCase;
-				UniqueID = testCase.TestCaseUniqueID;
-				VSTestCase = VsDiscoverySink.CreateVsTestCase(source, testCase, logger, testPlatformContext);
-				TraitNames = testCase.Traits.Keys;
-			}
+			public string UniqueID { get; } = testCase.TestCaseUniqueID;
 		}
 	}
 }

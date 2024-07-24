@@ -8,19 +8,14 @@ namespace Xunit.Runner.VisualStudio;
 /// An implementation of <see cref="ISourceInformationProvider"/> that will provide source information
 /// when running inside of Visual Studio (via the DiaSession class).
 /// </summary>
-public sealed class VisualStudioSourceInformationProvider : ISourceInformationProvider
+/// <param name="assemblyFileName">The assembly file name.</param>
+/// <param name="diagnosticMessageSink">The message sink to send diagnostic messages to.</param>
+public sealed class VisualStudioSourceInformationProvider(
+	string assemblyFileName,
+	DiagnosticMessageSink diagnosticMessageSink) :
+	ISourceInformationProvider
 {
-	readonly DiaSessionWrapper session;
-
-	/// <summary>
-	/// Initializes a new instance of the <see cref="VisualStudioSourceInformationProvider" /> class.
-	/// </summary>
-	/// <param name="assemblyFileName">The assembly file name.</param>
-	/// <param name="diagnosticMessageSink">The message sink to send diagnostic messages to.</param>
-	public VisualStudioSourceInformationProvider(
-		string assemblyFileName,
-		DiagnosticMessageSink diagnosticMessageSink) =>
-			session = new DiaSessionWrapper(assemblyFileName, diagnosticMessageSink);
+	readonly DiaSessionWrapper session = new(assemblyFileName, diagnosticMessageSink);
 
 	/// <inheritdoc/>
 	public (string? sourceFile, int? sourceLine) GetSourceInformation(

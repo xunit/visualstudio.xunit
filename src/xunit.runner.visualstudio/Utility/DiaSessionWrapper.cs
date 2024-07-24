@@ -2,7 +2,7 @@ using System;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Navigation;
 using Xunit.Internal;
-using Xunit.Sdk;
+using Xunit.Runner.Common;
 
 namespace Xunit.Runner.VisualStudio.Utility;
 

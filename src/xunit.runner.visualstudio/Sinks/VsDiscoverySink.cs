@@ -4,10 +4,10 @@ using System.Linq.Expressions;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Xunit.Runner.Common;
 using Xunit.Sdk;
+using VsTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
+using VsTestCaseDiscoverySink = Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter.ITestCaseDiscoverySink;
 
 #if NETCOREAPP
 using System.Reflection;
@@ -21,24 +21,23 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 	const int MaximumDisplayNameLength = 447;
 	const int TestCaseBatchSize = 100;
 
-	static readonly Action<TestCase, string, string>? addTraitThunk = GetAddTraitThunk();
+	static readonly Action<VsTestCase, string, string>? addTraitThunk = GetAddTraitThunk();
 	static readonly Uri uri = new(Constants.ExecutorUri);
 
 	readonly Func<bool> cancelThunk;
 	readonly ITestFrameworkDiscoveryOptions discoveryOptions;
-	readonly ITestCaseDiscoverySink discoverySink;
+	readonly VsTestCaseDiscoverySink discoverySink;
 	readonly DiscoveryEventSink discoveryEventSink = new();
 	readonly LoggerHelper logger;
 	readonly string source;
-	readonly List<TestCaseDiscovered> testCaseBatch = [];
+	readonly List<ITestCaseDiscovered> testCaseBatch = [];
 	readonly TestPlatformContext testPlatformContext;
 	readonly TestCaseFilter testCaseFilter;
 
 	public VsDiscoverySink(
 		string source,
-		IFrontControllerDiscoverer discoverer,
 		LoggerHelper logger,
-		ITestCaseDiscoverySink discoverySink,
+		VsTestCaseDiscoverySink discoverySink,
 		ITestFrameworkDiscoveryOptions discoveryOptions,
 		TestPlatformContext testPlatformContext,
 		TestCaseFilter testCaseFilter,
@@ -63,9 +62,9 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 	public void Dispose() =>
 		Finished.Dispose();
 
-	public static TestCase? CreateVsTestCase(
+	public static VsTestCase? CreateVsTestCase(
 		string source,
-		TestCaseDiscovered testCase,
+		ITestCaseDiscovered testCase,
 		LoggerHelper logger,
 		TestPlatformContext testPlatformContext)
 	{
@@ -78,7 +77,7 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 		try
 		{
 			var fqTestMethodName = $"{testCase.TestClassName}.{testCase.TestMethodName}";
-			var result = new TestCase(fqTestMethodName, uri, source) { DisplayName = Escape(testCase.TestCaseDisplayName) };
+			var result = new VsTestCase(fqTestMethodName, uri, source) { DisplayName = Escape(testCase.TestCaseDisplayName) };
 			result.SetPropertyValue(VsTestRunner.TestCaseUniqueIDProperty, testCase.TestCaseUniqueID);
 
 			if (testPlatformContext.DesignMode)
@@ -128,11 +127,11 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 		return TotalTests;
 	}
 
-	static Action<TestCase, string, string>? GetAddTraitThunk()
+	static Action<VsTestCase, string, string>? GetAddTraitThunk()
 	{
 		try
 		{
-			var testCaseType = typeof(TestCase);
+			var testCaseType = typeof(VsTestCase);
 			var stringType = typeof(string);
 
 #if NETCOREAPP
@@ -144,9 +143,9 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 				return null;
 
 #if NETCOREAPP
-			var method = property.PropertyType.GetRuntimeMethod("Add", new[] { typeof(string), typeof(string) });
+			var method = property.PropertyType.GetRuntimeMethod("Add", [typeof(string), typeof(string)]);
 #else
-			var method = property.PropertyType.GetMethod("Add", new[] { typeof(string), typeof(string) });
+			var method = property.PropertyType.GetMethod("Add", [typeof(string), typeof(string)]);
 #endif
 			if (method is null)
 				return null;
@@ -155,9 +154,9 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 			var nameParam = Expression.Parameter(stringType, "name");
 			var valueParam = Expression.Parameter(stringType, "value");
 			var instance = Expression.Property(thisParam, property);
-			var body = Expression.Call(instance, method, new[] { nameParam, valueParam });
+			var body = Expression.Call(instance, method, [nameParam, valueParam]);
 
-			return Expression.Lambda<Action<TestCase, string, string>>(body, thisParam, nameParam, valueParam).Compile();
+			return Expression.Lambda<Action<VsTestCase, string, string>>(body, thisParam, nameParam, valueParam).Compile();
 		}
 		catch (Exception)
 		{
@@ -171,7 +170,7 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 			args.Stop();
 	}
 
-	void HandleTestCaseDiscoveredMessage(MessageHandlerArgs<TestCaseDiscovered> args)
+	void HandleTestCaseDiscoveredMessage(MessageHandlerArgs<ITestCaseDiscovered> args)
 	{
 		testCaseBatch.Add(args.Message);
 		TotalTests++;
@@ -182,7 +181,7 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 		HandleCancellation(args);
 	}
 
-	void HandleDiscoveryCompleteMessage(MessageHandlerArgs<DiscoveryComplete> args)
+	void HandleDiscoveryCompleteMessage(MessageHandlerArgs<IDiscoveryComplete> args)
 	{
 		try
 		{
@@ -198,7 +197,7 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 		HandleCancellation(args);
 	}
 
-	bool IMessageSink.OnMessage(MessageSinkMessage message) =>
+	bool IMessageSink.OnMessage(IMessageSinkMessage message) =>
 		discoveryEventSink.OnMessage(message);
 
 	private void SendExistingTestCases()
