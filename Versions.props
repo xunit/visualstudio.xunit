@@ -3,6 +3,7 @@
   <PropertyGroup>
     <ILRepackVersion>2.0.33</ILRepackVersion>
     <MicrosoftNetCoreAppRefVersion>6.0.11</MicrosoftNetCoreAppRefVersion>
+    <MicrosoftNetFrameworkReferenceAssembliesVersion>1.0.3</MicrosoftNetFrameworkReferenceAssembliesVersion>
     <MicrosoftNetTestSdkVersion>17.10.0</MicrosoftNetTestSdkVersion>
     <MicrosoftSourceLinkGitHubVersion>8.0.0</MicrosoftSourceLinkGitHubVersion>
     <MicrosoftTestPlatformObjectModelVersion>$(MicrosoftNetTestSdkVersion)</MicrosoftTestPlatformObjectModelVersion>
