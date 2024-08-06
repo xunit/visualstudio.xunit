@@ -13,23 +13,24 @@ namespace Xunit.Runner.VisualStudio;
 public sealed class VisualStudioSourceInformationProvider(
 	string assemblyFileName,
 	DiagnosticMessageSink diagnosticMessageSink) :
-	ISourceInformationProvider
+		ISourceInformationProvider
 {
+	static readonly SourceInformation nullSourceInformation = new(null, null);
 	readonly DiaSessionWrapper session = new(assemblyFileName, diagnosticMessageSink);
 
 	/// <inheritdoc/>
-	public (string? sourceFile, int? sourceLine) GetSourceInformation(
+	public SourceInformation GetSourceInformation(
 		string? testClassName,
 		string? testMethodName)
 	{
 		if (testClassName is null || testMethodName is null)
-			return (null, null);
+			return nullSourceInformation;
 
 		var navData = session.GetNavigationData(testClassName, testMethodName);
 		if (navData is null || navData.FileName is null)
-			return (null, null);
+			return nullSourceInformation;
 
-		return (navData.FileName, navData.MinLineNumber);
+		return new(navData.FileName, navData.MinLineNumber);
 	}
 
 	/// <inheritdoc/>
