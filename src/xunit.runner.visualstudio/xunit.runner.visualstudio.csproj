@@ -5,7 +5,7 @@
     <AssemblyName>xunit.runner.visualstudio.testadapter</AssemblyName>
     <AssemblyTitle>xUnit.net Runner for Visual Studio ($(TargetFramework))</AssemblyTitle>
     <CopyLocalLockFileAssemblies Condition=" '$(TargetFramework)' == 'net6.0' ">true</CopyLocalLockFileAssemblies>
-    <NoWarn>$(NoWarn);CS0436</NoWarn>
+    <NoWarn>$(NoWarn);CS0436;NU1505</NoWarn>
     <PackageId>$(MSBuildProjectName)</PackageId>
     <RootNamespace>Xunit.Runner.VisualStudio</RootNamespace>
     <TargetFrameworks>net472;net6.0</TargetFrameworks>

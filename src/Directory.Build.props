@@ -2,6 +2,7 @@
   <Import Project="..\Versions.props" />
 
   <PropertyGroup>
+    <AnnotatedReferenceAssemblyVersion>$(MicrosoftNetCoreAppRefVersion)</AnnotatedReferenceAssemblyVersion>
     <DebugType>embedded</DebugType>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <LangVersion>12.0</LangVersion>
