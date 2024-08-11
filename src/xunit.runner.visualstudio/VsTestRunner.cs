@@ -119,6 +119,9 @@ namespace Xunit.Runner.VisualStudio
 			"xunit.v3.runner.utility.netstandard20.dll",
 		};
 
+		public static TestProperty TestCaseExplicitProperty { get; } =
+			TestProperty.Register("XunitTestCaseExplicit", "xUnit.net Test Case Explicit Flag", typeof(bool), typeof(VsTestRunner));
+
 		public static TestProperty TestCaseSerializationProperty { get; } =
 			TestProperty.Register("XunitTestCaseSerialization", "xUnit.net Test Case Serialization", typeof(string), typeof(VsTestRunner));
 
@@ -382,6 +385,7 @@ namespace Xunit.Runner.VisualStudio
 			var logger = new LoggerHelper(frameworkHandle, stopwatch);
 			var project = new XunitProject();
 			var runSettings = RunSettings.Parse(runContext?.RunSettings?.SettingsXml);
+			var runExplicitTests = tests.All(testCase => testCase.GetPropertyValue(TestCaseExplicitProperty, false));
 
 			using var _ = AssemblyHelper.SubscribeResolveForAssembly(typeof(VsTestRunner), new DiagnosticMessageSink(logger, showInternalDiagnostics: runSettings.InternalDiagnosticMessages ?? false));
 
@@ -396,7 +400,7 @@ namespace Xunit.Runner.VisualStudio
 				() =>
 					tests
 						.GroupBy(testCase => testCase.Source)
-						.Select(group => AssemblyRunInfo.Create(project, runSettings, group.Key, [.. group]))
+						.Select(group => AssemblyRunInfo.Create(project, runSettings, group.Key, [.. group], runExplicitTests))
 						.WhereNotNull()
 						.ToList()
 			).GetAwaiter().GetResult();

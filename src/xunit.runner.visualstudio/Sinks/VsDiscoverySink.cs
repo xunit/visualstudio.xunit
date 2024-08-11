@@ -79,6 +79,7 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 			var fqTestMethodName = $"{testCase.TestClassName}.{testCase.TestMethodName}";
 			var result = new VsTestCase(fqTestMethodName, uri, source) { DisplayName = Escape(testCase.TestCaseDisplayName) };
 			result.SetPropertyValue(VsTestRunner.TestCaseUniqueIDProperty, testCase.TestCaseUniqueID);
+			result.SetPropertyValue(VsTestRunner.TestCaseExplicitProperty, testCase.Explicit);
 
 			if (testPlatformContext.DesignMode)
 				result.SetPropertyValue(VsTestRunner.TestCaseSerializationProperty, testCase.Serialization);
