@@ -41,4 +41,7 @@ public class VisualStudioRunnerLogger(LoggerHelper loggerHelper) :
 	{
 		loggerHelper.LogWarning("{0}", message);
 	}
+
+	public void WaitForAcknowledgment()
+	{ }
 }

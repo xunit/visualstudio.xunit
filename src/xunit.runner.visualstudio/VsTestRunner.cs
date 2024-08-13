@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using Xunit.Internal;
 using Xunit.Runner.Common;
 using Xunit.Sdk;
+using Xunit.v3;
 
 namespace Xunit.Runner.VisualStudio
 {
@@ -504,8 +505,13 @@ namespace Xunit.Runner.VisualStudio
 				var diagnosticSink = new DiagnosticMessageSink(logger, assemblyDisplayName, runInfo.Assembly.Configuration.DiagnosticMessagesOrDefault, runInfo.Assembly.Configuration.InternalDiagnosticMessagesOrDefault);
 				var discoveryOptions = TestFrameworkOptions.ForDiscovery(runInfo.Assembly.Configuration);
 
+				var frameworkHandle2 = frameworkHandle as IFrameworkHandle2;
+				var testProcessLauncher = default(ITestProcessLauncher);
+				if (runContext.IsBeingDebugged && frameworkHandle2 is not null)
+					testProcessLauncher = new DebuggerProcessLauncher(frameworkHandle2);
+
 				await using var sourceInformationProvider = new VisualStudioSourceInformationProvider(assemblyFileName, diagnosticSink);
-				await using var controller = XunitFrontController.Create(runInfo.Assembly, sourceInformationProvider, diagnosticSink);
+				await using var controller = XunitFrontController.Create(runInfo.Assembly, sourceInformationProvider, diagnosticSink, testProcessLauncher);
 				if (controller is null)
 					return;
 
@@ -605,14 +611,10 @@ namespace Xunit.Runner.VisualStudio
 				var resultsSink = new ExecutionSink(runInfo.Assembly, discoveryOptions, executionOptions, appDomainOption, shadowCopy, vsExecutionSink, executionSinkOptions);
 
 				var frontControllerSettings = new FrontControllerRunSettings(executionOptions, testCaseSerializations);
-				var frameworkHandle2 = frameworkHandle as IFrameworkHandle2;
-				if (runContext.IsBeingDebugged && frameworkHandle2 is not null)
+				if (testProcessLauncher is not null)
 					frontControllerSettings.LaunchOptions.WaitForDebugger = true;
 
-				var processId = controller.Run(resultsSink, frontControllerSettings);
-				if (processId.HasValue && frameworkHandle2 is not null)
-					frameworkHandle2.AttachDebuggerToProcess(processId.Value);
-
+				controller.Run(resultsSink, frontControllerSettings);
 				resultsSink.Finished.WaitOne();
 
 				if ((resultsSink.ExecutionSummary.Failed != 0 || resultsSink.ExecutionSummary.Errors != 0) && executionOptions.GetStopOnTestFailOrDefault())
