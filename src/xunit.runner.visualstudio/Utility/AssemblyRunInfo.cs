@@ -8,6 +8,7 @@ namespace Xunit.Runner.VisualStudio;
 public class AssemblyRunInfo
 {
 	AssemblyRunInfo(
+		LoggerHelper logger,
 		XunitProject project,
 		RunSettings runSettings,
 		string assemblyFileName,
@@ -18,8 +19,14 @@ public class AssemblyRunInfo
 		Assembly = new XunitProjectAssembly(project, assemblyFileName, assemblyMetadata);
 		TestCases = testCases;
 
+		var configWarnings = new List<string>();
+		ConfigReader.Load(Assembly.Configuration, Assembly.AssemblyFileName, Assembly.ConfigFileName, configWarnings);
 		runSettings.CopyTo(Assembly.Configuration);
+
 		Assembly.Configuration.ExplicitOption = runExplicitTests ? ExplicitOption.On : ExplicitOption.Off;
+
+		foreach (var warning in configWarnings)
+			logger.LogWarning("{0}", warning);
 	}
 
 	public XunitProjectAssembly Assembly { get; }
@@ -27,6 +34,7 @@ public class AssemblyRunInfo
 	public IList<TestCase>? TestCases { get; }
 
 	public static AssemblyRunInfo? Create(
+		LoggerHelper logger,
 		XunitProject project,
 		RunSettings runSettings,
 		string assemblyFileName,
@@ -37,6 +45,6 @@ public class AssemblyRunInfo
 		if (metadata is null || metadata.XunitVersion == 0)
 			return null;
 
-		return new(project, runSettings, assemblyFileName, metadata, testCases, runExplicitTests);
+		return new(logger, project, runSettings, assemblyFileName, metadata, testCases, runExplicitTests);
 	}
 }

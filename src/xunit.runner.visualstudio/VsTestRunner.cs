@@ -400,7 +400,7 @@ namespace Xunit.Runner.VisualStudio
 				() =>
 					tests
 						.GroupBy(testCase => testCase.Source)
-						.Select(group => AssemblyRunInfo.Create(project, runSettings, group.Key, [.. group], runExplicitTests))
+						.Select(group => AssemblyRunInfo.Create(logger, project, runSettings, group.Key, [.. group], runExplicitTests))
 						.WhereNotNull()
 						.ToList()
 			).GetAwaiter().GetResult();
@@ -432,7 +432,7 @@ namespace Xunit.Runner.VisualStudio
 			// before returning from this function.
 			RunTests(
 				runContext, frameworkHandle, logger, testPlatformContext, runSettings,
-				() => sources.Select(source => AssemblyRunInfo.Create(project, runSettings, Path.GetFullPath(source))).WhereNotNull().ToList()
+				() => sources.Select(source => AssemblyRunInfo.Create(logger, project, runSettings, Path.GetFullPath(source))).WhereNotNull().ToList()
 			).GetAwaiter().GetResult();
 		}
 
