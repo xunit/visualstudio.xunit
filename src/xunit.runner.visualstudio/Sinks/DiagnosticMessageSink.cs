@@ -1,4 +1,3 @@
-using System;
 using Xunit.Runner.Common;
 
 namespace Xunit.Runner.VisualStudio;
@@ -18,17 +17,4 @@ public class DiagnosticMessageSink : DiagnosticEventSink
 		if (showInternalDiagnostics)
 			InternalDiagnosticMessageEvent += args => log.Log("{0}", args.Message.Message);
 	}
-
-	[Obsolete("Would like to see this collapsed")]
-	public static DiagnosticMessageSink ForDiagnostics(
-		LoggerHelper log,
-		string assemblyDisplayName,
-		bool showDiagnostics) =>
-			new(log, assemblyDisplayName, showDiagnostics, showInternalDiagnostics: false);
-
-	[Obsolete("Would like to see this collapsed")]
-	public static DiagnosticMessageSink ForInternalDiagnostics(
-		LoggerHelper log,
-		bool showInternalDiagnostics) =>
-			new(log, assemblyDisplayName: null, showDiagnostics: false, showInternalDiagnostics);
 }
