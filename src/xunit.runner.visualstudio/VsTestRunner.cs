@@ -496,14 +496,15 @@ namespace Xunit.Runner.VisualStudio
 				if (assemblyFileName is null)
 					return;
 
-				using var _ = AssemblyHelper.SubscribeResolveForAssembly(assemblyFileName, new DiagnosticMessageSink(logger, showDiagnostics: runInfo.Assembly.Configuration.DiagnosticMessagesOrDefault, showInternalDiagnostics: runInfo.Assembly.Configuration.DiagnosticMessagesOrDefault));
+				var configuration = runInfo.Assembly.Configuration;
+
+				using var _ = AssemblyHelper.SubscribeResolveForAssembly(assemblyFileName, new DiagnosticMessageSink(logger, showDiagnostics: configuration.DiagnosticMessagesOrDefault, showInternalDiagnostics: configuration.DiagnosticMessagesOrDefault));
 
 				assemblyDisplayName = Path.GetFileNameWithoutExtension(assemblyFileName);
-				var configuration = runInfo.Assembly.Configuration;
 				var longRunningSeconds = configuration.LongRunningTestSecondsOrDefault;
 
-				var diagnosticSink = new DiagnosticMessageSink(logger, assemblyDisplayName, runInfo.Assembly.Configuration.DiagnosticMessagesOrDefault, runInfo.Assembly.Configuration.InternalDiagnosticMessagesOrDefault);
-				var discoveryOptions = TestFrameworkOptions.ForDiscovery(runInfo.Assembly.Configuration);
+				var diagnosticSink = new DiagnosticMessageSink(logger, assemblyDisplayName, configuration.DiagnosticMessagesOrDefault, configuration.InternalDiagnosticMessagesOrDefault);
+				var discoveryOptions = TestFrameworkOptions.ForDiscovery(configuration);
 
 				var frameworkHandle2 = frameworkHandle as IFrameworkHandle2;
 				var testProcessLauncher = default(ITestProcessLauncher);
@@ -517,7 +518,7 @@ namespace Xunit.Runner.VisualStudio
 
 				var testCasesMap = new Dictionary<string, TestCase>();
 				var testCaseSerializations = new List<string>();
-				if (runInfo.TestCases is null || !runInfo.TestCases.Any())
+				if (runInfo.TestCases is null || runInfo.TestCases.Count == 0)
 				{
 					// Discover tests
 					var assemblyDiscoveredInfo = default(AssemblyDiscoveredInfo);
@@ -528,7 +529,7 @@ namespace Xunit.Runner.VisualStudio
 						(source, discoverer, discoveryOptions) => new VsExecutionDiscoverySink(() => cancelled),
 						(source, discoverer, discoveryOptions, visitor) =>
 						{
-							if (discoveryOptions.GetInternalDiagnosticMessagesOrDefault())
+							if (configuration.InternalDiagnosticMessagesOrDefault)
 								foreach (var testCase in visitor.TestCases)
 									logger.LogWithSource(assemblyFileName, "Discovered [execution] test case '{0}' (ID = '{1}')", testCase.TestCaseDisplayName, testCase.TestCaseUniqueID);
 
@@ -538,10 +539,10 @@ namespace Xunit.Runner.VisualStudio
 						discoveryOptions
 					);
 
-					if (assemblyDiscoveredInfo is null || assemblyDiscoveredInfo.DiscoveredTestCases is null || !assemblyDiscoveredInfo.DiscoveredTestCases.Any())
+					if (assemblyDiscoveredInfo is null || assemblyDiscoveredInfo.DiscoveredTestCases is null || assemblyDiscoveredInfo.DiscoveredTestCases.Count == 0)
 					{
 						if (configuration.InternalDiagnosticMessagesOrDefault)
-							logger.LogWarning("Skipping '{0}' since no tests were found during discovery [execution].", assemblyFileName);
+							logger.LogWarning("Skipping '{0}': no tests were found during pre-execution discovery", assemblyFileName);
 
 						return;
 					}
@@ -572,7 +573,7 @@ namespace Xunit.Runner.VisualStudio
 						var uniqueID = testCase.GetPropertyValue<string>(TestCaseUniqueIDProperty, null);
 						var serialization = testCase.GetPropertyValue<string>(TestCaseSerializationProperty, null);
 
-						if (discoveryOptions.GetInternalDiagnosticMessagesOrDefault())
+						if (configuration.InternalDiagnosticMessagesOrDefault)
 							logger.LogWithSource(assemblyFileName, "Selective execution requested for test case ID '{0}' (serialization = '{1}')", uniqueID ?? "(null)", serialization ?? "(null)");
 
 						if (uniqueID is null)
@@ -590,8 +591,8 @@ namespace Xunit.Runner.VisualStudio
 				}
 
 				// Execute tests
-				var executionOptions = TestFrameworkOptions.ForExecution(runInfo.Assembly.Configuration);
-				if (!runInfo.Assembly.Configuration.ParallelizeTestCollectionsOrDefault)
+				var executionOptions = TestFrameworkOptions.ForExecution(configuration);
+				if (!configuration.ParallelizeTestCollectionsOrDefault)
 				{
 					executionOptions.SetSynchronousMessageReporting(true);
 					executionOptions.SetDisableParallelization(true);
@@ -605,9 +606,9 @@ namespace Xunit.Runner.VisualStudio
 					LongRunningTestTime = TimeSpan.FromSeconds(longRunningSeconds),
 				};
 
-				var appDomain = runInfo.Assembly.Configuration.AppDomain ?? AppDomainDefaultBehavior;
+				var appDomain = configuration.AppDomain ?? AppDomainDefaultBehavior;
 				var appDomainOption = controller.CanUseAppDomains && appDomain != AppDomainSupport.Denied ? AppDomainOption.Enabled : AppDomainOption.Disabled;
-				bool shadowCopy = runInfo.Assembly.Configuration.ShadowCopyOrDefault;
+				bool shadowCopy = configuration.ShadowCopyOrDefault;
 				var resultsSink = new ExecutionSink(runInfo.Assembly, discoveryOptions, executionOptions, appDomainOption, shadowCopy, vsExecutionSink, executionSinkOptions);
 
 				var frontControllerSettings = new FrontControllerRunSettings(executionOptions, testCaseSerializations);
