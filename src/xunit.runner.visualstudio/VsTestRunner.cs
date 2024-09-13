@@ -590,6 +590,15 @@ namespace Xunit.Runner.VisualStudio
 					}
 				}
 
+				// https://github.com/xunit/visualstudio.xunit/issues/417
+				if (testCaseSerializations.Count == 0)
+				{
+					if (configuration.InternalDiagnosticMessagesOrDefault)
+						logger.LogWarning("Skipping '{0}': no tests passed the filter", assemblyFileName);
+
+					return;
+				}
+
 				// Execute tests
 				var executionOptions = TestFrameworkOptions.ForExecution(configuration);
 				if (!configuration.ParallelizeTestCollectionsOrDefault)
