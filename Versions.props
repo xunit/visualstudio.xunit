@@ -4,15 +4,15 @@
     <ILRepackVersion>2.0.34</ILRepackVersion>
     <MicrosoftNetCoreAppRefVersion>6.0.32</MicrosoftNetCoreAppRefVersion>
     <MicrosoftNetFrameworkReferenceAssembliesVersion>1.0.3</MicrosoftNetFrameworkReferenceAssembliesVersion>
-    <MicrosoftNetTestSdkVersion>17.10.0</MicrosoftNetTestSdkVersion>
+    <MicrosoftNetTestSdkVersion>17.11.1</MicrosoftNetTestSdkVersion>
     <MicrosoftSourceLinkGitHubVersion>8.0.0</MicrosoftSourceLinkGitHubVersion>
     <MicrosoftTestPlatformObjectModelVersion>$(MicrosoftNetTestSdkVersion)</MicrosoftTestPlatformObjectModelVersion>
-    <NerdbankGitVersioningVersion>3.6.139</NerdbankGitVersioningVersion>
+    <NerdbankGitVersioningVersion>3.6.143</NerdbankGitVersioningVersion>
     <NSubstituteVersion>5.1.0</NSubstituteVersion>
     <TunnelVisionLabsReferenceAssemblyAnnotatorVersion>1.0.0-alpha.160</TunnelVisionLabsReferenceAssemblyAnnotatorVersion>
     <XunitAnalyzersVersion>1.16.0</XunitAnalyzersVersion>
-    <XunitV2Version>2.9.1-pre.10</XunitV2Version>
-    <XunitV3Version>0.3.0-pre.17</XunitV3Version>
+    <XunitV2Version>2.9.1-pre.11</XunitV2Version>
+    <XunitV3Version>0.4.0-pre.10</XunitV3Version>
   </PropertyGroup>
 
 </Project>
