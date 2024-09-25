@@ -120,6 +120,12 @@ namespace Xunit.Runner.VisualStudio
 			"xunit.v3.runner.utility.netstandard20.dll",
 		};
 
+		public static TestProperty ManagedMethodProperty { get; } =
+			TestProperty.Register("TestCase.ManagedMethod", "ManagedMethod", string.Empty, string.Empty, typeof(string), x => !string.IsNullOrWhiteSpace(x as string), TestPropertyAttributes.Hidden, typeof(TestCase));
+
+		public static TestProperty ManagedTypeProperty { get; } =
+			TestProperty.Register("TestCase.ManagedType", "ManagedType", string.Empty, string.Empty, typeof(string), x => !string.IsNullOrWhiteSpace(x as string), TestPropertyAttributes.Hidden, typeof(TestCase));
+
 		public static TestProperty TestCaseExplicitProperty { get; } =
 			TestProperty.Register("XunitTestCaseExplicit", "xUnit.net Test Case Explicit Flag", typeof(bool), typeof(VsTestRunner));
 
@@ -208,8 +214,7 @@ namespace Xunit.Runner.VisualStudio
 					var assemblyDisplayName = Path.GetFileNameWithoutExtension(assembly.AssemblyFileName);
 					var diagnosticMessageSink = new DiagnosticMessageSink(logger, assemblyDisplayName, assembly.Configuration.DiagnosticMessagesOrDefault, assembly.Configuration.InternalDiagnosticMessagesOrDefault);
 
-					await using var sourceInformationProvider = new VisualStudioSourceInformationProvider(assembly.AssemblyFileName, diagnosticMessageSink);
-					await using var controller = XunitFrontController.Create(assembly, sourceInformationProvider, diagnosticMessageSink);
+					await using var controller = XunitFrontController.Create(assembly, null, diagnosticMessageSink);
 					if (controller is null)
 						return;
 
@@ -511,8 +516,7 @@ namespace Xunit.Runner.VisualStudio
 				if (runContext.IsBeingDebugged && frameworkHandle2 is not null)
 					testProcessLauncher = new DebuggerProcessLauncher(frameworkHandle2);
 
-				await using var sourceInformationProvider = new VisualStudioSourceInformationProvider(assemblyFileName, diagnosticSink);
-				await using var controller = XunitFrontController.Create(runInfo.Assembly, sourceInformationProvider, diagnosticSink, testProcessLauncher);
+				await using var controller = XunitFrontController.Create(runInfo.Assembly, null, diagnosticSink, testProcessLauncher);
 				if (controller is null)
 					return;
 

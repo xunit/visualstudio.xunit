@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Security.Cryptography;
 using System.Text;
@@ -78,8 +80,22 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 		{
 			var fqTestMethodName = $"{testCase.TestClassName}.{testCase.TestMethodName}";
 			var result = new VsTestCase(fqTestMethodName, uri, source) { DisplayName = Escape(testCase.TestCaseDisplayName) };
+
+			// TODO: Waiting for feedback from https://github.com/xunit/xunit/issues/3023 to understand how this actually supposed
+			// to be done. Right now it appears that:
+			//   (a) method lookups across projects absolutely requires parameter types
+			//   (b) method lookups in the same project do not require parameter types
+			//   (c) generic parameter types break lookup in both cases
+			// which leads us to the convoluted logic here, which is that we'll add parameter types unless they contain generics, in
+			// the hopes that that gives us the best possible coverage.
+			var managedMethodName = testCase.TestMethodName;
+			if (testCase.TestMethodParameterTypes is not null && testCase.TestMethodParameterTypes.Length > 0 && !testCase.TestMethodParameterTypes.Any(t => t.Contains('`')))
+				managedMethodName = string.Format(CultureInfo.InvariantCulture, "{0}({1})", managedMethodName, string.Join(",", testCase.TestMethodParameterTypes));
+
 			result.SetPropertyValue(VsTestRunner.TestCaseUniqueIDProperty, testCase.TestCaseUniqueID);
 			result.SetPropertyValue(VsTestRunner.TestCaseExplicitProperty, testCase.Explicit);
+			result.SetPropertyValue(VsTestRunner.ManagedTypeProperty, testCase.TestClassName);
+			result.SetPropertyValue(VsTestRunner.ManagedMethodProperty, managedMethodName);
 
 			if (testPlatformContext.DesignMode)
 				result.SetPropertyValue(VsTestRunner.TestCaseSerializationProperty, testCase.Serialization);
