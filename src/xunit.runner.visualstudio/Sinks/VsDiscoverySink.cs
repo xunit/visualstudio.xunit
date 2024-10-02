@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Security.Cryptography;
 using System.Text;
@@ -89,8 +88,8 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 			// which leads us to the convoluted logic here, which is that we'll add parameter types unless they contain generics, in
 			// the hopes that that gives us the best possible coverage.
 			var managedMethodName = testCase.TestMethodName;
-			if (testCase.TestMethodParameterTypes is not null && testCase.TestMethodParameterTypes.Length > 0 && !testCase.TestMethodParameterTypes.Any(t => t.Contains('`')))
-				managedMethodName = string.Format(CultureInfo.InvariantCulture, "{0}({1})", managedMethodName, string.Join(",", testCase.TestMethodParameterTypes));
+			if (testCase.TestMethodParameterTypesVSTest is not null && testCase.TestMethodParameterTypesVSTest.Length > 0)
+				managedMethodName = string.Format(CultureInfo.InvariantCulture, "{0}({1})", managedMethodName, string.Join(",", testCase.TestMethodParameterTypesVSTest));
 
 			result.SetPropertyValue(VsTestRunner.TestCaseUniqueIDProperty, testCase.TestCaseUniqueID);
 			result.SetPropertyValue(VsTestRunner.TestCaseExplicitProperty, testCase.Explicit);
