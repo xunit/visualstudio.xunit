@@ -23,7 +23,9 @@ public class AssemblyRunInfo
 		ConfigReader.Load(Assembly.Configuration, Assembly.AssemblyFileName, Assembly.ConfigFileName, configWarnings);
 		runSettings.CopyTo(Assembly.Configuration);
 
-		Assembly.Configuration.ExplicitOption = runExplicitTests ? ExplicitOption.On : ExplicitOption.Off;
+		// The Test Explorer UI doesn't give the user the ability to specify this, so if we haven't come along
+		// and set it via the command line, we'll use our auto-calculation based on what we think the user wants
+		Assembly.Configuration.ExplicitOption ??= runExplicitTests ? ExplicitOption.On : ExplicitOption.Off;
 
 		foreach (var warning in configWarnings)
 			logger.LogWarning("{0}", warning);

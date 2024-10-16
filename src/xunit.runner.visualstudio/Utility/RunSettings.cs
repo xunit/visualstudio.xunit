@@ -12,6 +12,7 @@ public class RunSettings
 	public string? Culture { get; set; }
 	public bool DesignMode { get; set; } = false;
 	public bool? DiagnosticMessages { get; set; }
+	public ExplicitOption? Explicit { get; set; }
 	public bool? FailSkips { get; set; }
 	public bool? FailWarns { get; set; }
 	public bool? InternalDiagnosticMessages { get; set; }
@@ -44,6 +45,8 @@ public class RunSettings
 			};
 		if (DiagnosticMessages.HasValue)
 			configuration.DiagnosticMessages = DiagnosticMessages;
+		if (Explicit.HasValue)
+			configuration.ExplicitOption = Explicit;
 		if (FailSkips.HasValue)
 			configuration.FailSkips = FailSkips;
 		if (FailWarns.HasValue)
@@ -101,6 +104,10 @@ public class RunSettings
 						var diagnosticMessagesString = xunitElement.Element(Constants.Xunit.DiagnosticMessages)?.Value;
 						if (bool.TryParse(diagnosticMessagesString, out var diagnosticMessages))
 							result.DiagnosticMessages = diagnosticMessages;
+
+						var explicitString = xunitElement.Element(Constants.Xunit.Explicit)?.Value;
+						if (Enum.TryParse<ExplicitOption>(explicitString, ignoreCase: true, out var @explicit))
+							result.Explicit = @explicit;
 
 						var failSkipsString = xunitElement.Element(Constants.Xunit.FailSkips)?.Value;
 						if (bool.TryParse(failSkipsString, out var failSkips))
@@ -258,6 +265,7 @@ public class RunSettings
 			public const string AppDomain = nameof(AppDomain);
 			public const string Culture = nameof(Culture);
 			public const string DiagnosticMessages = nameof(DiagnosticMessages);
+			public const string Explicit = nameof(Explicit);
 			public const string FailSkips = nameof(FailSkips);
 			public const string FailWarns = nameof(FailWarns);
 			public const string InternalDiagnosticMessages = nameof(InternalDiagnosticMessages);
