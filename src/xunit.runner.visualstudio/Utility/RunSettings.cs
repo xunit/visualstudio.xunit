@@ -9,9 +9,11 @@ namespace Xunit.Runner.VisualStudio;
 public class RunSettings
 {
 	public AppDomainSupport? AppDomain { get; set; }
+	public string? Culture { get; set; }
 	public bool DesignMode { get; set; } = false;
 	public bool? DiagnosticMessages { get; set; }
 	public bool? FailSkips { get; set; }
+	public bool? FailWarns { get; set; }
 	public bool? InternalDiagnosticMessages { get; set; }
 	public int? LongRunningTestSeconds { get; set; }
 	public int? MaxParallelThreads { get; set; }
@@ -23,6 +25,7 @@ public class RunSettings
 	public bool? ParallelizeTestCollections { get; set; }
 	public bool? PreEnumerateTheories { get; set; }
 	public string? ReporterSwitch { get; set; }
+	public int? Seed { get; set; }
 	public bool? ShadowCopy { get; set; }
 	public bool? ShowLiveOutput { get; set; }
 	public bool? StopOnFail { get; set; }
@@ -32,10 +35,19 @@ public class RunSettings
 	{
 		if (AppDomain.HasValue)
 			configuration.AppDomain = AppDomain;
+		if (Culture is not null)
+			configuration.Culture = Culture.ToUpperInvariant() switch
+			{
+				"DEFAULT" => null,
+				"INVARIANT" => string.Empty,
+				_ => Culture,
+			};
 		if (DiagnosticMessages.HasValue)
 			configuration.DiagnosticMessages = DiagnosticMessages;
 		if (FailSkips.HasValue)
 			configuration.FailSkips = FailSkips;
+		if (FailWarns.HasValue)
+			configuration.FailTestsWithWarnings = FailWarns;
 		if (InternalDiagnosticMessages.HasValue)
 			configuration.InternalDiagnosticMessages = InternalDiagnosticMessages;
 		if (LongRunningTestSeconds.HasValue)
@@ -54,6 +66,8 @@ public class RunSettings
 			configuration.ParallelizeTestCollections = ParallelizeTestCollections;
 		if (PreEnumerateTheories.HasValue)
 			configuration.PreEnumerateTheories = PreEnumerateTheories;
+		if (Seed.HasValue)
+			configuration.Seed = Seed;
 		if (ShadowCopy.HasValue)
 			configuration.ShadowCopy = ShadowCopy;
 		if (ShowLiveOutput.HasValue)
@@ -82,6 +96,8 @@ public class RunSettings
 						if (Enum.TryParse<AppDomainSupport>(appDomainString, ignoreCase: true, out var appDomain))
 							result.AppDomain = appDomain;
 
+						result.Culture = xunitElement.Element(Constants.Xunit.Culture)?.Value;
+
 						var diagnosticMessagesString = xunitElement.Element(Constants.Xunit.DiagnosticMessages)?.Value;
 						if (bool.TryParse(diagnosticMessagesString, out var diagnosticMessages))
 							result.DiagnosticMessages = diagnosticMessages;
@@ -89,6 +105,10 @@ public class RunSettings
 						var failSkipsString = xunitElement.Element(Constants.Xunit.FailSkips)?.Value;
 						if (bool.TryParse(failSkipsString, out var failSkips))
 							result.FailSkips = failSkips;
+
+						var failWarnsString = xunitElement.Element(Constants.Xunit.FailWarns)?.Value;
+						if (bool.TryParse(failWarnsString, out var failWarns))
+							result.FailWarns = failWarns;
 
 						var internalDiagnosticMessagesString = xunitElement.Element(Constants.Xunit.InternalDiagnosticMessages)?.Value;
 						if (bool.TryParse(internalDiagnosticMessagesString, out var internalDiagnosticMessages))
@@ -153,6 +173,10 @@ public class RunSettings
 						var reporterSwitchString = xunitElement.Element(Constants.Xunit.ReporterSwitch)?.Value;
 						if (reporterSwitchString is not null)
 							result.ReporterSwitch = reporterSwitchString;
+
+						var seedString = xunitElement.Element(Constants.Xunit.Seed)?.Value;
+						if (int.TryParse(seedString, NumberStyles.None, NumberFormatInfo.CurrentInfo, out var seed))
+							result.Seed = seed;
 
 						var shadowCopyString = xunitElement.Element(Constants.Xunit.ShadowCopy)?.Value;
 						if (bool.TryParse(shadowCopyString, out var shadowCopy))
@@ -232,8 +256,10 @@ public class RunSettings
 		public static class Xunit
 		{
 			public const string AppDomain = nameof(AppDomain);
+			public const string Culture = nameof(Culture);
 			public const string DiagnosticMessages = nameof(DiagnosticMessages);
 			public const string FailSkips = nameof(FailSkips);
+			public const string FailWarns = nameof(FailWarns);
 			public const string InternalDiagnosticMessages = nameof(InternalDiagnosticMessages);
 			public const string LongRunningTestSeconds = nameof(LongRunningTestSeconds);
 			public const string MaxParallelThreads = nameof(MaxParallelThreads);
@@ -244,6 +270,7 @@ public class RunSettings
 			public const string ParallelizeAssembly = nameof(ParallelizeAssembly);
 			public const string ParallelizeTestCollections = nameof(ParallelizeTestCollections);
 			public const string PreEnumerateTheories = nameof(PreEnumerateTheories);
+			public const string Seed = nameof(Seed);
 			public const string ReporterSwitch = nameof(ReporterSwitch);
 			public const string ShadowCopy = nameof(ShadowCopy);
 			public const string ShowLiveOutput = nameof(ShowLiveOutput);
