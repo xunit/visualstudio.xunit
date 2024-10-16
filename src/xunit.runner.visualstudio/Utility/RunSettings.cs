@@ -219,35 +219,35 @@ public class RunSettings
 		// https://learn.microsoft.com/en-us/visualstudio/test/configure-unit-tests-by-using-a-dot-runsettings-file?view=vs-2022#runconfiguration-element
 		public static class RunConfiguration
 		{
-			public const string CollectSourceInformation = "CollectSourceInformation";
-			public const string DesignMode = "DesignMode";
-			public const string DisableAppDomain = "DisableAppDomain";
-			public const string DisableParallelization = "DisableParallelization";
-			public const string InternalDiagnostics = "InternalDiagnostics";
-			public const string NoAutoReporters = "NoAutoReporters";
-			public const string ReporterSwitch = "ReporterSwitch";
-			public const string TargetFrameworkVersion = "TargetFrameworkVersion";
+			public const string CollectSourceInformation = nameof(CollectSourceInformation);
+			public const string DesignMode = nameof(DesignMode);
+			public const string DisableAppDomain = nameof(DisableAppDomain);
+			public const string DisableParallelization = nameof(DisableParallelization);
+			public const string InternalDiagnostics = nameof(InternalDiagnostics);
+			public const string NoAutoReporters = nameof(NoAutoReporters);
+			public const string ReporterSwitch = nameof(ReporterSwitch);
+			public const string TargetFrameworkVersion = nameof(TargetFrameworkVersion);
 		}
 
 		public static class Xunit
 		{
-			public const string AppDomain = "AppDomain";
-			public const string DiagnosticMessages = "DiagnosticMessages";
-			public const string FailSkips = "FailSkips";
-			public const string InternalDiagnosticMessages = "InternalDiagnosticMessages";
-			public const string LongRunningTestSeconds = "LongRunningTestSeconds";
-			public const string MaxParallelThreads = "MaxParallelThreads";
-			public const string MethodDisplay = "MethodDisplay";
-			public const string MethodDisplayOptions = "MethodDisplayOptions";
-			public const string NoAutoReporters = "NoAutoReporters";
-			public const string ParallelAlgorithm = "ParallelAlgorithm";
-			public const string ParallelizeAssembly = "ParallelizeAssembly";
-			public const string ParallelizeTestCollections = "ParallelizeTestCollections";
-			public const string PreEnumerateTheories = "PreEnumerateTheories";
-			public const string ReporterSwitch = "ReporterSwitch";
-			public const string ShadowCopy = "ShadowCopy";
-			public const string ShowLiveOutput = "ShowLiveOutput";
-			public const string StopOnFail = "StopOnFail";
+			public const string AppDomain = nameof(AppDomain);
+			public const string DiagnosticMessages = nameof(DiagnosticMessages);
+			public const string FailSkips = nameof(FailSkips);
+			public const string InternalDiagnosticMessages = nameof(InternalDiagnosticMessages);
+			public const string LongRunningTestSeconds = nameof(LongRunningTestSeconds);
+			public const string MaxParallelThreads = nameof(MaxParallelThreads);
+			public const string MethodDisplay = nameof(MethodDisplay);
+			public const string MethodDisplayOptions = nameof(MethodDisplayOptions);
+			public const string NoAutoReporters = nameof(NoAutoReporters);
+			public const string ParallelAlgorithm = nameof(ParallelAlgorithm);
+			public const string ParallelizeAssembly = nameof(ParallelizeAssembly);
+			public const string ParallelizeTestCollections = nameof(ParallelizeTestCollections);
+			public const string PreEnumerateTheories = nameof(PreEnumerateTheories);
+			public const string ReporterSwitch = nameof(ReporterSwitch);
+			public const string ShadowCopy = nameof(ShadowCopy);
+			public const string ShowLiveOutput = nameof(ShowLiveOutput);
+			public const string StopOnFail = nameof(StopOnFail);
 		}
 	}
 
