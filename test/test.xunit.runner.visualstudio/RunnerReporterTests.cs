@@ -14,7 +14,7 @@ public class RunnerReporterTests
 		using var _ = EnvironmentHelper.NullifyEnvironmentalReporters();
 		var settings = new RunSettings { NoAutoReporters = true };
 
-		var runnerReporter = VsTestRunner.GetRunnerReporter(null, settings, [typeof(RunnerReporterTests).Assembly.Location]);
+		var runnerReporter = VsTestRunner.GetRunnerReporter(null, settings);
 
 		Assert.Equal(typeof(DefaultRunnerReporter).AssemblyQualifiedName, runnerReporter.GetType().AssemblyQualifiedName);
 	}
@@ -26,7 +26,7 @@ public class RunnerReporterTests
 		Environment.SetEnvironmentVariable("TEAMCITY_PROJECT_NAME", "foo");  // Force TeamCityReporter to surface environmentally
 		var settings = new RunSettings { NoAutoReporters = false };
 
-		var runnerReporter = VsTestRunner.GetRunnerReporter(null, settings, [typeof(RunnerReporterTests).Assembly.Location]);
+		var runnerReporter = VsTestRunner.GetRunnerReporter(null, settings);
 
 		Assert.Equal(typeof(TeamCityReporter).AssemblyQualifiedName, runnerReporter.GetType().AssemblyQualifiedName);
 	}
@@ -37,7 +37,7 @@ public class RunnerReporterTests
 		using var _ = EnvironmentHelper.NullifyEnvironmentalReporters();
 		var settings = new RunSettings { NoAutoReporters = true, ReporterSwitch = "json" };
 
-		var runnerReporter = VsTestRunner.GetRunnerReporter(null, settings, [typeof(RunnerReporterTests).Assembly.Location]);
+		var runnerReporter = VsTestRunner.GetRunnerReporter(null, settings);
 
 		Assert.Equal(typeof(JsonReporter).AssemblyQualifiedName, runnerReporter.GetType().AssemblyQualifiedName);
 	}
@@ -50,7 +50,7 @@ public class RunnerReporterTests
 		var logger = Substitute.For<IMessageLogger>();
 		var loggerHelper = new LoggerHelper(logger, new Stopwatch());
 
-		var runnerReporter = VsTestRunner.GetRunnerReporter(loggerHelper, settings, [typeof(RunnerReporterTests).Assembly.Location]);
+		var runnerReporter = VsTestRunner.GetRunnerReporter(loggerHelper, settings);
 
 
 		Assert.Equal(typeof(DefaultRunnerReporter).AssemblyQualifiedName, runnerReporter.GetType().AssemblyQualifiedName);

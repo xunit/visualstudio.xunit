@@ -1,7 +1,7 @@
 <Project>
 
   <PropertyGroup>
-    <ILRepackVersion>2.0.34</ILRepackVersion>
+    <ILRepackVersion>2.0.35</ILRepackVersion>
     <MicrosoftNetCoreAppRefVersion>6.0.32</MicrosoftNetCoreAppRefVersion>
     <MicrosoftNetFrameworkReferenceAssembliesVersion>1.0.3</MicrosoftNetFrameworkReferenceAssembliesVersion>
     <MicrosoftNetTestSdkVersion>17.11.1</MicrosoftNetTestSdkVersion>
@@ -11,8 +11,8 @@
     <NSubstituteVersion>5.1.0</NSubstituteVersion>
     <TunnelVisionLabsReferenceAssemblyAnnotatorVersion>1.0.0-alpha.160</TunnelVisionLabsReferenceAssemblyAnnotatorVersion>
     <XunitAnalyzersVersion>1.16.0</XunitAnalyzersVersion>
-    <XunitV2Version>2.9.2-pre.2</XunitV2Version>
-    <XunitV3Version>0.5.0-pre.12</XunitV3Version>
+    <XunitV2Version>2.9.2</XunitV2Version>
+    <XunitV3Version>0.5.0-pre.26</XunitV3Version>
   </PropertyGroup>
 
 </Project>

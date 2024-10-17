@@ -250,7 +250,7 @@ namespace Xunit.Runner.VisualStudio
 			try
 			{
 				var diagnosticMessageSink = new DiagnosticMessageSink(logger, fileName, showDiagnostics: assembly.Configuration.DiagnosticMessagesOrDefault, showInternalDiagnostics: assembly.Configuration.InternalDiagnosticMessagesOrDefault);
-				var reporterMessageHandler = await GetRunnerReporter(logger, runSettings, [assembly.AssemblyFileName]).CreateMessageHandler(new VisualStudioRunnerLogger(logger), diagnosticMessageSink);
+				var reporterMessageHandler = await GetRunnerReporter(logger, runSettings).CreateMessageHandler(new VisualStudioRunnerLogger(logger), diagnosticMessageSink);
 				fileName = Path.GetFileNameWithoutExtension(assembly.AssemblyFileName);
 
 				if (!PlatformAssemblies.Contains(Path.GetFileName(assembly.AssemblyFileName)))
@@ -304,38 +304,23 @@ namespace Xunit.Runner.VisualStudio
 			return true;
 		}
 
-		public static IReadOnlyList<IRunnerReporter> GetAvailableRunnerReporters(
-			LoggerHelper? logger,
-			IReadOnlyList<string> sources)
+		public static IReadOnlyList<IRunnerReporter> GetAvailableRunnerReporters(LoggerHelper? logger)
 		{
-			var result = new List<IRunnerReporter>();
-			var folders =
-				sources
-					.Select(s => Path.GetDirectoryName(Path.GetFullPath(s)))
-					.WhereNotNull()
-					.Distinct();
+			var result = RegisteredRunnerReporters.Get(typeof(VsTestRunner).Assembly, out var messages);
 
-			var first = true;
-			foreach (var folder in folders)
-			{
-				result.AddRange(RunnerReporterUtility.GetAvailableRunnerReporters(folder, includeEmbeddedReporters: first, out var messages));
-				first = false;
-
-				if (logger is not null)
-					foreach (var message in messages)
-						logger.LogWarning("{0}", message);
-			}
+			if (logger is not null)
+				foreach (var message in messages)
+					logger.LogWarning("{0}", message);
 
 			return result;
 		}
 
 		public static IRunnerReporter GetRunnerReporter(
 			LoggerHelper? logger,
-			RunSettings runSettings,
-			IReadOnlyList<string> assemblyFileNames)
+			RunSettings runSettings)
 		{
 			var reporter = default(IRunnerReporter);
-			var availableReporters = new Lazy<IReadOnlyList<IRunnerReporter>>(() => GetAvailableRunnerReporters(logger, assemblyFileNames));
+			var availableReporters = new Lazy<IReadOnlyList<IRunnerReporter>>(() => GetAvailableRunnerReporters(logger));
 
 			try
 			{
@@ -463,7 +448,7 @@ namespace Xunit.Runner.VisualStudio
 				var parallelizeAssemblies = runInfos.All(runInfo => runInfo.Assembly.Configuration.ParallelizeAssemblyOrDefault);
 				var diagnosticMessages = runInfos.Any(runInfo => runInfo.Assembly.Configuration.DiagnosticMessagesOrDefault);
 				var internalDiagnosticMessages = runInfos.Any(runInfo => runInfo.Assembly.Configuration.InternalDiagnosticMessagesOrDefault);
-				var reporter = GetRunnerReporter(logger, runSettings, runInfos.Select(ari => ari.Assembly.AssemblyFileName).WhereNotNull().ToList());
+				var reporter = GetRunnerReporter(logger, runSettings);
 				var diagnosticMessageSink = new DiagnosticMessageSink(logger, showDiagnostics: diagnosticMessages, showInternalDiagnostics: internalDiagnosticMessages);
 				await using var reporterMessageHandler = await reporter.CreateMessageHandler(new VisualStudioRunnerLogger(logger), diagnosticMessageSink);
 
