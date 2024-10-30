@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq.Expressions;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -22,7 +21,6 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 	const int MaximumDisplayNameLength = 447;
 	const int TestCaseBatchSize = 100;
 
-	static readonly Action<VsTestCase, string, string>? addTraitThunk = GetAddTraitThunk();
 	static readonly Uri uri = new(Constants.ExecutorUri);
 
 	readonly Func<bool> cancelThunk;
@@ -71,7 +69,7 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 	{
 		if (testCase.TestClassName is null)
 		{
-			logger.LogErrorWithSource(source, "Error creating Visual Studio test case for {0}: TestClassWithNamespace is null", testCase.TestCaseDisplayName);
+			logger.LogErrorWithSource(source, "Error creating Visual Studio test case for {0}: TestClassName is null", testCase.TestCaseDisplayName);
 			return null;
 		}
 
@@ -103,14 +101,10 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 			result.CodeFilePath = testCase.SourceFilePath;
 			result.LineNumber = testCase.SourceLineNumber.GetValueOrDefault();
 
-			if (addTraitThunk is not null)
-			{
-				var traits = testCase.Traits;
-
-				foreach (var key in traits.Keys)
-					foreach (var value in traits[key])
-						addTraitThunk(result, key, value);
-			}
+			var traits = testCase.Traits;
+			foreach (var key in traits.Keys)
+				foreach (var value in traits[key])
+					result.Traits.Add(key, value);
 
 			return result;
 		}
@@ -141,43 +135,6 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 	{
 		Finished.WaitOne();
 		return TotalTests;
-	}
-
-	static Action<VsTestCase, string, string>? GetAddTraitThunk()
-	{
-		try
-		{
-			var testCaseType = typeof(VsTestCase);
-			var stringType = typeof(string);
-
-#if NETCOREAPP
-			var property = testCaseType.GetRuntimeProperty("Traits");
-#else
-			var property = testCaseType.GetProperty("Traits");
-#endif
-			if (property is null)
-				return null;
-
-#if NETCOREAPP
-			var method = property.PropertyType.GetRuntimeMethod("Add", [typeof(string), typeof(string)]);
-#else
-			var method = property.PropertyType.GetMethod("Add", [typeof(string), typeof(string)]);
-#endif
-			if (method is null)
-				return null;
-
-			var thisParam = Expression.Parameter(testCaseType, "this");
-			var nameParam = Expression.Parameter(stringType, "name");
-			var valueParam = Expression.Parameter(stringType, "value");
-			var instance = Expression.Property(thisParam, property);
-			var body = Expression.Call(instance, method, [nameParam, valueParam]);
-
-			return Expression.Lambda<Action<VsTestCase, string, string>>(body, thisParam, nameParam, valueParam).Compile();
-		}
-		catch (Exception)
-		{
-			return null;
-		}
 	}
 
 	void HandleCancellation(MessageHandlerArgs args)
