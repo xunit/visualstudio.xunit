@@ -33,7 +33,7 @@ public class TestCaseFilterTests
 		};
 	}
 
-	static LoggerHelper GetLoggerHelper(IMessageLogger messageLogger = null)
+	static LoggerHelper GetLoggerHelper(IMessageLogger? messageLogger = null)
 	{
 		return new LoggerHelper(messageLogger ?? Substitute.For<IMessageLogger>(), new Stopwatch());
 	}
@@ -46,8 +46,8 @@ public class TestCaseFilterTests
 		var context = Substitute.For<IRunContext>();
 		var filterExpression = Substitute.For<ITestCaseFilterExpression>();
 		// The matching should return a single testcase
-		filterExpression.MatchTestCase(null, null).ReturnsForAnyArgs(x => ((TestCase)x[0]).FullyQualifiedName.Equals(dummyTestCaseDisplayNamefilterString));
-		context.GetTestCaseFilter(null, null).ReturnsForAnyArgs(filterExpression);
+		filterExpression.MatchTestCase(null!, null!).ReturnsForAnyArgs(x => ((TestCase)x[0]).FullyQualifiedName.Equals(dummyTestCaseDisplayNamefilterString));
+		context.GetTestCaseFilter(null, null!).ReturnsForAnyArgs(filterExpression);
 		var filter = new TestCaseFilter(context, GetLoggerHelper(), "dummyTestAssembly", dummyKnownTraits);
 
 		var results = dummyTestCaseList.Where(filter.MatchTestCase);
@@ -61,7 +61,7 @@ public class TestCaseFilterTests
 	{
 		var dummyTestCaseList = GetDummyTestCases();
 		var context = Substitute.For<IRunContext>();
-		context.GetTestCaseFilter(null, null).ReturnsForAnyArgs((ITestCaseFilterExpression)null);
+		context.GetTestCaseFilter(null, null!).ReturnsForAnyArgs(default(ITestCaseFilterExpression));
 		var filter = new TestCaseFilter(context, GetLoggerHelper(), "dummyTestAssembly", dummyKnownTraits);
 
 		var results = dummyTestCaseList.Where(filter.MatchTestCase);
@@ -76,7 +76,7 @@ public class TestCaseFilterTests
 		var messageLogger = Substitute.For<IMessageLogger>();
 		var dummyTestCaseList = GetDummyTestCases();
 		var context = Substitute.For<IRunContext>();
-		context.GetTestCaseFilter(null, null).ReturnsForAnyArgs(x => { throw new TestPlatformFormatException("Hello from the exception"); });
+		context.GetTestCaseFilter(null, null!).ReturnsForAnyArgs(x => { throw new TestPlatformFormatException("Hello from the exception"); });
 		var filter = new TestCaseFilter(context, GetLoggerHelper(messageLogger), "dummyTestAssembly", dummyKnownTraits);
 
 		var results = dummyTestCaseList.Where(filter.MatchTestCase);
@@ -86,7 +86,7 @@ public class TestCaseFilterTests
 		var args = messageLogger.ReceivedCalls().Single().GetArguments();
 		Assert.Collection(args,
 			arg => Assert.Equal(TestMessageLevel.Warning, arg),
-			arg => Assert.EndsWith("dummyTestAssembly: Exception filtering tests: Hello from the exception", (string)arg)
+			arg => Assert.EndsWith("dummyTestAssembly: Exception filtering tests: Hello from the exception", (string)arg!)
 		);
 	}
 
