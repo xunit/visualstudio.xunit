@@ -126,6 +126,9 @@ namespace Xunit.Runner.VisualStudio
 		public static TestProperty ManagedTypeProperty { get; } =
 			TestProperty.Register("TestCase.ManagedType", "ManagedType", string.Empty, string.Empty, typeof(string), x => !string.IsNullOrWhiteSpace(x as string), TestPropertyAttributes.Hidden, typeof(TestCase));
 
+		public static TestProperty SkipReasonProperty { get; } =
+			TestProperty.Register("XunitSkipReason", "xUnit.net Skip Reason", typeof(string), typeof(VsTestRunner));
+
 		public static TestProperty TestCaseExplicitProperty { get; } =
 			TestProperty.Register("XunitTestCaseExplicit", "xUnit.net Test Case Explicit Flag", typeof(bool), typeof(VsTestRunner));
 

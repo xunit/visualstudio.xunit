@@ -94,6 +94,9 @@ public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 			result.SetPropertyValue(VsTestRunner.ManagedTypeProperty, testCase.TestClassName);
 			result.SetPropertyValue(VsTestRunner.ManagedMethodProperty, managedMethodName);
 
+			if (testCase.SkipReason is not null)
+				result.SetPropertyValue(VsTestRunner.SkipReasonProperty, testCase.SkipReason);
+
 			if (testPlatformContext.DesignMode)
 				result.SetPropertyValue(VsTestRunner.TestCaseSerializationProperty, testCase.Serialization);
 

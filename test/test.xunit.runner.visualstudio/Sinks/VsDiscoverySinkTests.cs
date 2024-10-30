@@ -81,5 +81,16 @@ public class VsDiscoverySinkTests
 			Assert.Equal("test-class-name", vsTestCase.GetPropertyValue(VsTestRunner.ManagedTypeProperty));
 			Assert.Equal(expectedManagedMethodName, vsTestCase.GetPropertyValue(VsTestRunner.ManagedMethodProperty));
 		}
+
+		[Fact]
+		public void SetsSkipReason()
+		{
+			var testCase = TestData.TestCaseDiscovered(skipReason: "the-skip-reason");
+
+			var vsTestCase = VsDiscoverySink.CreateVsTestCase("source", testCase, logger, testPlatformContext);
+
+			Assert.NotNull(vsTestCase);
+			Assert.Equal("the-skip-reason", vsTestCase.GetPropertyValue(VsTestRunner.SkipReasonProperty));
+		}
 	}
 }
