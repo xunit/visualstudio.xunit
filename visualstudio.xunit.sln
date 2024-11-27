@@ -21,7 +21,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "meta", "meta", "{A8EAFB53-8
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		BUILDING.md = BUILDING.md
-		global.json = global.json
 		NuGet.Config = NuGet.Config
 		README.md = README.md
 		version.json = version.json
