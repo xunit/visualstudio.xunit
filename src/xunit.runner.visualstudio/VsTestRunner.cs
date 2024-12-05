@@ -489,6 +489,10 @@ namespace Xunit.Runner.VisualStudio
 				if (assemblyFileName is null)
 					return;
 
+				// Pre-enumerate theories by default, so that we can see all traits, including those that come from
+				// ITheoryDataRow in v3. See: https://github.com/xunit/visualstudio.xunit/issues/426
+				runInfo.Assembly.Configuration.PreEnumerateTheories ??= true;
+
 				var configuration = runInfo.Assembly.Configuration;
 
 				using var _ = AssemblyHelper.SubscribeResolveForAssembly(assemblyFileName, new DiagnosticMessageSink(logger, showDiagnostics: configuration.DiagnosticMessagesOrDefault, showInternalDiagnostics: configuration.DiagnosticMessagesOrDefault));
