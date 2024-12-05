@@ -207,9 +207,9 @@ namespace Xunit.Runner.VisualStudio
 					ConfigReader.Load(assembly.Configuration, assembly.AssemblyFileName, assembly.ConfigFileName, configWarnings);
 					runSettings.CopyTo(assembly.Configuration);
 
-					// IDE users get pre-enumeated theories by default
-					if (testPlatformContext.DesignMode)
-						assembly.Configuration.PreEnumerateTheories ??= true;
+					// Pre-enumerate theories by default, so that we can see all traits, including those that come from
+					// ITheoryDataRow in v3. See: https://github.com/xunit/visualstudio.xunit/issues/426
+					assembly.Configuration.PreEnumerateTheories ??= true;
 
 					foreach (var warning in configWarnings)
 						logger.LogWarning("{0}", warning);
