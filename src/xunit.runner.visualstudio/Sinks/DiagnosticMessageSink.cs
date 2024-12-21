@@ -2,7 +2,7 @@ using Xunit.Runner.Common;
 
 namespace Xunit.Runner.VisualStudio;
 
-public class DiagnosticMessageSink : DiagnosticEventSink
+internal class DiagnosticMessageSink : DiagnosticEventSink
 {
 	public DiagnosticMessageSink(
 		LoggerHelper log,

@@ -6,7 +6,7 @@ using Xunit.Sdk;
 
 namespace Xunit.Runner.VisualStudio;
 
-public class RunSettings
+internal class RunSettings
 {
 	public AppDomainSupport? AppDomain { get; set; }
 	public string? Culture { get; set; }

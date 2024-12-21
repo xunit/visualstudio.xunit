@@ -1,8 +1,10 @@
+extern alias VSTestAdapter;
+
 using System;
 using Xunit;
 using Xunit.Runner.Common;
-using Xunit.Runner.VisualStudio;
 using Xunit.Sdk;
+using RunSettings = VSTestAdapter.Xunit.Runner.VisualStudio.RunSettings;
 
 public class RunSettingsTests
 {

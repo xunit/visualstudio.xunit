@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 
 namespace Xunit.Runner.VisualStudio;
 
-public class TestCaseFilter
+internal class TestCaseFilter
 {
 	const string DisplayNameString = "DisplayName";
 	const string FullyQualifiedNameString = "FullyQualifiedName";

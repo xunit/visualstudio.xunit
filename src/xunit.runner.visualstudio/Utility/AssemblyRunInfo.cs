@@ -5,7 +5,7 @@ using Xunit.Sdk;
 
 namespace Xunit.Runner.VisualStudio;
 
-public class AssemblyRunInfo
+internal class AssemblyRunInfo
 {
 	AssemblyRunInfo(
 		LoggerHelper logger,

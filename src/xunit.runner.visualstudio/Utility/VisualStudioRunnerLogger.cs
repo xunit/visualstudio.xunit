@@ -2,7 +2,7 @@ using Xunit.Runner.Common;
 
 namespace Xunit.Runner.VisualStudio;
 
-public class VisualStudioRunnerLogger(LoggerHelper loggerHelper) :
+internal class VisualStudioRunnerLogger(LoggerHelper loggerHelper) :
 	IRunnerLogger
 {
 	static readonly object lockObject = new();

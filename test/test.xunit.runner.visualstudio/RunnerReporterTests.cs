@@ -1,10 +1,14 @@
+extern alias VSTestAdapter;
+
 using System;
 using System.Diagnostics;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using NSubstitute;
 using Xunit;
 using Xunit.Runner.Common;
-using Xunit.Runner.VisualStudio;
+using LoggerHelper = VSTestAdapter.Xunit.Runner.VisualStudio.LoggerHelper;
+using RunSettings = VSTestAdapter.Xunit.Runner.VisualStudio.RunSettings;
+using VsTestRunner = VSTestAdapter.Xunit.Runner.VisualStudio.VsTestRunner;
 
 public class RunnerReporterTests
 {

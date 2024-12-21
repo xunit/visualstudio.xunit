@@ -15,7 +15,7 @@ using System.Reflection;
 
 namespace Xunit.Runner.VisualStudio;
 
-public sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
+internal sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 {
 	static readonly string Ellipsis = new((char)183, 3);
 	const int MaximumDisplayNameLength = 447;

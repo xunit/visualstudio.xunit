@@ -1,3 +1,5 @@
+extern alias VSTestAdapter;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,8 +9,9 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.Adapter;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 using NSubstitute;
 using Xunit;
-using Xunit.Runner.VisualStudio;
-using Constants = Xunit.Runner.VisualStudio.Constants;
+using Constants = VSTestAdapter.Xunit.Runner.VisualStudio.Constants;
+using LoggerHelper = VSTestAdapter.Xunit.Runner.VisualStudio.LoggerHelper;
+using TestCaseFilter = VSTestAdapter.Xunit.Runner.VisualStudio.TestCaseFilter;
 
 public class TestCaseFilterTests
 {

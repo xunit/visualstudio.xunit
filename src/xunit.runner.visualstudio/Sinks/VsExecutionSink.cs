@@ -14,7 +14,7 @@ using XunitTestResultMessage = Xunit.Sdk.ITestResultMessage;
 
 namespace Xunit.Runner.VisualStudio;
 
-public sealed class VsExecutionSink : TestMessageSink, IDisposable
+internal sealed class VsExecutionSink : TestMessageSink, IDisposable
 {
 	readonly Func<bool> cancelledThunk;
 	readonly LoggerHelper logger;

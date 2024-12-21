@@ -15,7 +15,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\xunit.runner.visualstudio\xunit.runner.visualstudio.csproj" />
+    <ProjectReference Include="..\..\src\xunit.runner.visualstudio\xunit.runner.visualstudio.csproj">
+      <Aliases>VSTestAdapter</Aliases>
+    </ProjectReference>
   </ItemGroup>
 
 </Project>

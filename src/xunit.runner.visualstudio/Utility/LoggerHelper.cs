@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
 
 namespace Xunit.Runner.VisualStudio;
 
-public class LoggerHelper(IMessageLogger? logger, Stopwatch stopwatch)
+internal class LoggerHelper(IMessageLogger? logger, Stopwatch stopwatch)
 {
 	public IMessageLogger? InnerLogger { get; private set; } = logger;
 

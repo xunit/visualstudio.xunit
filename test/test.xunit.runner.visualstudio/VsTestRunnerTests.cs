@@ -1,7 +1,9 @@
+extern alias VSTestAdapter;
+
 using System.ComponentModel;
 using System.Reflection;
 using Xunit;
-using Xunit.Runner.VisualStudio;
+using VsTestRunner = VSTestAdapter.Xunit.Runner.VisualStudio.VsTestRunner;
 
 public class VsTestRunnerTests
 {

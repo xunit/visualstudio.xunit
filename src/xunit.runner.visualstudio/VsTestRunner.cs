@@ -120,22 +120,22 @@ namespace Xunit.Runner.VisualStudio
 			"xunit.v3.runner.utility.netstandard20.dll",
 		};
 
-		public static TestProperty ManagedMethodProperty { get; } =
+		internal static TestProperty ManagedMethodProperty { get; } =
 			TestProperty.Register("TestCase.ManagedMethod", "ManagedMethod", string.Empty, string.Empty, typeof(string), x => !string.IsNullOrWhiteSpace(x as string), TestPropertyAttributes.Hidden, typeof(TestCase));
 
-		public static TestProperty ManagedTypeProperty { get; } =
+		internal static TestProperty ManagedTypeProperty { get; } =
 			TestProperty.Register("TestCase.ManagedType", "ManagedType", string.Empty, string.Empty, typeof(string), x => !string.IsNullOrWhiteSpace(x as string), TestPropertyAttributes.Hidden, typeof(TestCase));
 
-		public static TestProperty SkipReasonProperty { get; } =
+		internal static TestProperty SkipReasonProperty { get; } =
 			TestProperty.Register("XunitSkipReason", "xUnit.net Skip Reason", typeof(string), typeof(VsTestRunner));
 
-		public static TestProperty TestCaseExplicitProperty { get; } =
+		internal static TestProperty TestCaseExplicitProperty { get; } =
 			TestProperty.Register("XunitTestCaseExplicit", "xUnit.net Test Case Explicit Flag", typeof(bool), typeof(VsTestRunner));
 
-		public static TestProperty TestCaseSerializationProperty { get; } =
+		internal static TestProperty TestCaseSerializationProperty { get; } =
 			TestProperty.Register("XunitTestCaseSerialization", "xUnit.net Test Case Serialization", typeof(string), typeof(VsTestRunner));
 
-		public static TestProperty TestCaseUniqueIDProperty { get; } =
+		internal static TestProperty TestCaseUniqueIDProperty { get; } =
 			TestProperty.Register("XunitTestCaseUniqueID", "xUnit.net Test Case Unique ID", typeof(string), typeof(VsTestRunner));
 
 		public void Cancel() =>
@@ -307,7 +307,7 @@ namespace Xunit.Runner.VisualStudio
 			return true;
 		}
 
-		public static IReadOnlyList<IRunnerReporter> GetAvailableRunnerReporters(LoggerHelper? logger)
+		internal static IReadOnlyList<IRunnerReporter> GetAvailableRunnerReporters(LoggerHelper? logger)
 		{
 			var result = RegisteredRunnerReporters.Get(typeof(VsTestRunner).Assembly, out var messages);
 
@@ -318,7 +318,7 @@ namespace Xunit.Runner.VisualStudio
 			return result;
 		}
 
-		public static IRunnerReporter GetRunnerReporter(
+		internal static IRunnerReporter GetRunnerReporter(
 			LoggerHelper? logger,
 			RunSettings runSettings)
 		{
