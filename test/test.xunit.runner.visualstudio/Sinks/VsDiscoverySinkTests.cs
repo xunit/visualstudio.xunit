@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
-using Xunit.Runner.VisualStudio;
 using Constants = VSTestAdapter.Xunit.Runner.VisualStudio.Constants;
 using TestPlatformContext = VSTestAdapter.Xunit.Runner.VisualStudio.TestPlatformContext;
 using VsDiscoverySink = VSTestAdapter.Xunit.Runner.VisualStudio.VsDiscoverySink;
@@ -51,7 +50,7 @@ public class VsDiscoverySinkTests
 
 			Assert.NotNull(vsTestCase);
 
-			// Standard VSTest propertiesgi
+			// Standard VSTest properties
 			Assert.Equal("/source/file.cs", vsTestCase.CodeFilePath);
 			Assert.Equal("test-case-display-name", vsTestCase.DisplayName);
 			Assert.Equal(Constants.ExecutorUri, vsTestCase.ExecutorUri.OriginalString);
