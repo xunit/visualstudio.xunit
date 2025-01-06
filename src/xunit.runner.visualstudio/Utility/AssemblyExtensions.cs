@@ -1,6 +1,9 @@
+using System.Reflection;
+
+#if NETFRAMEWORK
 using System;
 using System.IO;
-using System.Reflection;
+#endif
 
 internal static class AssemblyExtensions
 {

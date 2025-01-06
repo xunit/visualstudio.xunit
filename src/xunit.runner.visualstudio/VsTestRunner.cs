@@ -217,7 +217,8 @@ namespace Xunit.Runner.VisualStudio
 					var assemblyDisplayName = Path.GetFileNameWithoutExtension(assembly.AssemblyFileName);
 					var diagnosticMessageSink = new DiagnosticMessageSink(logger, assemblyDisplayName, assembly.Configuration.DiagnosticMessagesOrDefault, assembly.Configuration.InternalDiagnosticMessagesOrDefault);
 
-					await using var controller = XunitFrontController.Create(assembly, null, diagnosticMessageSink);
+					await using var sourceInformationProvider = new VisualStudioSourceInformationProvider(assemblyFileName, diagnosticMessageSink);
+					await using var controller = XunitFrontController.Create(assembly, sourceInformationProvider, diagnosticMessageSink);
 					if (controller is null)
 						return;
 
@@ -508,6 +509,7 @@ namespace Xunit.Runner.VisualStudio
 				if (runContext.IsBeingDebugged && frameworkHandle2 is not null)
 					testProcessLauncher = new DebuggerProcessLauncher(frameworkHandle2);
 
+				await using var sourceInformationProvider = new VisualStudioSourceInformationProvider(assemblyFileName, diagnosticSink);
 				await using var controller = XunitFrontController.Create(runInfo.Assembly, null, diagnosticSink, testProcessLauncher);
 				if (controller is null)
 					return;
