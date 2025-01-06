@@ -510,7 +510,7 @@ namespace Xunit.Runner.VisualStudio
 					testProcessLauncher = new DebuggerProcessLauncher(frameworkHandle2);
 
 				await using var sourceInformationProvider = new VisualStudioSourceInformationProvider(assemblyFileName, diagnosticSink);
-				await using var controller = XunitFrontController.Create(runInfo.Assembly, null, diagnosticSink, testProcessLauncher);
+				await using var controller = XunitFrontController.Create(runInfo.Assembly, sourceInformationProvider, diagnosticSink, testProcessLauncher);
 				if (controller is null)
 					return;
 
