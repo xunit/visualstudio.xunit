@@ -10,6 +10,7 @@ jobs:
     name: "Build"
     runs-on: windows-2022
     env:
+      DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE: true
       DOTNET_NOLOGO: true
     steps:
       - name: Clone source
@@ -26,7 +27,7 @@ jobs:
         with:
           dotnet-version: |
             6.0.x
-            8.0.x
+            9.0.x
 
       - name: Get .NET information
         run: dotnet --info
