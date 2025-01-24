@@ -323,23 +323,4 @@ $@"<?xml version=""1.0"" encoding=""utf-8""?>
 		Assert.Equal("FrameworkCore10", runSettings.TargetFrameworkVersion);
 		Assert.Equal("foo", runSettings.ReporterSwitch);
 	}
-
-	[Fact]
-	public void RunConfigurationOptionsOverrideXunitOptions()
-	{
-		string settingsXml =
-@"<?xml version=""1.0"" encoding=""utf-8""?>
-<RunSettings>
-	<RunConfiguration>
-		<DisableAppDomain>true</DisableAppDomain>
-		<DisableParallelization>true</DisableParallelization>
-	</RunConfiguration>
-	<xUnit>
-		<
-	</xUnit>
-</RunSettings>";
-
-		var runSettings = RunSettings.Parse(settingsXml);
-
-	}
 }
