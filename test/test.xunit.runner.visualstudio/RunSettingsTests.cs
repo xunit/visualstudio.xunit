@@ -1,6 +1,7 @@
 extern alias VSTestAdapter;
 
 using System;
+using System.Collections.Generic;
 using Xunit;
 using Xunit.Runner.Common;
 using Xunit.Sdk;
@@ -11,6 +12,7 @@ public class RunSettingsTests
 	void AssertDefaultValues(RunSettings runSettings)
 	{
 		Assert.Null(runSettings.AppDomain);
+		Assert.Null(runSettings.AssertEquivalentMaxDepth);
 		Assert.False(runSettings.DesignMode);
 		Assert.Null(runSettings.DiagnosticMessages);
 		Assert.Null(runSettings.FailSkips);
@@ -24,6 +26,10 @@ public class RunSettingsTests
 		Assert.Null(runSettings.ParallelizeAssembly);
 		Assert.Null(runSettings.ParallelizeTestCollections);
 		Assert.Null(runSettings.PreEnumerateTheories);
+		Assert.Null(runSettings.PrintMaxEnumerableLength);
+		Assert.Null(runSettings.PrintMaxObjectDepth);
+		Assert.Null(runSettings.PrintMaxObjectMemberCount);
+		Assert.Null(runSettings.PrintMaxStringLength);
 		Assert.Null(runSettings.ReporterSwitch);
 		Assert.Null(runSettings.ShadowCopy);
 		Assert.Null(runSettings.ShowLiveOutput);
@@ -170,6 +176,26 @@ $@"<?xml version=""1.0"" encoding=""utf-8""?>
 	}
 
 	[Theory]
+	[InlineData("blarch", null)]
+	[InlineData("0", null)]
+	[InlineData("1", 1)]
+	[InlineData("42", 42)]
+	public void AssertEquivalentMaxDepth(string value, int? expected)
+	{
+		string settingsXml =
+$@"<?xml version=""1.0"" encoding=""utf-8""?>
+<RunSettings>
+	<xUnit>
+		<AssertEquivalentMaxDepth>{value}</AssertEquivalentMaxDepth>
+	</xUnit>
+</RunSettings>";
+
+		var runSettings = RunSettings.Parse(settingsXml);
+
+		Assert.Equal(expected, runSettings.AssertEquivalentMaxDepth);
+	}
+
+	[Theory]
 	[InlineData(0, null)]
 	[InlineData(1, 1)]
 	[InlineData(42, 42)]
@@ -258,6 +284,76 @@ $@"<?xml version=""1.0"" encoding=""utf-8""?>
 		var runSettings = RunSettings.Parse(settingsXml);
 
 		Assert.Equal(expected, runSettings.MethodDisplayOptions);
+	}
+
+	public static IEnumerable<TheoryDataRow<string, int?>> ZeroOrMore = [("blarch", null), ("-1", null), ("0", 0), ("42", 42)];
+
+	[Theory]
+	[MemberData(nameof(ZeroOrMore))]
+	public void PrintMaxEnumerableLength(string value, int? expected)
+	{
+		string settingsXml =
+$@"<?xml version=""1.0"" encoding=""utf-8""?>
+<RunSettings>
+	<xUnit>
+		<PrintMaxEnumerableLength>{value}</PrintMaxEnumerableLength>
+	</xUnit>
+</RunSettings>";
+
+		var runSettings = RunSettings.Parse(settingsXml);
+
+		Assert.Equal(expected, runSettings.PrintMaxEnumerableLength);
+	}
+
+	[Theory]
+	[MemberData(nameof(ZeroOrMore))]
+	public void PrintMaxObjectDepth(string value, int? expected)
+	{
+		string settingsXml =
+$@"<?xml version=""1.0"" encoding=""utf-8""?>
+<RunSettings>
+	<xUnit>
+		<PrintMaxObjectDepth>{value}</PrintMaxObjectDepth>
+	</xUnit>
+</RunSettings>";
+
+		var runSettings = RunSettings.Parse(settingsXml);
+
+		Assert.Equal(expected, runSettings.PrintMaxObjectDepth);
+	}
+
+	[Theory]
+	[MemberData(nameof(ZeroOrMore))]
+	public void PrintMaxObjectMemberCount(string value, int? expected)
+	{
+		string settingsXml =
+$@"<?xml version=""1.0"" encoding=""utf-8""?>
+<RunSettings>
+	<xUnit>
+		<PrintMaxObjectMemberCount>{value}</PrintMaxObjectMemberCount>
+	</xUnit>
+</RunSettings>";
+
+		var runSettings = RunSettings.Parse(settingsXml);
+
+		Assert.Equal(expected, runSettings.PrintMaxObjectMemberCount);
+	}
+
+	[Theory]
+	[MemberData(nameof(ZeroOrMore))]
+	public void PrintMaxStringLength(string value, int? expected)
+	{
+		string settingsXml =
+$@"<?xml version=""1.0"" encoding=""utf-8""?>
+<RunSettings>
+	<xUnit>
+		<PrintMaxStringLength>{value}</PrintMaxStringLength>
+	</xUnit>
+</RunSettings>";
+
+		var runSettings = RunSettings.Parse(settingsXml);
+
+		Assert.Equal(expected, runSettings.PrintMaxStringLength);
 	}
 
 	[Theory]

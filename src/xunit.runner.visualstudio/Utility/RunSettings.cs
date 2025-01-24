@@ -9,6 +9,7 @@ namespace Xunit.Runner.VisualStudio;
 internal class RunSettings
 {
 	public AppDomainSupport? AppDomain { get; set; }
+	public int? AssertEquivalentMaxDepth { get; set; }
 	public string? Culture { get; set; }
 	public bool DesignMode { get; set; } = false;
 	public bool? DiagnosticMessages { get; set; }
@@ -25,6 +26,10 @@ internal class RunSettings
 	public bool? ParallelizeAssembly { get; set; }
 	public bool? ParallelizeTestCollections { get; set; }
 	public bool? PreEnumerateTheories { get; set; }
+	public int? PrintMaxEnumerableLength { get; set; }
+	public int? PrintMaxObjectDepth { get; set; }
+	public int? PrintMaxObjectMemberCount { get; set; }
+	public int? PrintMaxStringLength { get; set; }
 	public string? ReporterSwitch { get; set; }
 	public int? Seed { get; set; }
 	public bool? ShadowCopy { get; set; }
@@ -36,6 +41,8 @@ internal class RunSettings
 	{
 		if (AppDomain.HasValue)
 			configuration.AppDomain = AppDomain;
+		if (AssertEquivalentMaxDepth.HasValue)
+			configuration.AssertEquivalentMaxDepth = AssertEquivalentMaxDepth;
 		if (Culture is not null)
 			configuration.Culture = Culture.ToUpperInvariant() switch
 			{
@@ -69,6 +76,14 @@ internal class RunSettings
 			configuration.ParallelizeTestCollections = ParallelizeTestCollections;
 		if (PreEnumerateTheories.HasValue)
 			configuration.PreEnumerateTheories = PreEnumerateTheories;
+		if (PrintMaxEnumerableLength.HasValue)
+			configuration.PrintMaxEnumerableLength = PrintMaxEnumerableLength;
+		if (PrintMaxObjectDepth.HasValue)
+			configuration.PrintMaxObjectDepth = PrintMaxObjectDepth;
+		if (PrintMaxObjectMemberCount.HasValue)
+			configuration.PrintMaxObjectMemberCount = PrintMaxObjectMemberCount;
+		if (PrintMaxStringLength.HasValue)
+			configuration.PrintMaxStringLength = PrintMaxStringLength;
 		if (Seed.HasValue)
 			configuration.Seed = Seed;
 		if (ShadowCopy.HasValue)
@@ -98,6 +113,10 @@ internal class RunSettings
 						var appDomainString = xunitElement.Element(Constants.Xunit.AppDomain)?.Value;
 						if (Enum.TryParse<AppDomainSupport>(appDomainString, ignoreCase: true, out var appDomain))
 							result.AppDomain = appDomain;
+
+						var assertEquivalentMaxDepthString = xunitElement.Element(Constants.Xunit.AssertEquivalentMaxDepth)?.Value;
+						if (int.TryParse(assertEquivalentMaxDepthString, out var assertEquivalentMaxDepth) && assertEquivalentMaxDepth >= 1)
+							result.AssertEquivalentMaxDepth = assertEquivalentMaxDepth;
 
 						result.Culture = xunitElement.Element(Constants.Xunit.Culture)?.Value;
 
@@ -176,6 +195,22 @@ internal class RunSettings
 						var preEnumerateTheoriesString = xunitElement.Element(Constants.Xunit.PreEnumerateTheories)?.Value;
 						if (bool.TryParse(preEnumerateTheoriesString, out var preEnumerateTheories))
 							result.PreEnumerateTheories = preEnumerateTheories;
+
+						var printMaxEnumerableLengthString = xunitElement.Element(Constants.Xunit.PrintMaxEnumerableLength)?.Value;
+						if (int.TryParse(printMaxEnumerableLengthString, out var printMaxEnumerableLength) && printMaxEnumerableLength >= 0)
+							result.PrintMaxEnumerableLength = printMaxEnumerableLength;
+
+						var printMaxObjectDepthString = xunitElement.Element(Constants.Xunit.PrintMaxObjectDepth)?.Value;
+						if (int.TryParse(printMaxObjectDepthString, out var printMaxObjectDepth) && printMaxObjectDepth >= 0)
+							result.PrintMaxObjectDepth = printMaxObjectDepth;
+
+						var printMaxObjectMemberCountString = xunitElement.Element(Constants.Xunit.PrintMaxObjectMemberCount)?.Value;
+						if (int.TryParse(printMaxObjectMemberCountString, out var printMaxObjectMemberCount) && printMaxObjectMemberCount >= 0)
+							result.PrintMaxObjectMemberCount = printMaxObjectMemberCount;
+
+						var printMaxStringLengthString = xunitElement.Element(Constants.Xunit.PrintMaxStringLength)?.Value;
+						if (int.TryParse(printMaxStringLengthString, out var printMaxStringLength) && printMaxStringLength >= 0)
+							result.PrintMaxStringLength = printMaxStringLength;
 
 						var reporterSwitchString = xunitElement.Element(Constants.Xunit.ReporterSwitch)?.Value;
 						if (reporterSwitchString is not null)
@@ -263,6 +298,7 @@ internal class RunSettings
 		public static class Xunit
 		{
 			public const string AppDomain = nameof(AppDomain);
+			public const string AssertEquivalentMaxDepth = nameof(AssertEquivalentMaxDepth);
 			public const string Culture = nameof(Culture);
 			public const string DiagnosticMessages = nameof(DiagnosticMessages);
 			public const string Explicit = nameof(Explicit);
@@ -278,6 +314,10 @@ internal class RunSettings
 			public const string ParallelizeAssembly = nameof(ParallelizeAssembly);
 			public const string ParallelizeTestCollections = nameof(ParallelizeTestCollections);
 			public const string PreEnumerateTheories = nameof(PreEnumerateTheories);
+			public const string PrintMaxEnumerableLength = nameof(PrintMaxEnumerableLength);
+			public const string PrintMaxObjectDepth = nameof(PrintMaxObjectDepth);
+			public const string PrintMaxObjectMemberCount = nameof(PrintMaxObjectMemberCount);
+			public const string PrintMaxStringLength = nameof(PrintMaxStringLength);
 			public const string Seed = nameof(Seed);
 			public const string ReporterSwitch = nameof(ReporterSwitch);
 			public const string ShadowCopy = nameof(ShadowCopy);
