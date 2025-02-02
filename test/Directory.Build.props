@@ -4,6 +4,8 @@
   <PropertyGroup>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>portable</DebugType>
+    <!-- Never use Microsoft.Testing.Platform mode, as that bypasses the VSTest adapter -->
+    <DisableTestingPlatformServerCapability>true</DisableTestingPlatformServerCapability>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <LangVersion>12.0</LangVersion>
     <PackageId>$(MSBuildProjectName)</PackageId>

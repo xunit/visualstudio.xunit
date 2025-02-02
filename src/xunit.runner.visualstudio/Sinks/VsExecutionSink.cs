@@ -1,7 +1,11 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Xunit.Runner.Common;
 using Xunit.Sdk;
 using VsTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
@@ -16,6 +20,8 @@ namespace Xunit.Runner.VisualStudio;
 
 internal sealed class VsExecutionSink : TestMessageSink, IDisposable
 {
+	static readonly HashSet<char> InvalidFileNameChars = Path.GetInvalidFileNameChars().ToHashSet();
+
 	readonly Func<bool> cancelledThunk;
 	readonly LoggerHelper logger;
 	readonly IMessageSink innerSink;
@@ -24,10 +30,12 @@ internal sealed class VsExecutionSink : TestMessageSink, IDisposable
 	readonly ConcurrentDictionary<string, DateTimeOffset> startTimeByTestID = [];
 	readonly ConcurrentDictionary<string, List<ITestCaseStarting>> testCasesByAssemblyID = [];
 	readonly ConcurrentDictionary<string, ITestCaseStarting> testCasesByCaseID = [];
+	readonly ConcurrentDictionary<string, (string actionDescription, ITestMessage test, VsTestResult testResult)> testResultByCaseID = [];
 	readonly ConcurrentDictionary<string, List<ITestCaseStarting>> testCasesByClassID = [];
 	readonly ConcurrentDictionary<string, List<ITestCaseStarting>> testCasesByCollectionID = [];
 	readonly ConcurrentDictionary<string, List<ITestCaseStarting>> testCasesByMethodID = [];
 	readonly Dictionary<string, VsTestCase> testCasesMap;
+	static readonly Uri uri = new(Constants.ExecutorUri);
 
 	public VsExecutionSink(
 		IMessageSink innerSink,
@@ -298,7 +306,7 @@ internal sealed class VsExecutionSink : TestMessageSink, IDisposable
 			result.ErrorMessage = ExceptionUtility.CombineMessages(testFailed);
 			result.ErrorStackTrace = ExceptionUtility.CombineStackTraces(testFailed);
 
-			TryAndReport("RecordResult (Fail)", testFailed, () => recorder.RecordResult(result));
+			DeferReportUntilTestFinished("RecordResult (Fail)", testFailed, result);
 		}
 		else
 			LogWarning(testFailed, "(Fail) Could not find VS test case for {0} (ID = {1})", TestDisplayName(testFailed), testFailed.TestCaseUniqueID);
@@ -306,8 +314,69 @@ internal sealed class VsExecutionSink : TestMessageSink, IDisposable
 		HandleCancellation(args);
 	}
 
-	void HandleTestFinished(MessageHandlerArgs<ITestFinished> args) =>
+	void HandleTestFinished(MessageHandlerArgs<ITestFinished> args)
+	{
+		var testUniqueID = args.Message.TestUniqueID;
+
+		if (testResultByCaseID.TryRemove(testUniqueID, out var testResultEntry))
+		{
+			var (actionDescription, test, testResult) = testResultEntry;
+			var attachments = args.Message.Attachments;
+
+			if (attachments.Count != 0)
+				try
+				{
+					var basePath = Path.Combine(Path.GetTempPath(), testUniqueID);
+					Directory.CreateDirectory(basePath);
+
+					var attachmentSet = new AttachmentSet(uri, "xUnit.net");
+
+					foreach (var kvp in attachments)
+					{
+						var localFilePath = Path.Combine(basePath, SanitizeFileName(kvp.Key));
+
+						try
+						{
+							var attachmentType = kvp.Value.AttachmentType;
+
+							if (attachmentType == TestAttachmentType.String)
+							{
+								localFilePath += ".txt";
+								File.WriteAllText(localFilePath, kvp.Value.AsString());
+							}
+							else if (attachmentType == TestAttachmentType.ByteArray)
+							{
+								var (byteArray, mediaType) = kvp.Value.AsByteArray();
+								localFilePath += MediaTypeUtility.GetFileExtension(mediaType);
+								File.WriteAllBytes(localFilePath, byteArray);
+							}
+							else
+							{
+								LogWarning(test, "Unknown test attachment type '{0}' for attachment '{1}' [test case ID '{2}']", attachmentType, kvp.Key, testUniqueID);
+								localFilePath = null;
+							}
+
+							if (localFilePath is not null)
+								attachmentSet.Attachments.Add(UriDataAttachment.CreateFrom(localFilePath, kvp.Key));
+						}
+						catch (Exception ex)
+						{
+							LogWarning(test, "Exception while adding attachment '{0}' in '{1}' [test case ID '{2}']: {3}", kvp.Key, localFilePath, testUniqueID, ex);
+						}
+					}
+
+					testResult.Attachments.Add(attachmentSet);
+				}
+				catch (Exception ex)
+				{
+					LogWarning(test, "Exception while adding attachments [test case ID '{0}']: {1}", testUniqueID, ex);
+				}
+
+			TryAndReport(actionDescription, test, () => recorder.RecordResult(testResult));
+		}
+
 		MetadataCache(args.Message)?.TryRemove(args.Message);
+	}
 
 	void HandleTestMethodCleanupFailure(MessageHandlerArgs<ITestMethodCleanupFailure> args)
 	{
@@ -340,7 +409,7 @@ internal sealed class VsExecutionSink : TestMessageSink, IDisposable
 
 		var result = MakeVsTestResult(VsTestOutcome.None, testNotRun, startTime);
 		if (result is not null)
-			TryAndReport("RecordResult (None)", testNotRun, () => recorder.RecordResult(result));
+			DeferReportUntilTestFinished("RecordResult (None)", testNotRun, result);
 		else
 			LogWarning(testNotRun, "(NotRun) Could not find VS test case for {0} (ID = {1})", TestDisplayName(testNotRun), testNotRun.TestCaseUniqueID);
 
@@ -354,7 +423,7 @@ internal sealed class VsExecutionSink : TestMessageSink, IDisposable
 
 		var result = MakeVsTestResult(VsTestOutcome.Passed, testPassed, startTime);
 		if (result is not null)
-			TryAndReport("RecordResult (Pass)", testPassed, () => recorder.RecordResult(result));
+			DeferReportUntilTestFinished("RecordResult (Pass)", testPassed, result);
 		else
 			LogWarning(testPassed, "(Pass) Could not find VS test case for {0} (ID = {1})", TestDisplayName(testPassed), testPassed.TestCaseUniqueID);
 
@@ -368,7 +437,7 @@ internal sealed class VsExecutionSink : TestMessageSink, IDisposable
 
 		var result = MakeVsTestResult(VsTestOutcome.Skipped, testSkipped, startTime);
 		if (result is not null)
-			TryAndReport("RecordResult (Skip)", testSkipped, () => recorder.RecordResult(result));
+			DeferReportUntilTestFinished("RecordResult (Skip)", testSkipped, result);
 		else
 			LogWarning(testSkipped, "(Skip) Could not find VS test case for {0} (ID = {1})", TestDisplayName(testSkipped), testSkipped.TestCaseUniqueID);
 
@@ -493,6 +562,25 @@ internal sealed class VsExecutionSink : TestMessageSink, IDisposable
 
 	string TestMethodName(ITestMethodMessage msg) =>
 		TestClassName(msg) + "." + MetadataCache(msg)?.TryGetMethodMetadata(msg)?.MethodName ?? $"<unknown test method ID {msg.TestMethodUniqueID}>";
+
+	void DeferReportUntilTestFinished(
+		string actionDescription,
+		ITestMessage test,
+		VsTestResult testResult) =>
+			testResultByCaseID.TryAdd(test.TestUniqueID, (actionDescription, test, testResult));
+
+	string SanitizeFileName(string fileName)
+	{
+		var result = new StringBuilder(fileName.Length);
+
+		foreach (var c in fileName)
+			if (InvalidFileNameChars.Contains(c))
+				result.Append('_');
+			else
+				result.Append(c);
+
+		return result.ToString();
+	}
 
 	void TryAndReport(
 		string actionDescription,
