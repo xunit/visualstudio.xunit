@@ -1,7 +1,12 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
+#if NETCOREAPP
+using System.Text.Json;
+#endif
 using System.Threading;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Xunit.Runner.Common;
 using Xunit.Sdk;
 using VsTestCase = Microsoft.VisualStudio.TestPlatform.ObjectModel.TestCase;
@@ -24,10 +29,12 @@ internal sealed class VsExecutionSink : TestMessageSink, IDisposable
 	readonly ConcurrentDictionary<string, DateTimeOffset> startTimeByTestID = [];
 	readonly ConcurrentDictionary<string, List<ITestCaseStarting>> testCasesByAssemblyID = [];
 	readonly ConcurrentDictionary<string, ITestCaseStarting> testCasesByCaseID = [];
+	readonly ConcurrentDictionary<string, (ITestCaseMessage testCase, VsTestResult testResult, string actionDescription, Action<VsTestResult> action)> testResultByCaseID = [];
 	readonly ConcurrentDictionary<string, List<ITestCaseStarting>> testCasesByClassID = [];
 	readonly ConcurrentDictionary<string, List<ITestCaseStarting>> testCasesByCollectionID = [];
 	readonly ConcurrentDictionary<string, List<ITestCaseStarting>> testCasesByMethodID = [];
 	readonly Dictionary<string, VsTestCase> testCasesMap;
+	static readonly Uri uri = new(Constants.ExecutorUri);
 
 	public VsExecutionSink(
 		IMessageSink innerSink,
@@ -298,7 +305,7 @@ internal sealed class VsExecutionSink : TestMessageSink, IDisposable
 			result.ErrorMessage = ExceptionUtility.CombineMessages(testFailed);
 			result.ErrorStackTrace = ExceptionUtility.CombineStackTraces(testFailed);
 
-			TryAndReport("RecordResult (Fail)", testFailed, () => recorder.RecordResult(result));
+			DeferReportUntilTestFinished("RecordResult (Fail)", testFailed, result, vsTestResult => recorder.RecordResult(vsTestResult));
 		}
 		else
 			LogWarning(testFailed, "(Fail) Could not find VS test case for {0} (ID = {1})", TestDisplayName(testFailed), testFailed.TestCaseUniqueID);
@@ -306,8 +313,36 @@ internal sealed class VsExecutionSink : TestMessageSink, IDisposable
 		HandleCancellation(args);
 	}
 
-	void HandleTestFinished(MessageHandlerArgs<ITestFinished> args) =>
+	void HandleTestFinished(MessageHandlerArgs<ITestFinished> args)
+	{
+		if (testResultByCaseID.TryRemove(args.Message.TestUniqueID, out var testResultEntry))
+		{
+			var (testCase, testResult, actionDescription, action) = testResultEntry;
+#if NETCOREAPP //avoid hang on "args.Message.Attachments" on net472
+			var attachmentSet = new AttachmentSet(uri, "xunit");
+			foreach (var kvp in args.Message.Attachments)
+			{
+				var localFilePath = Path.GetTempFileName();
+				if (kvp.Value.AttachmentType == TestAttachmentType.String)
+				{
+					File.WriteAllText(localFilePath, kvp.Value.AsString());
+				}
+				else
+				{
+					var (byteArray, mediaType) = kvp.Value.AsByteArray();
+					File.WriteAllBytes(localFilePath, byteArray);
+				}
+
+				attachmentSet.Attachments.Add(UriDataAttachment.CreateFrom(localFilePath, kvp.Key));
+
+				testResult.Attachments.Add(attachmentSet);
+			}
+#endif
+
+			TryAndReport(actionDescription, testCase, () => action(testResult));
+		}
 		MetadataCache(args.Message)?.TryRemove(args.Message);
+	}
 
 	void HandleTestMethodCleanupFailure(MessageHandlerArgs<ITestMethodCleanupFailure> args)
 	{
@@ -340,7 +375,7 @@ internal sealed class VsExecutionSink : TestMessageSink, IDisposable
 
 		var result = MakeVsTestResult(VsTestOutcome.None, testNotRun, startTime);
 		if (result is not null)
-			TryAndReport("RecordResult (None)", testNotRun, () => recorder.RecordResult(result));
+			DeferReportUntilTestFinished("RecordResult (None)", testNotRun, result, vsTestResult => recorder.RecordResult(vsTestResult));
 		else
 			LogWarning(testNotRun, "(NotRun) Could not find VS test case for {0} (ID = {1})", TestDisplayName(testNotRun), testNotRun.TestCaseUniqueID);
 
@@ -354,7 +389,7 @@ internal sealed class VsExecutionSink : TestMessageSink, IDisposable
 
 		var result = MakeVsTestResult(VsTestOutcome.Passed, testPassed, startTime);
 		if (result is not null)
-			TryAndReport("RecordResult (Pass)", testPassed, () => recorder.RecordResult(result));
+			DeferReportUntilTestFinished("RecordResult (Pass)", testPassed, result, vsTestResult => recorder.RecordResult(vsTestResult));
 		else
 			LogWarning(testPassed, "(Pass) Could not find VS test case for {0} (ID = {1})", TestDisplayName(testPassed), testPassed.TestCaseUniqueID);
 
@@ -368,7 +403,7 @@ internal sealed class VsExecutionSink : TestMessageSink, IDisposable
 
 		var result = MakeVsTestResult(VsTestOutcome.Skipped, testSkipped, startTime);
 		if (result is not null)
-			TryAndReport("RecordResult (Skip)", testSkipped, () => recorder.RecordResult(result));
+			DeferReportUntilTestFinished("RecordResult (Skip)", testSkipped, result, vsTestResult => recorder.RecordResult(vsTestResult));
 		else
 			LogWarning(testSkipped, "(Skip) Could not find VS test case for {0} (ID = {1})", TestDisplayName(testSkipped), testSkipped.TestCaseUniqueID);
 
@@ -493,6 +528,15 @@ internal sealed class VsExecutionSink : TestMessageSink, IDisposable
 
 	string TestMethodName(ITestMethodMessage msg) =>
 		TestClassName(msg) + "." + MetadataCache(msg)?.TryGetMethodMetadata(msg)?.MethodName ?? $"<unknown test method ID {msg.TestMethodUniqueID}>";
+
+	void DeferReportUntilTestFinished(
+		string actionDescription,
+		ITestCaseMessage testCase,
+		VsTestResult testResult,
+		Action<VsTestResult> action)
+	{
+		testResultByCaseID.TryAdd(testCase.TestCaseUniqueID, (testCase, testResult, actionDescription, action));
+	}
 
 	void TryAndReport(
 		string actionDescription,
