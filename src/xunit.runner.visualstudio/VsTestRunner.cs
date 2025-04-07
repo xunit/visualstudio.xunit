@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -514,8 +515,8 @@ namespace Xunit.Runner.VisualStudio
 				if (controller is null)
 					return;
 
-				var testCasesMap = new Dictionary<string, TestCase>();
-				var testCaseSerializations = new List<string>();
+				var testCasesMap = new ConcurrentDictionary<string, TestCase>();
+				var testCaseSerializations = new ConcurrentBag<string>();
 				if (runInfo.TestCases is null || runInfo.TestCases.Count == 0)
 				{
 					// Discover tests
@@ -553,14 +554,14 @@ namespace Xunit.Runner.VisualStudio
 					foreach (var filteredTestCase in filteredTestCases)
 					{
 						var uniqueID = filteredTestCase.UniqueID;
-						if (testCasesMap.ContainsKey(uniqueID))
-							logger.LogWarningWithSource(assemblyFileName, "Skipping test case with duplicate ID '{0}' ('{1}' and '{2}')", uniqueID, testCasesMap[uniqueID].DisplayName, filteredTestCase.VSTestCase?.DisplayName);
-						else if (string.IsNullOrEmpty(filteredTestCase.TestCase.Serialization))
+						if (string.IsNullOrEmpty(filteredTestCase.TestCase.Serialization))
 							logger.LogWarningWithSource(assemblyFileName, "Skipping test case '{0}' (ID '{1}') without serialization", filteredTestCase.TestCase.TestCaseDisplayName, filteredTestCase.TestCase.TestCaseUniqueID);
 						else if (filteredTestCase.VSTestCase is not null)
 						{
-							testCasesMap.Add(uniqueID, filteredTestCase.VSTestCase);
-							testCaseSerializations.Add(filteredTestCase.TestCase.Serialization);
+							if (testCasesMap.TryAdd(uniqueID, filteredTestCase.VSTestCase))
+								testCaseSerializations.Add(filteredTestCase.TestCase.Serialization);
+							else
+								logger.LogWarningWithSource(assemblyFileName, "Skipping test case with duplicate ID '{0}' ('{1}' and '{2}')", uniqueID, testCasesMap[uniqueID].DisplayName, filteredTestCase.VSTestCase?.DisplayName);
 						}
 					}
 				}
@@ -576,20 +577,20 @@ namespace Xunit.Runner.VisualStudio
 
 						if (uniqueID is null)
 							logger.LogWarningWithSource(assemblyFileName, "VSTestCase {0} did not have an associated unique ID", testCase.DisplayName);
-						else if (testCasesMap.ContainsKey(uniqueID))
-							logger.LogWarningWithSource(assemblyFileName, "Skipping test case with duplicate ID '{0}' ('{1}' and '{2}')", uniqueID, testCasesMap[uniqueID].DisplayName, testCase.DisplayName);
 						else if (string.IsNullOrEmpty(serialization))
 							logger.LogWarningWithSource(assemblyFileName, "Skipping test case '{0}' (ID '{1}') without serialization", testCase.DisplayName, uniqueID);
 						else
 						{
-							testCasesMap[uniqueID] = testCase;
-							testCaseSerializations.Add(serialization);
+							if (testCasesMap.TryAdd(uniqueID, testCase))
+								testCaseSerializations.Add(serialization);
+							else
+								logger.LogWarningWithSource(assemblyFileName, "Skipping test case with duplicate ID '{0}' ('{1}' and '{2}')", uniqueID, testCasesMap[uniqueID].DisplayName, testCase.DisplayName);
 						}
 					}
 				}
 
 				// https://github.com/xunit/visualstudio.xunit/issues/417
-				if (testCaseSerializations.Count == 0)
+				if (testCaseSerializations.IsEmpty)
 				{
 					if (configuration.InternalDiagnosticMessagesOrDefault)
 						logger.LogWarning("Skipping '{0}': no tests passed the filter", assemblyFileName);

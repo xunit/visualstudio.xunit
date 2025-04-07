@@ -34,14 +34,14 @@ internal sealed class VsExecutionSink : TestMessageSink, IDisposable
 	readonly ConcurrentDictionary<string, List<ITestCaseStarting>> testCasesByClassID = [];
 	readonly ConcurrentDictionary<string, List<ITestCaseStarting>> testCasesByCollectionID = [];
 	readonly ConcurrentDictionary<string, List<ITestCaseStarting>> testCasesByMethodID = [];
-	readonly Dictionary<string, VsTestCase> testCasesMap;
+	readonly IReadOnlyDictionary<string, VsTestCase> testCasesMap;
 	static readonly Uri uri = new(Constants.ExecutorUri);
 
 	public VsExecutionSink(
 		IMessageSink innerSink,
 		VsTestExecutionRecorder recorder,
 		LoggerHelper logger,
-		Dictionary<string, VsTestCase> testCasesMap,
+		IReadOnlyDictionary<string, VsTestCase> testCasesMap,
 		Func<bool> cancelledThunk)
 	{
 		this.innerSink = innerSink;
