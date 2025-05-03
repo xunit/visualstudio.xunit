@@ -447,6 +447,9 @@ namespace Xunit.Runner.VisualStudio
 			{
 				RemotingUtility.CleanUpRegisteredChannels();
 
+				if (Debugger.IsAttached)
+					logger.LogWarning("{0}", "* Note: Long running test detection and test timeouts are disabled due to an attached debugger *");
+
 				cancelled = false;
 
 				var runInfos = getRunInfos();
