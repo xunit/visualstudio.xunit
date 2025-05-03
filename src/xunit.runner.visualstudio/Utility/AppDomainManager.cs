@@ -56,10 +56,10 @@ class AppDomainManager
 	{
 		if (appDomain is not null)
 		{
-			var cachePath = appDomain.SetupInformation.CachePath;
-
 			try
 			{
+				var cachePath = appDomain.SetupInformation.CachePath;
+
 				AppDomain.Unload(appDomain);
 
 				if (cachePath is not null)
