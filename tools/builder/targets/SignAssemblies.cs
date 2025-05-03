@@ -20,7 +20,7 @@ public static partial class SignAssemblies
 		var binaries =
 			new[] {
 				Path.Combine(context.BaseFolder, "src", "xunit.runner.visualstudio", "bin", context.ConfigurationText, "net472", "merged", "xunit.runner.visualstudio.testadapter.dll"),
-				Path.Combine(context.BaseFolder, "src", "xunit.runner.visualstudio", "bin", context.ConfigurationText, "net6.0", "merged", "xunit.runner.visualstudio.testadapter.dll"),
+				Path.Combine(context.BaseFolder, "src", "xunit.runner.visualstudio", "bin", context.ConfigurationText, "net8.0", "merged", "xunit.runner.visualstudio.testadapter.dll"),
 			}.Select(unsignedPath =>
 			{
 				var unsignedFolder = Path.GetDirectoryName(unsignedPath) ?? throw new InvalidOperationException($"Path '{unsignedPath}' did not have a folder");
