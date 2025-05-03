@@ -27,6 +27,7 @@ internal sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 	readonly ITestFrameworkDiscoveryOptions discoveryOptions;
 	readonly VsTestCaseDiscoverySink discoverySink;
 	readonly DiscoveryEventSink discoveryEventSink = new();
+	readonly Dictionary<string, string> displayNamesByTestCaseUniqueID = [];
 	readonly LoggerHelper logger;
 	readonly string source;
 	readonly List<ITestCaseDiscovered> testCaseBatch = [];
@@ -149,7 +150,6 @@ internal sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 	void HandleTestCaseDiscoveredMessage(MessageHandlerArgs<ITestCaseDiscovered> args)
 	{
 		testCaseBatch.Add(args.Message);
-		TotalTests++;
 
 		if (testCaseBatch.Count == TestCaseBatchSize)
 			SendExistingTestCases();
@@ -176,20 +176,28 @@ internal sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 	bool IMessageSink.OnMessage(IMessageSinkMessage message) =>
 		discoveryEventSink.OnMessage(message);
 
-	private void SendExistingTestCases()
+	void SendExistingTestCases()
 	{
 		if (testCaseBatch.Count == 0)
 			return;
 
 		foreach (var testCase in testCaseBatch)
 		{
-			var vsTestCase = CreateVsTestCase(source, testCase, logger, testPlatformContext);
-			if (vsTestCase is not null && testCaseFilter.MatchTestCase(vsTestCase))
+			if (displayNamesByTestCaseUniqueID.TryGetValue(testCase.TestCaseUniqueID, out var otherTestCase))
+				logger.LogWithSource(source, "Skipping test case with duplicate ID '{0}' ('{1}' and '{2}')", testCase.TestCaseUniqueID, otherTestCase, testCase.TestCaseDisplayName);
+			else
 			{
-				if (discoveryOptions.GetInternalDiagnosticMessagesOrDefault())
-					logger.LogWithSource(source, "Discovered test case '{0}' (ID = '{1}', VS FQN = '{2}')", testCase.TestCaseDisplayName, testCase.TestCaseUniqueID, vsTestCase.FullyQualifiedName);
+				var vsTestCase = CreateVsTestCase(source, testCase, logger, testPlatformContext);
+				if (vsTestCase is not null && testCaseFilter.MatchTestCase(vsTestCase))
+				{
+					displayNamesByTestCaseUniqueID[testCase.TestCaseUniqueID] = testCase.TestCaseDisplayName;
+					TotalTests++;
 
-				discoverySink.SendTestCase(vsTestCase);
+					if (discoveryOptions.GetInternalDiagnosticMessagesOrDefault())
+						logger.LogWithSource(source, "Discovered test case '{0}' (ID = '{1}', VS FQN = '{2}')", testCase.TestCaseDisplayName, testCase.TestCaseUniqueID, vsTestCase.FullyQualifiedName);
+
+					discoverySink.SendTestCase(vsTestCase);
+				}
 			}
 		}
 
