@@ -395,6 +395,7 @@ namespace Xunit.Runner.VisualStudio
 				runContext, frameworkHandle, logger, testPlatformContext, runSettings,
 				() =>
 					tests
+						.Distinct(TestCaseUniqueIDComparer.Instance)
 						.GroupBy(testCase => testCase.Source)
 						.Select(group => AssemblyRunInfo.Create(logger, project, runSettings, group.Key, [.. group], runExplicitTests))
 						.WhereNotNull()
@@ -691,6 +692,35 @@ namespace Xunit.Runner.VisualStudio
 			public ITestCaseDiscovered TestCase { get; } = testCase;
 
 			public string UniqueID { get; } = testCase.TestCaseUniqueID;
+		}
+
+		class TestCaseUniqueIDComparer : IEqualityComparer<TestCase>
+		{
+			public static TestCaseUniqueIDComparer Instance = new();
+
+			public bool Equals(TestCase? x, TestCase? y)
+			{
+				if (x is null)
+					return y is null;
+				if (y is null)
+					return false;
+				if (x.GetPropertyValue(TestCaseUniqueIDProperty) is not string xID)
+					return false;
+				if (y.GetPropertyValue(TestCaseUniqueIDProperty) is not string yID)
+					return false;
+
+				return xID == yID;
+			}
+
+			public int GetHashCode(TestCase obj)
+			{
+				if (obj is null)
+					return 0;
+				if (obj.GetPropertyValue(TestCaseUniqueIDProperty) is not string id)
+					return 0;
+
+				return id.GetHashCode();
+			}
 		}
 	}
 }
