@@ -17,6 +17,6 @@ public class TestCore
 		Directory.CreateDirectory(context.TestOutputFolder);
 		File.Delete(Path.Combine(context.TestOutputFolder, "test.xunit.runner.visualstudio-netcore.trx"));
 
-		await context.Exec("dotnet", $"test test/test.xunit.runner.visualstudio --configuration {context.Configuration} --no-build --framework net6.0 --logger trx;LogFileName=test.xunit.runner.visualstudio-netcore.trx --results-directory \"{context.TestOutputFolder}\" --verbosity {context.Verbosity}");
+		await context.Exec("dotnet", $"test test/test.xunit.runner.visualstudio -tl:off --configuration {context.Configuration} --no-build --framework net8.0 --logger trx;LogFileName=test.xunit.runner.visualstudio-netcore.trx --results-directory \"{context.TestOutputFolder}\" --verbosity {context.Verbosity}");
 	}
 }

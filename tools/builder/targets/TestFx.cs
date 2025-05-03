@@ -17,6 +17,6 @@ public class TestFx
 		Directory.CreateDirectory(context.TestOutputFolder);
 		File.Delete(Path.Combine(context.TestOutputFolder, "test.xunit.runner.visualstudio-netfx.trx"));
 
-		await context.Exec("dotnet", $"test test/test.xunit.runner.visualstudio --configuration {context.Configuration} --no-build --framework net472 --logger trx;LogFileName=test.xunit.runner.visualstudio-netfx.trx --results-directory \"{context.TestOutputFolder}\" --verbosity {context.Verbosity}");
+		await context.Exec("dotnet", $"test test/test.xunit.runner.visualstudio -tl:off --configuration {context.Configuration} --no-build --framework net472 --logger trx;LogFileName=test.xunit.runner.visualstudio-netfx.trx --results-directory \"{context.TestOutputFolder}\" --verbosity {context.Verbosity}");
 	}
 }
