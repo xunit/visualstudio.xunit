@@ -13,6 +13,7 @@ public class RunSettingsTests
 	{
 		Assert.Null(runSettings.AppDomain);
 		Assert.Null(runSettings.AssertEquivalentMaxDepth);
+		Assert.Null(runSettings.CollectSourceInformation);
 		Assert.False(runSettings.DesignMode);
 		Assert.Null(runSettings.DiagnosticMessages);
 		Assert.Null(runSettings.FailSkips);
@@ -140,6 +141,7 @@ $@"<?xml version=""1.0"" encoding=""utf-8""?>
 
 		var runSettings = RunSettings.Parse(settingsXml);
 
+		Assert.Equal(testValue, runSettings.CollectSourceInformation);
 		Assert.Equal(testValue, runSettings.DesignMode);
 		Assert.Equal(testValue, runSettings.DiagnosticMessages);
 		Assert.Equal(testValue, runSettings.FailSkips);

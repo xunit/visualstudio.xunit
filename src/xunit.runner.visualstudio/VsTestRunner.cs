@@ -224,7 +224,6 @@ namespace Xunit.Runner.VisualStudio
 						return;
 
 					var discoveryOptions = TestFrameworkOptions.ForDiscovery(assembly.Configuration);
-					discoveryOptions.SetIncludeSourceInformation(true);
 					if (!await DiscoverTestsInAssembly(controller, logger, runSettings, visitorFactory, visitComplete, assembly, discoveryOptions))
 						break;
 				}

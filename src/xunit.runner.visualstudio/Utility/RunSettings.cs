@@ -10,6 +10,7 @@ internal class RunSettings
 {
 	public AppDomainSupport? AppDomain { get; set; }
 	public int? AssertEquivalentMaxDepth { get; set; }
+	public bool? CollectSourceInformation { get; set; }
 	public string? Culture { get; set; }
 	public bool DesignMode { get; set; } = false;
 	public bool? DiagnosticMessages { get; set; }
@@ -43,6 +44,8 @@ internal class RunSettings
 			configuration.AppDomain = AppDomain;
 		if (AssertEquivalentMaxDepth.HasValue)
 			configuration.AssertEquivalentMaxDepth = AssertEquivalentMaxDepth;
+		if (CollectSourceInformation.HasValue)
+			configuration.IncludeSourceInformation = CollectSourceInformation;
 		if (Culture is not null)
 			configuration.Culture = Culture.ToUpperInvariant() switch
 			{
@@ -237,6 +240,10 @@ internal class RunSettings
 					var runConfigurationElement = runSettingsElement.Element("RunConfiguration");
 					if (runConfigurationElement is not null)
 					{
+						var collectSourceInformationString = runConfigurationElement.Element(Constants.RunConfiguration.CollectSourceInformation)?.Value;
+						if (bool.TryParse(collectSourceInformationString, out var collectSourceInformation))
+							result.CollectSourceInformation = collectSourceInformation;
+
 						var designModeString = runConfigurationElement.Element(Constants.RunConfiguration.DesignMode)?.Value;
 						if (bool.TryParse(designModeString, out var designMode))
 							result.DesignMode = designMode;
