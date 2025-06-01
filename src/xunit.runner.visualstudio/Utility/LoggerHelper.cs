@@ -55,9 +55,8 @@ internal class LoggerHelper(IMessageLogger? logger, Stopwatch stopwatch)
 		TestMessageLevel level,
 		string? assemblyName,
 		string format,
-		object? first,
 		params object?[] args) =>
-			SendMessage(InnerLogger, level, assemblyName, format, [first, .. args]);
+			SendMessage(InnerLogger, level, assemblyName, format, args);
 
 	void SendMessage(
 		IMessageLogger? logger,
