@@ -1,18 +1,18 @@
 <Project>
 
   <PropertyGroup>
-    <ILRepackVersion>2.0.43</ILRepackVersion>
-    <MicrosoftNetCoreAppRefVersion>6.0.32</MicrosoftNetCoreAppRefVersion>
-    <MicrosoftNetFrameworkReferenceAssembliesVersion>1.0.3</MicrosoftNetFrameworkReferenceAssembliesVersion>
-    <MicrosoftNetTestSdkVersion>17.13.0</MicrosoftNetTestSdkVersion>
-    <MicrosoftSourceLinkGitHubVersion>8.0.0</MicrosoftSourceLinkGitHubVersion>
-    <MicrosoftTestPlatformObjectModelVersion>$(MicrosoftNetTestSdkVersion)</MicrosoftTestPlatformObjectModelVersion>
-    <NerdbankGitVersioningVersion>3.7.115</NerdbankGitVersioningVersion>
-    <NSubstituteVersion>5.3.0</NSubstituteVersion>
-    <TunnelVisionLabsReferenceAssemblyAnnotatorVersion>1.0.0-alpha.160</TunnelVisionLabsReferenceAssemblyAnnotatorVersion>
-    <XunitAnalyzersVersion>1.22.0</XunitAnalyzersVersion>
-    <XunitV2Version>2.9.3</XunitV2Version>
-    <XunitV3Version>2.0.3</XunitV3Version>
+    <ILRepack_Version>2.0.44</ILRepack_Version>
+    <Microsoft_NetCore_App_Ref_Version>9.0.7</Microsoft_NetCore_App_Ref_Version>
+    <Microsoft_NETFramework_ReferenceAssemblies_Version>1.0.3</Microsoft_NETFramework_ReferenceAssemblies_Version>
+    <Microsoft_NET_Test_Sdk_Version>17.13.0</Microsoft_NET_Test_Sdk_Version>
+    <Microsoft_SourceLink_GitHub_Version>8.0.0</Microsoft_SourceLink_GitHub_Version>
+    <Microsoft_TestPlatform_ObjectModel_Version>$(Microsoft_NET_Test_Sdk_Version)</Microsoft_TestPlatform_ObjectModel_Version>
+    <Nerdbank_GitVersioning_Version>3.7.115</Nerdbank_GitVersioning_Version>
+    <NSubstitute_Version>5.3.0</NSubstitute_Version>
+    <TunnelVisionLabs_ReferenceAssemblyAnnotator_Version>1.0.0-alpha.160</TunnelVisionLabs_ReferenceAssemblyAnnotator_Version>
+    <xunit_analyzers_Version>1.22.0</xunit_analyzers_Version>
+    <xunit_v3_Version>2.0.3</xunit_v3_Version>
+    <xunit_Version>2.9.3</xunit_Version>
   </PropertyGroup>
 
 </Project>

@@ -17,8 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="xunit.analyzers" Version="$(XunitAnalyzersVersion)" PrivateAssets="All" />
-    <PackageReference Include="xunit.v3.runner.utility" Version="$(XunitV3Version)" />
+    <PackageReference Include="xunit.analyzers" Version="$(xunit_analyzers_Version)" PrivateAssets="All" />
+    <PackageReference Include="xunit.v3.runner.utility" Version="$(xunit_v3_Version)" />
   </ItemGroup>
 
 </Project>

@@ -17,7 +17,7 @@
 		<developmentDependency>true</developmentDependency>
 		<dependencies>
 			<group targetFramework="net472">
-				<dependency id="Microsoft.TestPlatform.ObjectModel" version="$MicrosoftTestPlatformObjectModelVersion$" />
+				<dependency id="Microsoft.TestPlatform.ObjectModel" version="$Microsoft_TestPlatform_ObjectModel_Version$" />
 			</group>
 			<group targetFramework="net8.0"/>
 		</dependencies>

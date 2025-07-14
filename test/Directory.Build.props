@@ -25,10 +25,7 @@
 
   <!-- Enable building .NET Framework on non-Windows machines -->
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' ">
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="$(MicrosoftNetFrameworkReferenceAssembliesVersion)">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="$(Microsoft_NETFramework_ReferenceAssemblies_Version)" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>

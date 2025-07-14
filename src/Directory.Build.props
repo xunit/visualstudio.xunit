@@ -2,7 +2,6 @@
   <Import Project="..\Versions.props" />
 
   <PropertyGroup>
-    <AnnotatedReferenceAssemblyVersion>$(MicrosoftNetCoreAppRefVersion)</AnnotatedReferenceAssemblyVersion>
     <DebugType>embedded</DebugType>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <LangVersion>12.0</LangVersion>
@@ -11,26 +10,23 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ILRepack" Version="$(ILRepackVersion)">
+    <PackageReference Include="ILRepack" Version="$(ILRepack_Version)">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="$(MicrosoftSourceLinkGitHubVersion)" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="$(MicrosoftTestPlatformObjectModelVersion)" PrivateAssets="All" />
-    <PackageReference Include="Nerdbank.GitVersioning" Version="$(NerdbankGitVersioningVersion)" PrivateAssets="all" />
-    <PackageReference Include="TunnelVisionLabs.ReferenceAssemblyAnnotator" Version="$(TunnelVisionLabsReferenceAssemblyAnnotatorVersion)" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="$(Microsoft_SourceLink_GitHub_Version)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="$(Microsoft_TestPlatform_ObjectModel_Version)" PrivateAssets="All" />
+    <PackageReference Include="Nerdbank.GitVersioning" Version="$(Nerdbank_GitVersioning_Version)" PrivateAssets="all" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageDownload Include="Microsoft.NETCore.App.Ref" Version="[$(MicrosoftNetCoreAppRefVersion)]" />
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
+    <PackageDownload Include="Microsoft.NETCore.App.Ref" Version="[$(Microsoft_NetCore_App_Ref_Version)]" />
+    <PackageReference Include="TunnelVisionLabs.ReferenceAssemblyAnnotator" Version="$(TunnelVisionLabs_ReferenceAssemblyAnnotator_Version)" PrivateAssets="All" />
   </ItemGroup>
 
   <!-- Enable building .NET Framework on non-Windows machines -->
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' ">
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="$(MicrosoftNetFrameworkReferenceAssembliesVersion)">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="$(Microsoft_NETFramework_ReferenceAssemblies_Version)" PrivateAssets="All" />
   </ItemGroup>
 
   <!-- Support deterministic builds (via https://github.com/clairernovotny/DeterministicBuilds) -->
@@ -109,8 +105,8 @@
       <NuspecProperties>
         Configuration=$(Configuration);
         GitCommitId=$(GitCommitId);
-        MicrosoftNetTestSdkVersion=$(MicrosoftNetTestSdkVersion);
-        MicrosoftTestPlatformObjectModelVersion=$(MicrosoftTestPlatformObjectModelVersion);
+        Microsoft_NET_Test_Sdk_Version=$(Microsoft_NET_Test_Sdk_Version);
+        Microsoft_TestPlatform_ObjectModel_Version=$(Microsoft_TestPlatform_ObjectModel_Version);
         PackageVersion=$(PackageVersion);
         SignedPath=$(SignedPath);
       </NuspecProperties>
