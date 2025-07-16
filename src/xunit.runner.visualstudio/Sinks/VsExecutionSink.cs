@@ -1,3 +1,5 @@
+#pragma warning disable CA1513 // ObjectDisposedException.ThrowIf is not available in net472
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -23,6 +25,8 @@ internal sealed class VsExecutionSink : TestMessageSink, IDisposable
 	static readonly HashSet<char> InvalidFileNameChars = Path.GetInvalidFileNameChars().ToHashSet();
 
 	readonly Func<bool> cancelledThunk;
+	readonly object disposalLock = new();
+	bool disposed;
 	readonly LoggerHelper logger;
 	readonly IMessageSink innerSink;
 	readonly ConcurrentDictionary<string, MessageMetadataCache> metadataCacheByAssemblyID = [];
@@ -95,6 +99,14 @@ internal sealed class VsExecutionSink : TestMessageSink, IDisposable
 
 	public void Dispose()
 	{
+		lock (disposalLock)
+		{
+			if (disposed)
+				throw new ObjectDisposedException(nameof(VsExecutionSink));
+
+			disposed = true;
+		}
+
 		Finished.Dispose();
 	}
 

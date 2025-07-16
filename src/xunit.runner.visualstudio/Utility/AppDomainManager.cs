@@ -13,6 +13,8 @@ namespace Xunit.Runner.VisualStudio;
 class AppDomainManager
 {
 	readonly AppDomain appDomain;
+	readonly object disposalLock = new();
+	bool disposed;
 
 	public AppDomainManager(string assemblyFileName)
 	{
@@ -54,6 +56,14 @@ class AppDomainManager
 
 	public virtual void Dispose()
 	{
+		lock (disposalLock)
+		{
+			if (disposed)
+				throw new ObjectDisposedException(nameof(AppDomainManager));
+
+			disposed = true;
+		}
+
 		if (appDomain is not null)
 		{
 			try

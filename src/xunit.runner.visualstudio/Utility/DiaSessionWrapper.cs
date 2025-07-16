@@ -1,3 +1,5 @@
+#pragma warning disable CA1513 // ObjectDisposedException.ThrowIf is not available in net472
+
 using System;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Navigation;
@@ -14,9 +16,11 @@ class DiaSessionWrapper : IDisposable
 #if NETFRAMEWORK
 	readonly AppDomainManager? appDomainManager;
 #endif
+	readonly DiagnosticMessageSink diagnosticMessageSink;
+	readonly object disposalLock = new();
+	bool disposed;
 	readonly DiaSessionWrapperHelper? helper;
 	readonly DiaSession? session;
-	readonly DiagnosticMessageSink diagnosticMessageSink;
 
 	public DiaSessionWrapper(
 		string assemblyFileName,
@@ -73,6 +77,14 @@ class DiaSessionWrapper : IDisposable
 
 	public void Dispose()
 	{
+		lock (disposalLock)
+		{
+			if (disposed)
+				throw new ObjectDisposedException(nameof(DiaSessionWrapper));
+
+			disposed = true;
+		}
+
 		session?.Dispose();
 #if NETFRAMEWORK
 		appDomainManager?.Dispose();

@@ -1,3 +1,5 @@
+#pragma warning disable CA1513 // ObjectDisposedException.ThrowIf is not available in net472
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -28,6 +30,8 @@ internal sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 	readonly VsTestCaseDiscoverySink discoverySink;
 	readonly DiscoveryEventSink discoveryEventSink = new();
 	readonly Dictionary<string, string> displayNamesByTestCaseUniqueID = [];
+	readonly object disposalLock = new();
+	bool disposed;
 	readonly LoggerHelper logger;
 	readonly string source;
 	readonly List<ITestCaseDiscovered> testCaseBatch = [];
@@ -59,8 +63,18 @@ internal sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 
 	public int TotalTests { get; private set; }
 
-	public void Dispose() =>
+	public void Dispose()
+	{
+		lock (disposalLock)
+		{
+			if (disposed)
+				throw new ObjectDisposedException(nameof(VsDiscoverySink));
+
+			disposed = true;
+		}
+
 		Finished.Dispose();
+	}
 
 	public static VsTestCase? CreateVsTestCase(
 		string source,

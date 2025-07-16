@@ -1,3 +1,6 @@
+#pragma warning disable CA1513 // ObjectDisposedException.ThrowIf is not available in net472
+
+using System;
 using System.Threading.Tasks;
 using Xunit.Runner.Common;
 using Xunit.Sdk;
@@ -17,7 +20,9 @@ internal class VisualStudioSourceInformationProvider(
 {
 	static readonly SourceInformation EmptySourceInformation = new();
 
-	readonly DiaSessionWrapper session = new DiaSessionWrapper(assemblyFileName, diagnosticMessageSink);
+	readonly object disposalLock = new();
+	bool disposed;
+	readonly DiaSessionWrapper session = new(assemblyFileName, diagnosticMessageSink);
 
 	/// <inheritdoc/>
 	public SourceInformation GetSourceInformation(
@@ -37,6 +42,14 @@ internal class VisualStudioSourceInformationProvider(
 	/// <inheritdoc/>
 	public ValueTask DisposeAsync()
 	{
+		lock (session)
+		{
+			if (disposed)
+				throw new ObjectDisposedException(nameof(VisualStudioSourceInformationProvider));
+
+			disposed = true;
+		}
+
 		session.Dispose();
 
 		return default;
