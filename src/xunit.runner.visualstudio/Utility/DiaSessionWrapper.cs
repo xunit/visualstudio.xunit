@@ -14,13 +14,13 @@ namespace Xunit.Runner.VisualStudio;
 class DiaSessionWrapper : IDisposable
 {
 #if NETFRAMEWORK
-	readonly AppDomainManager? appDomainManager;
+	AppDomainManager? appDomainManager;
 #endif
 	readonly DiagnosticMessageSink diagnosticMessageSink;
 	readonly object disposalLock = new();
 	bool disposed;
 	readonly DiaSessionWrapperHelper? helper;
-	readonly DiaSession? session;
+	DiaSession? session;
 
 	public DiaSessionWrapper(
 		string assemblyFileName,
@@ -80,14 +80,17 @@ class DiaSessionWrapper : IDisposable
 		lock (disposalLock)
 		{
 			if (disposed)
-				throw new ObjectDisposedException(nameof(DiaSessionWrapper));
+				return;
 
 			disposed = true;
-		}
 
-		session?.Dispose();
+			session.SafeDispose();
+			session = null;
+
 #if NETFRAMEWORK
-		appDomainManager?.Dispose();
+			appDomainManager.SafeDispose();
+			appDomainManager = null;
 #endif
+		}
 	}
 }

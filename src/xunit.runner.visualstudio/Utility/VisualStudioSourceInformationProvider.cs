@@ -22,13 +22,16 @@ internal class VisualStudioSourceInformationProvider(
 
 	readonly object disposalLock = new();
 	bool disposed;
-	readonly DiaSessionWrapper session = new(assemblyFileName, diagnosticMessageSink);
+	DiaSessionWrapper? session = new(assemblyFileName, diagnosticMessageSink);
 
 	/// <inheritdoc/>
 	public SourceInformation GetSourceInformation(
 		string? testClassName,
 		string? testMethodName)
 	{
+		if (session is null)
+			throw new ObjectDisposedException(nameof(VisualStudioSourceInformationProvider));
+
 		if (testClassName is null || testMethodName is null)
 			return EmptySourceInformation;
 
@@ -42,15 +45,16 @@ internal class VisualStudioSourceInformationProvider(
 	/// <inheritdoc/>
 	public ValueTask DisposeAsync()
 	{
-		lock (session)
+		lock (disposalLock)
 		{
 			if (disposed)
-				throw new ObjectDisposedException(nameof(VisualStudioSourceInformationProvider));
+				return default;
 
 			disposed = true;
-		}
 
-		session.Dispose();
+			session.SafeDispose();
+			session = null;
+		}
 
 		return default;
 	}

@@ -609,7 +609,7 @@ namespace Xunit.Runner.VisualStudio
 					executionOptions.SetDisableParallelization(true);
 				}
 
-				using var vsExecutionSink = new VsExecutionSink(reporterMessageHandler, frameworkHandle, logger, testCasesMap, () => cancelled);
+				var vsExecutionSink = new VsExecutionSink(reporterMessageHandler, frameworkHandle, logger, testCasesMap, () => cancelled);
 				var executionSinkOptions = new ExecutionSinkOptions
 				{
 					DiagnosticMessageSink = diagnosticSink,

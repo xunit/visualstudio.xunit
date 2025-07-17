@@ -1,12 +1,8 @@
-#pragma warning disable CA1513 // ObjectDisposedException.ThrowIf is not available in net472
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Xunit.Runner.Common;
 using Xunit.Sdk;
@@ -20,13 +16,11 @@ using XunitTestResultMessage = Xunit.Sdk.ITestResultMessage;
 
 namespace Xunit.Runner.VisualStudio;
 
-internal sealed class VsExecutionSink : TestMessageSink, IDisposable
+internal sealed class VsExecutionSink : TestMessageSink
 {
-	static readonly HashSet<char> InvalidFileNameChars = Path.GetInvalidFileNameChars().ToHashSet();
+	static readonly HashSet<char> InvalidFileNameChars = [.. Path.GetInvalidFileNameChars()];
 
 	readonly Func<bool> cancelledThunk;
-	readonly object disposalLock = new();
-	bool disposed;
 	readonly LoggerHelper logger;
 	readonly IMessageSink innerSink;
 	readonly ConcurrentDictionary<string, MessageMetadataCache> metadataCacheByAssemblyID = [];
@@ -95,21 +89,6 @@ internal sealed class VsExecutionSink : TestMessageSink, IDisposable
 
 	public ExecutionSummary ExecutionSummary { get; private set; }
 
-	public ManualResetEvent Finished { get; } = new ManualResetEvent(initialState: false);
-
-	public void Dispose()
-	{
-		lock (disposalLock)
-		{
-			if (disposed)
-				throw new ObjectDisposedException(nameof(VsExecutionSink));
-
-			disposed = true;
-		}
-
-		Finished.Dispose();
-	}
-
 	VsTestCase? FindTestCase(
 		string testCaseUniqueID,
 		string testAssemblyUniqueID)
@@ -172,8 +151,6 @@ internal sealed class VsExecutionSink : TestMessageSink, IDisposable
 			ExecutionSummary.Skipped = assemblyFinished.TestsSkipped;
 			ExecutionSummary.Time = assemblyFinished.ExecutionTime;
 			ExecutionSummary.Total = assemblyFinished.TestsTotal;
-
-			Finished.Set();
 
 			HandleCancellation(args);
 		}
@@ -581,7 +558,7 @@ internal sealed class VsExecutionSink : TestMessageSink, IDisposable
 		VsTestResult testResult) =>
 			testResultByCaseID.TryAdd(test.TestUniqueID, (actionDescription, test, testResult));
 
-	string SanitizeFileName(string fileName)
+	static string SanitizeFileName(string fileName)
 	{
 		var result = new StringBuilder(fileName.Length);
 

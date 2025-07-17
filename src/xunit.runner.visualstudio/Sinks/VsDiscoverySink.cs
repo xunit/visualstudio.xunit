@@ -32,6 +32,7 @@ internal sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 	readonly Dictionary<string, string> displayNamesByTestCaseUniqueID = [];
 	readonly object disposalLock = new();
 	bool disposed;
+	ManualResetEvent? finished = new(initialState: false);
 	readonly LoggerHelper logger;
 	readonly string source;
 	readonly List<ITestCaseDiscovered> testCaseBatch = [];
@@ -59,7 +60,8 @@ internal sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 		discoveryEventSink.DiscoveryCompleteEvent += HandleDiscoveryCompleteMessage;
 	}
 
-	public ManualResetEvent Finished { get; } = new ManualResetEvent(initialState: false);
+	public ManualResetEvent Finished =>
+		finished ?? throw new ObjectDisposedException(nameof(VsDiscoverySink));
 
 	public int TotalTests { get; private set; }
 
@@ -68,12 +70,13 @@ internal sealed class VsDiscoverySink : IVsDiscoverySink, IDisposable
 		lock (disposalLock)
 		{
 			if (disposed)
-				throw new ObjectDisposedException(nameof(VsDiscoverySink));
+				return;
 
 			disposed = true;
-		}
 
-		Finished.Dispose();
+			finished.SafeDispose();
+			finished = null;
+		}
 	}
 
 	public static VsTestCase? CreateVsTestCase(
