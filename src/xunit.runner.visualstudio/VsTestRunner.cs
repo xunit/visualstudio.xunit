@@ -172,7 +172,7 @@ namespace Xunit.Runner.VisualStudio
 			// We can't use await here because the contract from VSTest says we have to wait for everything to finish
 			// before returning from this function.
 			DiscoverTests(
-				sources, loggerHelper, testPlatformContext, runSettings,
+				sources, loggerHelper, runSettings,
 				(source, discoverer, discoveryOptions) => new VsDiscoverySink(source, loggerHelper, discoverySink, discoveryOptions, testPlatformContext, testCaseFilter, () => cancelled)
 			).GetAwaiter().GetResult();
 		}
@@ -180,7 +180,6 @@ namespace Xunit.Runner.VisualStudio
 		async Task DiscoverTests<TVisitor>(
 			IEnumerable<string> sources,
 			LoggerHelper logger,
-			TestPlatformContext testPlatformContext,
 			RunSettings runSettings,
 			Func<string, IFrontControllerDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor> visitorFactory,
 			Action<string, IFrontControllerDiscoverer, ITestFrameworkDiscoveryOptions, TVisitor>? visitComplete = null)
@@ -343,7 +342,7 @@ namespace Xunit.Runner.VisualStudio
 			return reporter ?? new DefaultRunnerReporter();
 		}
 
-		static IList<DiscoveredTestCase> GetVsTestCases(
+		static List<DiscoveredTestCase> GetVsTestCases(
 			string source,
 			VsExecutionDiscoverySink visitor,
 			LoggerHelper logger,
@@ -393,12 +392,11 @@ namespace Xunit.Runner.VisualStudio
 			RunTests(
 				runContext, frameworkHandle, logger, testPlatformContext, runSettings,
 				() =>
-					tests
+					[.. tests
 						.Distinct(TestCaseUniqueIDComparer.Instance)
 						.GroupBy(testCase => testCase.Source)
 						.Select(group => AssemblyRunInfo.Create(logger, project, runSettings, group.Key, [.. group], runExplicitTests))
-						.WhereNotNull()
-						.ToList()
+						.WhereNotNull()]
 			).GetAwaiter().GetResult();
 		}
 
@@ -428,7 +426,7 @@ namespace Xunit.Runner.VisualStudio
 			// before returning from this function.
 			RunTests(
 				runContext, frameworkHandle, logger, testPlatformContext, runSettings,
-				() => sources.Select(source => AssemblyRunInfo.Create(logger, project, runSettings, Path.GetFullPath(source))).WhereNotNull().ToList()
+				() => [.. sources.Select(source => AssemblyRunInfo.Create(logger, project, runSettings, Path.GetFullPath(source))).WhereNotNull()]
 			).GetAwaiter().GetResult();
 		}
 

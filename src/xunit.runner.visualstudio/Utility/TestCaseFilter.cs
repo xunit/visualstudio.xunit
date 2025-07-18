@@ -155,7 +155,7 @@ internal class TestCaseFilter
 		return supportedPropertyNames;
 	}
 
-	static IEnumerable<KeyValuePair<string, string>> GetTraits(TestCase testCase)
+	static KeyValuePair<string, string>[] GetTraits(TestCase testCase)
 	{
 		var traitProperty = TestProperty.Find("TestObject.Traits");
 		if (traitProperty is not null)
