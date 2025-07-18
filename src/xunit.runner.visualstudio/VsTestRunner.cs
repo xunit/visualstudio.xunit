@@ -112,13 +112,13 @@ namespace Xunit.Runner.VisualStudio
 			"xunit.runner.utility.uwp10.dll",            // 2.4.0-2.4.2
 
 			// xUnit.net v3
-			"xunit.v3.assert.dll",
-			"xunit.v3.common.dll",
-			"xunit.v3.core.dll",
-			"xunit.v3.runner.common.dll",
-			"xunit.v3.runner.inproc.console.dll",
-			"xunit.v3.runner.utility.net472.dll",
-			"xunit.v3.runner.utility.netstandard20.dll",
+			"xunit.v3.assert.dll",                  // 1.0.0+
+			"xunit.v3.common.dll",                  // 1.0.0+
+			"xunit.v3.core.dll",                    // 1.0.0+
+			"xunit.v3.runner.common.dll",           // 1.0.0+
+			"xunit.v3.runner.inproc.console.dll",   // 1.0.0+
+			"xunit.v3.runner.utility.netfx.dll",    // 1.0.0+
+			"xunit.v3.runner.utility.netcore.dll",  // 1.0.0+
 		};
 
 		internal static TestProperty ManagedMethodProperty { get; } =
