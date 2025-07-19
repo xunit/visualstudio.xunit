@@ -9,7 +9,7 @@ You will need the following software installed:
 
 * .NET Framework 4.7.2 or later (part of the Windows OS)
 * [.NET SDK 9.0](https://dotnet.microsoft.com/download/dotnet/9.0)
-* [.NET 6.0 Runtime](https://dotnet.microsoft.com/download/dotnet/6.0)
+* [.NET 8.0 Runtime](https://dotnet.microsoft.com/download/dotnet/8.0)
 * [git](https://git-scm.com/downloads)
 * PowerShell (or [PowerShell Core](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-windows?view=powershell-6))
 
