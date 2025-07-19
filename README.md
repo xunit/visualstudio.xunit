@@ -2,8 +2,8 @@
 
 This project contains the Visual Studio runner for xUnit.net. It supports the built-in Test Explorer feature in Visual Studio 2022 and later. It supports .NET 6+ and .NET Framework 4.6.2+. It can run tests from xUnit.net 1.9.2 and later.
 
-* _New to xUnit.net? Get started with [.NET Framework](https://xunit.net/docs/getting-started/netfx/visual-studio) and [.NET Core](https://xunit.net/docs/getting-started/netcore/cmdline)._
-* _Need some help building the source? See [BUILDING.md](BUILDING.md)._
+* _New to xUnit.net? Get started with the [.NET SDK](https://xunit.net/docs/getting-started/v3/getting-started)._
+* _Need some help building the source? See [BUILDING.md](https://github.com/xunit/visualstudio.xunit/tree/main/BUILDING.md)._
 * _Want to contribute to the project? See [CONTRIBUTING.md](https://github.com/xunit/.github/tree/main/CONTRIBUTING.md)._
 
 ## Latest Builds
