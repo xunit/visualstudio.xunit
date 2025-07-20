@@ -15,9 +15,20 @@ public class TestFx
 		context.BuildStep("Running .NET Framework tests");
 
 		Directory.CreateDirectory(context.TestOutputFolder);
-		File.Delete(Path.Combine(context.TestOutputFolder, "test.xunit.runner.visualstudio-netfx.trx"));
 
-		await context.Exec("dotnet", $"test test/test.xunit.runner.visualstudio -tl:off --configuration {context.Configuration} --no-build --framework net472 --logger trx;LogFileName=test.xunit.runner.visualstudio-netfx.trx --results-directory \"{context.TestOutputFolder}\" --verbosity {context.Verbosity}");
+		var testFolder = Path.Combine(context.BaseFolder, "test", "test.xunit.runner.visualstudio", "bin", context.ConfigurationText, "net472");
+		var testPath = Path.Combine(testFolder, "test.xunit.runner.visualstudio.exe");
+		var reportPath = Path.Combine(context.TestOutputFolder, "test.xunit.runner.visualstudio-netfx.ctrf");
+		File.Delete(reportPath);
+
+		await context.Exec(testPath, $"-ctrf {reportPath}", testFolder);
+
+		if (context.NeedMono)
+			return;
+
+		context.BuildStep("Running .NET Framework VSTest integration tests");
+
+		await context.Exec("dotnet", $"test test/test.v3 -tl:off --configuration {context.Configuration} --no-build --framework net472 --verbosity {context.Verbosity}");
 		await context.Exec("dotnet", $"test test/test.v2 -tl:off --configuration {context.Configuration} --no-build --framework net472 --verbosity {context.Verbosity}");
 		await context.Exec("dotnet", $"test test/test.v1 -tl:off --configuration {context.Configuration} --no-build --framework net472 --verbosity {context.Verbosity}");
 	}

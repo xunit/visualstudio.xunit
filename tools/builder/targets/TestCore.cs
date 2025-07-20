@@ -12,12 +12,20 @@ public class TestCore
 {
 	public static async Task OnExecute(BuildContext context)
 	{
-		context.BuildStep("Running .NET Core tests");
+		context.BuildStep("Running .NET tests");
 
 		Directory.CreateDirectory(context.TestOutputFolder);
-		File.Delete(Path.Combine(context.TestOutputFolder, "test.xunit.runner.visualstudio-netcore.trx"));
 
-		await context.Exec("dotnet", $"test test/test.xunit.runner.visualstudio -tl:off --configuration {context.Configuration} --no-build --framework net8.0 --logger trx;LogFileName=test.xunit.runner.visualstudio-netcore.trx --results-directory \"{context.TestOutputFolder}\" --verbosity {context.Verbosity}");
+		var testFolder = Path.Combine(context.BaseFolder, "test", "test.xunit.runner.visualstudio", "bin", context.ConfigurationText, "net8.0");
+		var testPath = Path.Combine(testFolder, "test.xunit.runner.visualstudio.dll");
+		var reportPath = Path.Combine(context.TestOutputFolder, "test.xunit.runner.visualstudio-netcore.ctrf");
+		File.Delete(reportPath);
+
+		await context.Exec("dotnet", $"exec {testPath} -ctrf {reportPath}");
+
+		context.BuildStep("Running .NET VSTest integration tests");
+
+		await context.Exec("dotnet", $"test test/test.v3 -tl:off --configuration {context.Configuration} --no-build --framework net8.0 --verbosity {context.Verbosity}");
 		await context.Exec("dotnet", $"test test/test.v2 -tl:off --configuration {context.Configuration} --no-build --framework net8.0 --verbosity {context.Verbosity}");
 	}
 }
