@@ -5,11 +5,9 @@ public class Tests
 	[Fact]
 	public void Passing() { }
 
-	[Fact(Explicit = true)]
-	public void Failing() => Assert.Fail("This is a failing test");
+	[Fact(Skip = "Unconditionally skipped")]
+	public void Skipped() => Assert.Fail("This does not run");
 
-	[Theory]
-	[InlineData(true, Explicit = true)]
-	[InlineData(false)]
-	public void ConditionalSkip(bool value) => Assert.SkipWhen(value, "Conditionally skipped");
+	[Fact(Explicit = true)]
+	public void Explicit() => Assert.Fail("This only runs explicitly.");
 }
