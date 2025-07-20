@@ -23,6 +23,9 @@ public class TestFx
 
 		await context.Exec(testPath, $"-ctrf {reportPath}", testFolder);
 
+		if (context.NeedMono)
+			return;
+
 		context.BuildStep("Running .NET Framework VSTest integration tests");
 
 		await context.Exec("dotnet", $"test test/test.v3 -tl:off --configuration {context.Configuration} --no-build --framework net472 --verbosity {context.Verbosity}");
