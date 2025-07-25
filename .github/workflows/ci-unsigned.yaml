@@ -1,7 +1,10 @@
-name: PR Build
+name: "CI Build (unsigned)"
 on:
-  - pull_request
-  - workflow_dispatch
+  push:
+    branches-ignore:
+      - main
+      - 'rel/**'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -41,13 +44,17 @@ jobs:
           compression-level: 9
         if: always()
 
+      - name: "Upload artifact: packages"
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: artifacts/packages
+          compression-level: 0
+        if: always()
+
       - name: Publish Test Report
         uses: ctrf-io/github-test-reporter@v1
         with:
           report-path: './artifacts/test/*.ctrf'
           github-report: true
-          pull-request: true
-          update-comment: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: always()
