@@ -268,6 +268,7 @@ namespace Xunit.Runner.VisualStudio
 						Assembly = assembly,
 						DiscoveryOptions = discoveryOptions,
 						ShadowCopy = assembly.Configuration.ShadowCopyOrDefault,
+						UniqueID = controller.TestAssemblyUniqueID,
 					});
 
 					try
@@ -286,6 +287,7 @@ namespace Xunit.Runner.VisualStudio
 							Assembly = assembly,
 							DiscoveryOptions = discoveryOptions,
 							TestCasesToRun = totalTests,
+							UniqueID = controller.TestAssemblyUniqueID,
 						});
 					}
 				}

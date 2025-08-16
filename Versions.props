@@ -10,8 +10,8 @@
     <Nerdbank_GitVersioning_Version>3.7.115</Nerdbank_GitVersioning_Version>
     <NSubstitute_Version>5.3.0</NSubstitute_Version>
     <TunnelVisionLabs_ReferenceAssemblyAnnotator_Version>1.0.0-alpha.160</TunnelVisionLabs_ReferenceAssemblyAnnotator_Version>
-    <xunit_analyzers_Version>1.24.0-pre.10</xunit_analyzers_Version>
-    <xunit_v3_Version>3.0.1-pre.12</xunit_v3_Version>
+    <xunit_analyzers_Version>1.24.0</xunit_analyzers_Version>
+    <xunit_v3_Version>3.0.1</xunit_v3_Version>
     <xunit_Version>2.9.3</xunit_Version>
   </PropertyGroup>
 
