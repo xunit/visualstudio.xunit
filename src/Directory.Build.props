@@ -15,7 +15,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="$(Microsoft_SourceLink_GitHub_Version)" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="$(Microsoft_TestPlatform_ObjectModel_Version)" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="[$(Microsoft_TestPlatform_ObjectModel_Version)]" PrivateAssets="All" />
     <PackageReference Include="Nerdbank.GitVersioning" Version="$(Nerdbank_GitVersioning_Version)" PrivateAssets="all" />
   </ItemGroup>
 

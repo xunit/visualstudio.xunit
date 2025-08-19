@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="[$(Microsoft_NET_Test_Sdk_Version)]" />
-    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="$(Microsoft_TestPlatform_ObjectModel_Version)" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.TestPlatform.ObjectModel" Version="[$(Microsoft_TestPlatform_ObjectModel_Version)]" PrivateAssets="All" />
     <PackageReference Include="NSubstitute" Version="$(NSubstitute_Version)" />
     <PackageReference Include="xunit.v3" Version="$(xunit_v3_Version)" />
     <PackageReference Include="xunit.v3.runner.utility" Version="$(xunit_v3_Version)" />
