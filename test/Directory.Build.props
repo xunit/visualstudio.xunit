@@ -7,7 +7,7 @@
     <!-- Never use Microsoft.Testing.Platform mode, as that bypasses the VSTest adapter -->
     <DisableTestingPlatformServerCapability>true</DisableTestingPlatformServerCapability>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
-    <LangVersion>12.0</LangVersion>
+    <LangVersion>14.0</LangVersion>
     <PackageId>$(MSBuildProjectName)</PackageId>
     <VersionPrefix>99.99.99-dev</VersionPrefix>
     <WarningsAsErrors>true</WarningsAsErrors>
