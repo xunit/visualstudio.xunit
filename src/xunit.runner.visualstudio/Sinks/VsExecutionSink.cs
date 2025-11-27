@@ -122,8 +122,6 @@ internal sealed class VsExecutionSink : TestMessageSink
 	{
 		ExecutionSummary.Errors++;
 
-		logger.LogError("Catastrophic failure: {0}", ExceptionUtility.CombineMessages(args.Message));
-
 		HandleCancellation(args);
 	}
 
