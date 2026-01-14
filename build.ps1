@@ -25,10 +25,6 @@ if ($version.Major -lt 9) {
 	throw ".NET SDK version ($version) is too low; please install version 9.0 or later"
 }
 
-if ($null -eq (Get-Command "msbuild.exe" -ErrorAction Ignore)) {
-	throw "Could not find 'msbuild.exe'; please run this from a Visual Studio developer shell"
-}
-
 Push-Location (Split-Path $MyInvocation.MyCommand.Definition)
 
 try {
