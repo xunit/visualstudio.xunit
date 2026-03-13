@@ -26,6 +26,7 @@ public class TestCore
 		context.BuildStep("Running .NET VSTest integration tests");
 
 		await context.Exec("dotnet", $"test test/test.v3 -tl:off --configuration {context.Configuration} --no-build --framework net8.0 --verbosity {context.Verbosity}");
+		await context.Exec("dotnet", $"test test/test.v3.aot -tl:off --configuration {context.Configuration} --no-build --framework net10.0 --verbosity {context.Verbosity}");
 		await context.Exec("dotnet", $"test test/test.v2 -tl:off --configuration {context.Configuration} --no-build --framework net8.0 --verbosity {context.Verbosity}");
 	}
 }

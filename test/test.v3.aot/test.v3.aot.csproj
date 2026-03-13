@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="[$(Microsoft_NET_Test_Sdk_Version)]" />
+    <PackageReference Include="xunit.v3.aot.mtp-off" Version="$(xunit_v3_Version)" />
+  </ItemGroup>
+
+  <!-- Can't take a direct reference, since it uses non-AOT assemblies -->
+  <Target Name="_CopyRunner" AfterTargets="Build">
+    <ItemGroup>
+      <_RunnerAssemblies Include="$(MSBuildThisFileDirectory)..\..\src\xunit.runner.visualstudio\bin\$(Configuration)\net8.0\*.dll" />
+    </ItemGroup>
+    <Copy
+        SourceFiles="@(_RunnerAssemblies)"
+        DestinationFolder="$(MSBuildThisFileDirectory)bin\$(Configuration)\$(TargetFramework)"
+        SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

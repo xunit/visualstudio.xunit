@@ -311,7 +311,7 @@ namespace Xunit.Runner.VisualStudio
 
 		internal static IReadOnlyList<IRunnerReporter> GetAvailableRunnerReporters(LoggerHelper? logger)
 		{
-			var result = RegisteredRunnerReporters.Get(typeof(VsTestRunner).Assembly, out var messages);
+			var result = RegisteredRunnerConfig.GetRunnerReporters(typeof(VsTestRunner).Assembly, out var messages);
 
 			if (logger is not null)
 				foreach (var message in messages)
@@ -519,6 +519,7 @@ namespace Xunit.Runner.VisualStudio
 					return;
 
 				var testCasesMap = new ConcurrentDictionary<string, TestCase>();
+				var testCaseUniqueIDs = new ConcurrentBag<string>();
 				var testCaseSerializations = new ConcurrentBag<string>();
 				if (runInfo.TestCases is null || runInfo.TestCases.Count == 0)
 				{
@@ -557,12 +558,16 @@ namespace Xunit.Runner.VisualStudio
 					foreach (var filteredTestCase in filteredTestCases)
 					{
 						var uniqueID = filteredTestCase.UniqueID;
-						if (string.IsNullOrEmpty(filteredTestCase.TestCase.Serialization))
-							logger.LogWarningWithSource(assemblyFileName, "Skipping test case '{0}' (ID '{1}') without serialization", filteredTestCase.TestCase.TestCaseDisplayName, filteredTestCase.TestCase.TestCaseUniqueID);
-						else if (filteredTestCase.VSTestCase is not null)
+						var serialization = filteredTestCase.TestCase.Serialization;
+
+						if (filteredTestCase.VSTestCase is not null)
 						{
 							if (testCasesMap.TryAdd(uniqueID, filteredTestCase.VSTestCase))
-								testCaseSerializations.Add(filteredTestCase.TestCase.Serialization);
+							{
+								testCaseUniqueIDs.Add(uniqueID);
+								if (serialization is not null)
+									testCaseSerializations.Add(serialization);
+							}
 							else
 								logger.LogWarningWithSource(assemblyFileName, "Skipping test case with duplicate ID '{0}' ('{1}' and '{2}')", uniqueID, testCasesMap[uniqueID].DisplayName, filteredTestCase.VSTestCase?.DisplayName);
 						}
@@ -580,12 +585,14 @@ namespace Xunit.Runner.VisualStudio
 
 						if (uniqueID is null)
 							logger.LogWarningWithSource(assemblyFileName, "VSTestCase {0} did not have an associated unique ID", testCase.DisplayName);
-						else if (string.IsNullOrEmpty(serialization))
-							logger.LogWarningWithSource(assemblyFileName, "Skipping test case '{0}' (ID '{1}') without serialization", testCase.DisplayName, uniqueID);
 						else
 						{
 							if (testCasesMap.TryAdd(uniqueID, testCase))
-								testCaseSerializations.Add(serialization);
+							{
+								testCaseUniqueIDs.Add(uniqueID);
+								if (serialization is not null)
+									testCaseSerializations.Add(serialization);
+							}
 							else
 								logger.LogWarningWithSource(assemblyFileName, "Skipping test case with duplicate ID '{0}' ('{1}' and '{2}')", uniqueID, testCasesMap[uniqueID].DisplayName, testCase.DisplayName);
 						}
@@ -593,7 +600,7 @@ namespace Xunit.Runner.VisualStudio
 				}
 
 				// https://github.com/xunit/visualstudio.xunit/issues/417
-				if (testCaseSerializations.IsEmpty)
+				if (testCaseUniqueIDs.IsEmpty)
 				{
 					if (configuration.InternalDiagnosticMessagesOrDefault)
 						logger.LogWarning("Skipping '{0}': no tests passed the filter", assemblyFileName);
@@ -622,7 +629,10 @@ namespace Xunit.Runner.VisualStudio
 				bool shadowCopy = configuration.ShadowCopyOrDefault;
 				var resultsSink = new ExecutionSink(runInfo.Assembly, discoveryOptions, executionOptions, appDomainOption, shadowCopy, vsExecutionSink, executionSinkOptions);
 
-				var frontControllerSettings = new FrontControllerRunSettings(executionOptions, testCaseSerializations);
+				var frontControllerSettings =
+					testCaseSerializations.IsEmpty
+						? FrontControllerRunSettings.WithTestCaseIDs(executionOptions, testCaseUniqueIDs)
+						: FrontControllerRunSettings.WithSerializedTestCases(executionOptions, testCaseSerializations);
 				if (testProcessLauncher is not null)
 					frontControllerSettings.LaunchOptions.WaitForDebugger = true;
 

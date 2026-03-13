@@ -1,0 +1,34 @@
+<Solution>
+  <Folder Name="/git/">
+    <File Path=".gitattributes" />
+    <File Path=".github/ISSUE_TEMPLATE.md" />
+    <File Path=".github/PULL_REQUEST_TEMPLATE.md" />
+    <File Path=".gitignore" />
+  </Folder>
+  <Folder Name="/git/workflows/">
+    <File Path=".github/workflows/ci-signed.yaml" />
+    <File Path=".github/workflows/ci-unsigned.yaml" />
+    <File Path=".github/workflows/pull-request.yaml" />
+  </Folder>
+  <Folder Name="/meta/">
+    <File Path=".editorconfig" />
+    <File Path="BUILDING.md" />
+    <File Path="NuGet.Config" />
+    <File Path="README.md" />
+    <File Path="version.json" />
+    <File Path="Versions.props" />
+  </Folder>
+  <Folder Name="/src/">
+    <File Path="src/Directory.Build.props" />
+    <Project Path="src/xunit.runner.visualstudio/xunit.runner.visualstudio.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <File Path="test/Directory.Build.props" />
+    <File Path="test/Directory.Build.targets" />
+    <Project Path="test/test.v1/test.v1.csproj" />
+    <Project Path="test/test.v2/test.v2.csproj" />
+    <Project Path="test/test.v3/test.v3.csproj" />
+    <Project Path="test/test.v3.aot/test.v3.aot.csproj" />
+    <Project Path="test/test.xunit.runner.visualstudio/test.xunit.runner.visualstudio.csproj" />
+  </Folder>
+</Solution>
