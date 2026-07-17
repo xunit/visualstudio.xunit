@@ -3,7 +3,6 @@ extern alias VSTestAdapter;
 using System;
 using System.Diagnostics;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Logging;
-using NSubstitute;
 using Xunit;
 using Xunit.Runner.Common;
 using LoggerHelper = VSTestAdapter.Xunit.Runner.VisualStudio.LoggerHelper;
@@ -51,13 +50,12 @@ public class RunnerReporterTests
 	{
 		using var _ = EnvironmentHelper.NullifyEnvironmentalReporters();
 		var settings = new RunSettings { NoAutoReporters = true, ReporterSwitch = "thisnotavalidreporter" };
-		var logger = Substitute.For<IMessageLogger>();
+		var logger = new SpyMessageLogger();
 		var loggerHelper = new LoggerHelper(logger, new Stopwatch());
 
 		var runnerReporter = VsTestRunner.GetRunnerReporter(loggerHelper, settings);
 
-
 		Assert.Equal(typeof(DefaultRunnerReporter).AssemblyQualifiedName, runnerReporter.GetType().AssemblyQualifiedName);
-		logger.Received(1).SendMessage(TestMessageLevel.Warning, "[xUnit.net 00:00:00.00] Could not find requested reporter 'thisnotavalidreporter'");
+		Assert.Contains("[Warning] [xUnit.net 00:00:00.00] Could not find requested reporter 'thisnotavalidreporter'", logger.Messages);
 	}
 }

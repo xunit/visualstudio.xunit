@@ -21,7 +21,7 @@ public class TestCore
 		var reportPath = Path.Combine(context.TestOutputFolder, "test.xunit.runner.visualstudio-netcore.ctrf");
 		File.Delete(reportPath);
 
-		await context.Exec("dotnet", $"exec {testPath} -ctrf {reportPath}");
+		await context.Exec("dotnet", $"exec {testPath} -result-ctrf {reportPath}");
 
 		context.BuildStep("Running .NET VSTest integration tests");
 

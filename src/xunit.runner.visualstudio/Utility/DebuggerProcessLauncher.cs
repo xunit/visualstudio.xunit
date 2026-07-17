@@ -11,9 +11,10 @@ internal class DebuggerProcessLauncher(IFrameworkHandle2 frameworkHandle2) :
 	protected override ITestProcess? StartTestProcess(
 		string executable,
 		string executableArguments,
-		string? responseFile)
+		string? responseFile,
+		int shutdownProcessWaitSeconds)
 	{
-		var testProcess = LocalTestProcess.Start(executable, executableArguments, responseFile);
+		var testProcess = LocalTestProcess.Start(executable, executableArguments, responseFile, shutdownProcessWaitSeconds);
 		if (testProcess is null)
 			return null;
 

@@ -610,11 +610,8 @@ namespace Xunit.Runner.VisualStudio
 
 				// Execute tests
 				var executionOptions = TestFrameworkOptions.ForExecution(configuration);
-				if (!configuration.ParallelizeTestCollectionsOrDefault)
-				{
+				if (configuration.ParallelModeOrDefault == ParallelMode.None)
 					executionOptions.SetSynchronousMessageReporting(true);
-					executionOptions.SetDisableParallelization(true);
-				}
 
 				var vsExecutionSink = new VsExecutionSink(reporterMessageHandler, frameworkHandle, logger, testCasesMap, () => cancelled);
 				var executionSinkOptions = new ExecutionSinkOptions

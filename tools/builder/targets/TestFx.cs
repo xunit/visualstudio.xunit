@@ -21,7 +21,7 @@ public class TestFx
 		var reportPath = Path.Combine(context.TestOutputFolder, "test.xunit.runner.visualstudio-netfx.ctrf");
 		File.Delete(reportPath);
 
-		await context.Exec(testPath, $"-ctrf {reportPath}", testFolder);
+		await context.Exec(testPath, $"-result-ctrf {reportPath}", testFolder);
 
 		if (context.NeedMono)
 			return;

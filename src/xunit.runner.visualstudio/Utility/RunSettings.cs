@@ -76,7 +76,7 @@ internal class RunSettings
 		if (ParallelizeAssembly.HasValue)
 			configuration.ParallelizeAssembly = ParallelizeAssembly;
 		if (ParallelizeTestCollections.HasValue)
-			configuration.ParallelizeTestCollections = ParallelizeTestCollections;
+			configuration.ParallelMode ??= ParallelizeTestCollections.Value ? ParallelMode.Collections : ParallelMode.None;
 		if (PreEnumerateTheories.HasValue)
 			configuration.PreEnumerateTheories = PreEnumerateTheories;
 		if (PrintMaxEnumerableLength.HasValue)
