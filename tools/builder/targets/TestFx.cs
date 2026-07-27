@@ -23,7 +23,7 @@ public class TestFx
 
 		await context.Exec(testPath, $"-result-ctrf {reportPath}", testFolder);
 
-		if (context.NeedMono)
+		if (!context.IsWindows)
 			return;
 
 		context.BuildStep("Running .NET Framework VSTest integration tests");

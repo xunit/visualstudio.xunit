@@ -13,11 +13,7 @@ function guard_bin {
 guard_bin git "please install the Git CLI from https://git-scm.com/"
 guard_bin dotnet "please install the .NET SDK from https://dot.net/"
 
-if [ `uname -o` != Msys ]; then
-	guard_bin mono "please install Mono from https://www.mono-project.com/"
-fi
-
-[ $(dotnet --version | cut -d. -f1) -ge 9 ] || write_error ".NET SDK version $(dotnet --version) is too low; please install version 9.0 or later from https://dot.net/"
+[ $(dotnet --version | cut -d. -f1) -ge 10 ] || write_error ".NET SDK version $(dotnet --version) is too low; please install version 10.0 or later from https://dot.net/"
 
 git submodule status | while read line; do
 	if [ "$(echo $line | cut -b1)" == "-" ]; then
