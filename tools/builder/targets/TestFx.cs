@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Xunit.BuildTools.Models;
@@ -14,6 +15,13 @@ public class TestFx
 	{
 		context.BuildStep("Running .NET Framework tests");
 
+		if (!context.IsWindows)
+		{
+			context.WriteLineColor(ConsoleColor.Yellow, "Skipping .NET Framework tests on non-Windows OS");
+			Console.WriteLine();
+			return;
+		}
+
 		Directory.CreateDirectory(context.TestOutputFolder);
 
 		var testFolder = Path.Combine(context.BaseFolder, "test", "test.xunit.runner.visualstudio", "bin", context.ConfigurationText, "net472");
@@ -22,9 +30,6 @@ public class TestFx
 		File.Delete(reportPath);
 
 		await context.Exec(testPath, $"-result-ctrf {reportPath}", testFolder);
-
-		if (!context.IsWindows)
-			return;
 
 		context.BuildStep("Running .NET Framework VSTest integration tests");
 
