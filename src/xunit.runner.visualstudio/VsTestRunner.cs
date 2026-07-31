@@ -624,7 +624,8 @@ namespace Xunit.Runner.VisualStudio
 				var appDomain = configuration.AppDomain ?? AppDomainDefaultBehavior;
 				var appDomainOption = controller.CanUseAppDomains && appDomain != AppDomainSupport.Denied ? AppDomainOption.Enabled : AppDomainOption.Disabled;
 				bool shadowCopy = configuration.ShadowCopyOrDefault;
-				var resultsSink = new ExecutionSink(runInfo.Assembly, discoveryOptions, executionOptions, appDomainOption, shadowCopy, vsExecutionSink, executionSinkOptions);
+				var executionSinkExecutionOptions = executionOptions.WithOverrides(controller.MaxParallelThreads, controller.ParallelAlgorithm, controller.ParallelMode);
+				var resultsSink = new ExecutionSink(runInfo.Assembly, discoveryOptions, executionSinkExecutionOptions, appDomainOption, shadowCopy, vsExecutionSink, executionSinkOptions);
 
 				var frontControllerSettings =
 					testCaseSerializations.IsEmpty
