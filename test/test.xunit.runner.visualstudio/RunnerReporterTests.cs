@@ -9,6 +9,7 @@ using LoggerHelper = VSTestAdapter.Xunit.Runner.VisualStudio.LoggerHelper;
 using RunSettings = VSTestAdapter.Xunit.Runner.VisualStudio.RunSettings;
 using VsTestRunner = VSTestAdapter.Xunit.Runner.VisualStudio.VsTestRunner;
 
+[TestClass(DisableParallelization = true)]
 public class RunnerReporterTests
 {
 	[Fact]
