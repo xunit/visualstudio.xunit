@@ -1,5 +1,4 @@
 {
   "$schema": "https://xunit.net/schema/current/xunit.runner.schema.json",
-  "diagnosticMessages": true,
-  "parallelMode": "all"
+  "diagnosticMessages": true
 }
