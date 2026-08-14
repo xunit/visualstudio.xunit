@@ -9,8 +9,8 @@
     <Microsoft_TestPlatform_ObjectModel_Version>$(Microsoft_NET_Test_Sdk_Version)</Microsoft_TestPlatform_ObjectModel_Version>
     <Nerdbank_GitVersioning_Version>3.10.91</Nerdbank_GitVersioning_Version>
     <TunnelVisionLabs_ReferenceAssemblyAnnotator_Version>1.0.0-alpha.160</TunnelVisionLabs_ReferenceAssemblyAnnotator_Version>
-    <xunit_analyzers_Version>[2.0.0-pre.64,3.0.0)</xunit_analyzers_Version>
-    <xunit_v3_Version>[4.0.0-pre.158,5.0.0)</xunit_v3_Version>
+    <xunit_analyzers_Version>2.0.0</xunit_analyzers_Version>
+    <xunit_v3_Version>4.0.0</xunit_v3_Version>
     <xunit_Version>2.9.3</xunit_Version>
   </PropertyGroup>
 
