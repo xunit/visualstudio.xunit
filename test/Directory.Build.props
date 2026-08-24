@@ -2,6 +2,7 @@
   <Import Project="..\Versions.props"/>
 
   <PropertyGroup>
+    <ContinuousIntegrationBuild Condition=" '$(GITHUB_ACTIONS)' == 'true' ">true</ContinuousIntegrationBuild>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>portable</DebugType>
     <!-- Never use Microsoft.Testing.Platform mode, as that bypasses the VSTest adapter -->
@@ -9,6 +10,8 @@
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <LangVersion>14.0</LangVersion>
     <PackageId>$(MSBuildProjectName)</PackageId>
+    <RestoreLockedMode Condition="'$(ContinuousIntegrationBuild)' == 'true'">true</RestoreLockedMode>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <VersionPrefix>99.99.99-dev</VersionPrefix>
     <WarningsAsErrors>true</WarningsAsErrors>
   </PropertyGroup>
