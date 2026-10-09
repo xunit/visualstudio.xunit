@@ -14,13 +14,13 @@
       },
       "xunit.v3.aot.mtp-off": {
         "type": "Direct",
-        "requested": "[4.0.0, )",
-        "resolved": "4.0.0",
-        "contentHash": "CKGouxv+0+NAR73iUWAFcuTN3DWJ9WVy3/znzZMcAN0g7XpdtE5ZV+4u3vN6EW+v6y/jFyQbWNfaaaDHbANePw==",
+        "requested": "[4.0.2, )",
+        "resolved": "4.0.2",
+        "contentHash": "oqZH5Xe1A4cD0ZtJEOHU3NW3tt/XDDRU9Tqa1XzSTyRwn6RQ+cV8ZpGBTAYUNkhoqaBYq7OThAseoFNA2TVmlA==",
         "dependencies": {
-          "xunit.analyzers": "2.0.0",
-          "xunit.v3.assert.aot": "[4.0.0]",
-          "xunit.v3.core.aot.mtp-off": "[4.0.0]"
+          "xunit.analyzers": "2.2.0",
+          "xunit.v3.assert.aot": "[4.0.2]",
+          "xunit.v3.core.aot.mtp-off": "[4.0.2]"
         }
       },
       "Microsoft.CodeCoverage": {
@@ -49,51 +49,51 @@
       },
       "xunit.analyzers": {
         "type": "Transitive",
-        "resolved": "2.0.0",
-        "contentHash": "2UtauxWDa9C6bT7MvFfZkNoFulfflb00jnDU2xeVO9Y58l4Ah2Mv/HiMs4b0zdpK/SfAxpajkgKNMN8zBKa+7Q=="
+        "resolved": "2.2.0",
+        "contentHash": "dXMIIztipcAyL3a19gtUrih/RLrE33/4VJdICoinYqIXXo1KLtsMPsaQ9dO2pE8xajDguwE2kqVbBqE5/EoJ0Q=="
       },
       "xunit.v3.assert.aot": {
         "type": "Transitive",
-        "resolved": "4.0.0",
-        "contentHash": "2VdG9UbMjgh6Myvfae0PmIQwcCgbk/TaItbitCsCOZTeUQzzBSQINReqWYKvhCP7q2pKALyvwG4nz10mOgfU0g=="
+        "resolved": "4.0.2",
+        "contentHash": "LJphDPz3bnHhlyK4wI6ad/vBbXb2R2T5Y4ISO7ijXo8RdIrxRwhkSK83gvWDteKn6rLMt2Oj3/wlpciKvFk78g=="
       },
       "xunit.v3.common.aot": {
         "type": "Transitive",
-        "resolved": "4.0.0",
-        "contentHash": "SIo++a8cesA2iwjZb/820IyQEl91y12xRo6aGfjjNGKWEMRFf0C+fJCjTjvWtm+c6kYtiyXOTKUHxXcpdjepmw=="
+        "resolved": "4.0.2",
+        "contentHash": "UsAarHVudR5RHlR8SP3WRdL1V/jfTchFZD3tAELjYZP9HR8JcXFUFNnfu7Qz0QwC2KLzWe2poaLH09MtJFnP9g=="
       },
       "xunit.v3.core.aot.mtp-off": {
         "type": "Transitive",
-        "resolved": "4.0.0",
-        "contentHash": "J7ZnoSHr7j3QblR1L9MtkCuUYTgWFV800VnkJb6Ni9jVNliuX4d1zSy5amJXWxggaBBq/jVVtyaVVxZwH6Q3zQ==",
+        "resolved": "4.0.2",
+        "contentHash": "YT175SyYhlDEB3qaQcw5AC12luPWWJW/Rk9aFvIh44g8SlEQ82C+hcDgzJvbPMNFVE+rf4B4P8SpbDIcTbzn4Q==",
         "dependencies": {
-          "xunit.v3.extensibility.core.aot": "[4.0.0]",
-          "xunit.v3.runner.inproc.console.aot": "[4.0.0]"
+          "xunit.v3.extensibility.core.aot": "[4.0.2]",
+          "xunit.v3.runner.inproc.console.aot": "[4.0.2]"
         }
       },
       "xunit.v3.extensibility.core.aot": {
         "type": "Transitive",
-        "resolved": "4.0.0",
-        "contentHash": "+faklIQJNl7FUaoXInvo5BC96s+of9mThqM9A3R8/XIyjoOVRGltGCckxRcqVq6nxRkzgSkah0HDX+O+6tGN3A==",
+        "resolved": "4.0.2",
+        "contentHash": "cLC05t2jBQ4ti6moDEeVBcueMYga6bQzz1R6UPTEy+iBJW9fn0v6p1xpAw2wW/GQ7I+YOMZcVftEWQzXbOshZA==",
         "dependencies": {
-          "xunit.v3.common.aot": "[4.0.0]"
+          "xunit.v3.common.aot": "[4.0.2]"
         }
       },
       "xunit.v3.runner.common.aot": {
         "type": "Transitive",
-        "resolved": "4.0.0",
-        "contentHash": "HJ1fdd3cl8N3mgoag0IoyaMI3ILFwrLADRbk4/x8GED4JYRF/lHCX4sMxEQdFTQCO3y+ai9TOFCMlpN2bYis9w==",
+        "resolved": "4.0.2",
+        "contentHash": "UuavBMhPzpz8TEBEXImg6PyPjuSJL3lkb1bep0dy2SESAS2b45+Ex+uYblkWRt7GIJzquN6nO+wBQFYRFY6DZA==",
         "dependencies": {
-          "xunit.v3.common.aot": "[4.0.0]"
+          "xunit.v3.common.aot": "[4.0.2]"
         }
       },
       "xunit.v3.runner.inproc.console.aot": {
         "type": "Transitive",
-        "resolved": "4.0.0",
-        "contentHash": "Z69f1puRz1l8ruJP8Zz3Kf1Qrcd16z1C5gcuRFRu4zW7/2V6Offx2GWRiL8brevk3TpiYy8fi9d8rRZqwXIpWQ==",
+        "resolved": "4.0.2",
+        "contentHash": "2VZ1xpUWUw/q7Gj4PgKlNjfEDMXJBQvyTe73rDCMv+gGBiZ5eboXKPxlRhAb1Qc2ubchEFZNyGqTDTcSWU/Jnw==",
         "dependencies": {
-          "xunit.v3.extensibility.core.aot": "[4.0.0]",
-          "xunit.v3.runner.common.aot": "[4.0.0]"
+          "xunit.v3.extensibility.core.aot": "[4.0.2]",
+          "xunit.v3.runner.common.aot": "[4.0.2]"
         }
       }
     }

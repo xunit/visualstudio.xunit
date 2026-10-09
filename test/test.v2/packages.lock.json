@@ -126,35 +126,35 @@
       },
       "xunit.v3.common": {
         "type": "Transitive",
-        "resolved": "4.0.0",
-        "contentHash": "cjaNGmOVA5QJxcp6uuSsDhbt0lNmxezFo226mbYOuXm9E9Owq8bYTKxa9wnAMZRnbvyCmCYhAvc/+UAzf0M2vA==",
+        "resolved": "4.0.2",
+        "contentHash": "++CtT8daIf6qfieQev/8V88U3zViIDWou5cj+oWps1/Hf73UoaY/L0hKyi3v7Zlt3BmbU0pUc73zCB1GiB4nYA==",
         "dependencies": {
           "Microsoft.Bcl.AsyncInterfaces": "6.0.0"
         }
       },
       "xunit.v3.runner.common": {
         "type": "Transitive",
-        "resolved": "4.0.0",
-        "contentHash": "1IEIAVRgnPo9nihd9D0TvxxsLKVRySa+K0wLy/m0SJ4RMdveRCUj/mICFboruO+ILUJ10fUfCCyp7MC5/y7cGw==",
+        "resolved": "4.0.2",
+        "contentHash": "YlYKVhTJVcwEgJ6rm59Pjf71lQqKwKxEHqVRxWUuwrwm/nxB/mNFP/lP4vlntDO3GclNnLT9BjYOpJH9gViGQg==",
         "dependencies": {
           "Microsoft.Win32.Registry": "[5.0.0]",
           "System.Security.AccessControl": "[6.0.1]",
-          "xunit.v3.common": "[4.0.0]"
+          "xunit.v3.common": "[4.0.2]"
         }
       },
       "xunit.v3.runner.utility": {
         "type": "Transitive",
-        "resolved": "4.0.0",
-        "contentHash": "TLoOcGcTBEock9HRbTDKAJckfI0OC8xoLsH9I7pjsaOXTpppW2wudu+YCZG6OK/eTwO350b0+yzXz1/oz3jpQA==",
+        "resolved": "4.0.2",
+        "contentHash": "IslQygg0itl4/QE58yi7ibLPP0Vsa0qWbSGmeCEt6xTLz46LH5pZ/lNWFUlPx1Uvhb5Zt//C6Fcs89UTBEqoGw==",
         "dependencies": {
           "xunit.abstractions": "2.0.3",
-          "xunit.v3.runner.common": "[4.0.0]"
+          "xunit.v3.runner.common": "[4.0.2]"
         }
       },
       "xunit.runner.visualstudio": {
         "type": "Project",
         "dependencies": {
-          "xunit.v3.runner.utility": "[4.0.0, )"
+          "xunit.v3.runner.utility": "[4.0.2, )"
         }
       }
     },
@@ -278,35 +278,35 @@
       },
       "xunit.v3.common": {
         "type": "Transitive",
-        "resolved": "4.0.0",
-        "contentHash": "cjaNGmOVA5QJxcp6uuSsDhbt0lNmxezFo226mbYOuXm9E9Owq8bYTKxa9wnAMZRnbvyCmCYhAvc/+UAzf0M2vA==",
+        "resolved": "4.0.2",
+        "contentHash": "++CtT8daIf6qfieQev/8V88U3zViIDWou5cj+oWps1/Hf73UoaY/L0hKyi3v7Zlt3BmbU0pUc73zCB1GiB4nYA==",
         "dependencies": {
           "Microsoft.Bcl.AsyncInterfaces": "6.0.0"
         }
       },
       "xunit.v3.runner.common": {
         "type": "Transitive",
-        "resolved": "4.0.0",
-        "contentHash": "1IEIAVRgnPo9nihd9D0TvxxsLKVRySa+K0wLy/m0SJ4RMdveRCUj/mICFboruO+ILUJ10fUfCCyp7MC5/y7cGw==",
+        "resolved": "4.0.2",
+        "contentHash": "YlYKVhTJVcwEgJ6rm59Pjf71lQqKwKxEHqVRxWUuwrwm/nxB/mNFP/lP4vlntDO3GclNnLT9BjYOpJH9gViGQg==",
         "dependencies": {
           "Microsoft.Win32.Registry": "[5.0.0]",
           "System.Security.AccessControl": "[6.0.1]",
-          "xunit.v3.common": "[4.0.0]"
+          "xunit.v3.common": "[4.0.2]"
         }
       },
       "xunit.v3.runner.utility": {
         "type": "Transitive",
-        "resolved": "4.0.0",
-        "contentHash": "TLoOcGcTBEock9HRbTDKAJckfI0OC8xoLsH9I7pjsaOXTpppW2wudu+YCZG6OK/eTwO350b0+yzXz1/oz3jpQA==",
+        "resolved": "4.0.2",
+        "contentHash": "IslQygg0itl4/QE58yi7ibLPP0Vsa0qWbSGmeCEt6xTLz46LH5pZ/lNWFUlPx1Uvhb5Zt//C6Fcs89UTBEqoGw==",
         "dependencies": {
           "xunit.abstractions": "2.0.3",
-          "xunit.v3.runner.common": "[4.0.0]"
+          "xunit.v3.runner.common": "[4.0.2]"
         }
       },
       "xunit.runner.visualstudio": {
         "type": "Project",
         "dependencies": {
-          "xunit.v3.runner.utility": "[4.0.0, )"
+          "xunit.v3.runner.utility": "[4.0.2, )"
         }
       }
     }
